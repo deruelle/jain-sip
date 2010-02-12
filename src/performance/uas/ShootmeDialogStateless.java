@@ -1,7 +1,5 @@
 package performance.uas;
 
-import gov.nist.javax.sip.parser.lazy.LazyMessageParserFactory;
-
 import java.util.Properties;
 
 import javax.sip.DialogTerminatedEvent;
@@ -192,8 +190,7 @@ public class ShootmeDialogStateless implements SipListener {
         properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "4");
         properties.setProperty("gov.nist.javax.sip.RECEIVE_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.SEND_UDP_BUFFER_SIZE", "65536");
-        properties.setProperty("gov.nist.javax.sip.CONGESTION_CONTROL_ENABLED", "false");
-        properties.setProperty("gov.nist.javax.sip.MESSAGE_PARSER_FACTORY", LazyMessageParserFactory.class.getName());
+        properties.setProperty("gov.nist.javax.sip.CONGESTION_CONTROL_ENABLED", "false");        
         try {
             // Create SipStack object
             sipStack = sipFactory.createSipStack(properties);

@@ -1,7 +1,5 @@
 package performance.uas;
 
-import gov.nist.javax.sip.parser.lazy.LazyMessageParserFactory;
-
 import java.util.Properties;
 
 import javax.sip.Dialog;

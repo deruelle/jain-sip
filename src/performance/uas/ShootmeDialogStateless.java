@@ -4,7 +4,6 @@ import gov.nist.javax.sip.parser.lazy.LazyMessageParserFactory;
 
 import java.util.Properties;
 
-import javax.sip.Dialog;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
 import javax.sip.ListeningPoint;
@@ -16,7 +15,9 @@ import javax.sip.SipFactory;
 import javax.sip.SipListener;
 import javax.sip.SipProvider;
 import javax.sip.SipStack;
+import javax.sip.TransactionAlreadyExistsException;
 import javax.sip.TransactionTerminatedEvent;
+import javax.sip.TransactionUnavailableException;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
 import javax.sip.header.ContactHeader;
@@ -31,7 +32,7 @@ import javax.sip.message.Response;
  *
  * @author Vladimir Ralev
  */
-public class Shootme implements SipListener {
+public class ShootmeDialogStateless implements SipListener {
 
     private static AddressFactory addressFactory;
 
@@ -47,7 +48,7 @@ public class Shootme implements SipListener {
 
 
     protected static final String usageString = "java "
-            + Shootme.class.getCanonicalName() + " \n"
+            + ShootmeDialogStateless.class.getCanonicalName() + " \n"
             + ">>>> is your class path set to the root?";
 
     private static void usage() {
@@ -58,7 +59,7 @@ public class Shootme implements SipListener {
 
     public void processRequest(RequestEvent requestEvent) {
         final Request request = requestEvent.getRequest();
-        final ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
+	final ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
 
         if (request.getMethod().equals(Request.INVITE)) {
             processInvite(requestEvent, serverTransactionId);
@@ -80,8 +81,7 @@ public class Shootme implements SipListener {
      */
     public void processAck(RequestEvent requestEvent,
             ServerTransaction serverTransaction) {
-    	final Dialog dialog = requestEvent.getDialog();
-    	dialog.getDialogId();
+
     }
 
     /**
@@ -93,17 +93,23 @@ public class Shootme implements SipListener {
         final Request request = requestEvent.getRequest();
         final SipProvider sipProvider = (SipProvider) requestEvent.getSource();
         ServerTransaction st = serverTransaction;        
-        try {
+        try {        	
         	if (st == null) {
-        		st = sipProvider.getNewServerTransaction(request);
+        		try {
+        			st = sipProvider.getNewServerTransaction(request);
+				} catch ( TransactionUnavailableException tae) {
+					tae.printStackTrace();				
+	                return;
+				} catch ( TransactionAlreadyExistsException taex ) {
+					// This is a retransmission so just return.
+					return;				
+				}         		
             }
         	final String toTag = ""+System.nanoTime();
             Response response = messageFactory.createResponse(Response.RINGING,
                     request);            
             ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
             toHeader.setTag(toTag); // Application is supposed to set.
-            sipProvider.getNewDialog(st);
-			// Creates a dialog only for non trying responses				
             st.sendResponse(response);
 
             response = messageFactory.createResponse(Response.OK,
@@ -115,6 +121,7 @@ public class Shootme implements SipListener {
             response.addHeader(contactHeader);
             toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
             toHeader.setTag(toTag); // Application is supposed to set.
+//            response.addHeader(contactHeader);
             st.sendResponse(response);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -129,9 +136,20 @@ public class Shootme implements SipListener {
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
         final Request request = requestEvent.getRequest();
-        final Dialog dialog = requestEvent.getDialog();
+        
         try {
-            final Response response = messageFactory.createResponse(200, request);
+        	if (serverTransactionId == null) {
+        		try {
+        			serverTransactionId = ((SipProvider)requestEvent.getSource()).getNewServerTransaction(request);
+				} catch ( TransactionUnavailableException tae) {
+					tae.printStackTrace();				
+	                return;
+				} catch ( TransactionAlreadyExistsException taex ) {
+					// This is a retransmission so just return.
+					return;				
+				}              	
+            }
+            final Response response = messageFactory.createResponse(200, request);            
             serverTransactionId.sendResponse(response);
 
         } catch (Exception ex) {
@@ -175,7 +193,7 @@ public class Shootme implements SipListener {
         properties.setProperty("gov.nist.javax.sip.RECEIVE_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.SEND_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.CONGESTION_CONTROL_ENABLED", "false");
-//        properties.setProperty("gov.nist.javax.sip.MESSAGE_PARSER_FACTORY", LazyMessageParserFactory.class.getName());
+        properties.setProperty("gov.nist.javax.sip.MESSAGE_PARSER_FACTORY", LazyMessageParserFactory.class.getName());
         try {
             // Create SipStack object
             sipStack = sipFactory.createSipStack(properties);
@@ -197,7 +215,7 @@ public class Shootme implements SipListener {
             ListeningPoint lp = sipStack.createListeningPoint("127.0.0.1",
                     myPort, "udp");
 
-            Shootme listener = this;
+            ShootmeDialogStateless listener = this;
 
             SipProvider sipProvider = sipStack.createSipProvider(lp);
             sipProvider.addSipListener(listener);
@@ -210,7 +228,7 @@ public class Shootme implements SipListener {
     }
 
     public static void main(String args[]) {
-        new Shootme().init();
+        new ShootmeDialogStateless().init();
     }
 
     public void processIOException(IOExceptionEvent exceptionEvent) {
@@ -219,7 +237,7 @@ public class Shootme implements SipListener {
 
     public void processTransactionTerminated(
             TransactionTerminatedEvent transactionTerminatedEvent) {
-
+//    	System.out.println("Tx Term Event : " + new SimpleDateFormat("hh:mm:ss").format(new Date(Calendar.getInstance().getTimeInMillis())) + " \n" + transactionTerminatedEvent.getServerTransaction().getRequest());
     }
 
     public void processDialogTerminated(

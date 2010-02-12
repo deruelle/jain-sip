@@ -56,7 +56,7 @@ public class Shootme implements SipListener {
 
     public void processRequest(RequestEvent requestEvent) {
         final Request request = requestEvent.getRequest();
-	final ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
+        final ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
 
         if (request.getMethod().equals(Request.INVITE)) {
             processInvite(requestEvent, serverTransactionId);
@@ -78,7 +78,8 @@ public class Shootme implements SipListener {
      */
     public void processAck(RequestEvent requestEvent,
             ServerTransaction serverTransaction) {
-
+    	final Dialog dialog = requestEvent.getDialog();
+    	dialog.getDialogId();
     }
 
     /**
@@ -112,7 +113,6 @@ public class Shootme implements SipListener {
             response.addHeader(contactHeader);
             toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
             toHeader.setTag(toTag); // Application is supposed to set.
-            response.addHeader(contactHeader);
             st.sendResponse(response);
         } catch (Exception ex) {
             ex.printStackTrace();
@@ -127,6 +127,7 @@ public class Shootme implements SipListener {
     public void processBye(RequestEvent requestEvent,
             ServerTransaction serverTransactionId) {
         final Request request = requestEvent.getRequest();
+        final Dialog dialog = requestEvent.getDialog();
         try {
             final Response response = messageFactory.createResponse(200, request);
             serverTransactionId.sendResponse(response);
@@ -168,7 +169,7 @@ public class Shootme implements SipListener {
         "shootmelog.txt");
         properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER",
         "true");
-        properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "64");
+        properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "4");
         properties.setProperty("gov.nist.javax.sip.RECEIVE_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.SEND_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.CONGESTION_CONTROL_ENABLED", "false");

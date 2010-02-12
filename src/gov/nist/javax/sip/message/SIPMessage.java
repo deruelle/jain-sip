@@ -905,6 +905,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public Iterator<SIPHeader> getHeaders() {
         return headers.iterator();
     }
+    
+    /**
+     * Return an iterator for the list of headers in this message.
+     * 
+     * @return an Iterator for the headers of this message.
+     */
+    public Collection<SIPHeader> getHeadersAsCollection() {
+        return headers;
+    }
 
     /**
      * Get the first header of the given name.

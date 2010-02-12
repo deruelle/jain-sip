@@ -28,20 +28,11 @@
  *******************************************************************************/
 package gov.nist.javax.sip.stack;
 
-import gov.nist.core.HostPort;
-import gov.nist.core.InternalErrorHandler;
-import gov.nist.core.ThreadAuditor;
-
 import java.io.IOException;
-import java.net.DatagramPacket;
-import java.net.DatagramSocket;
-import java.net.InetAddress;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.UnknownHostException;
 import java.util.LinkedList;
-import java.util.concurrent.BlockingQueue;
-import java.util.concurrent.LinkedBlockingQueue;
+import java.net.*;
+
+import gov.nist.core.*;
 
 /**
  * Sit in a loop and handle incoming udp datagram messages. For each Datagram
@@ -73,7 +64,7 @@ public class UDPMessageProcessor extends MessageProcessor {
     /**
      * Incoming messages are queued here.
      */
-    protected BlockingQueue<DatagramPacket> messageQueue;
+    protected LinkedList messageQueue;
 
     /**
      * A list of message channels that we have started.
@@ -109,7 +100,7 @@ public class UDPMessageProcessor extends MessageProcessor {
 
         this.sipStack = sipStack;
 
-        this.messageQueue = new LinkedBlockingQueue<DatagramPacket>();
+        this.messageQueue = new LinkedList();
 
         this.port = port;
         try {
@@ -123,9 +114,9 @@ public class UDPMessageProcessor extends MessageProcessor {
              * If the thread auditor is enabled, define a socket timeout value in order to
              * prevent sock.receive() from blocking forever
              */
-//            if (sipStack.getThreadAuditor().isEnabled()) {
-//                sock.setSoTimeout((int) sipStack.getThreadAuditor().getPingIntervalInMillisecs());
-//            }
+            if (sipStack.getThreadAuditor().isEnabled()) {
+                sock.setSoTimeout((int) sipStack.getThreadAuditor().getPingIntervalInMillisecs());
+            }
             if ( ipAddress.getHostAddress().equals(IN_ADDR_ANY)  ||
                  ipAddress.getHostAddress().equals(IN6_ADDR_ANY)){
                 // Store the address to which we are actually bound
@@ -210,25 +201,27 @@ public class UDPMessageProcessor extends MessageProcessor {
              // TODO -- penalize spammers by looking at the source
              // port and IP address.
              if ( sipStack.stackDoesCongestionControl ) {  
-            	 if ( this.messageQueue.size() >= HIGHWAT) {
-            		 if (sipStack.isLoggingEnabled()) {
-            			 sipStack.getStackLogger().logDebug("Dropping message -- queue length exceeded");
-            		 }
-            		 //System.out.println("HIGHWAT Drop!");
-            		 continue;
-            	 } else if ( this.messageQueue.size() > LOWAT && this .messageQueue.size() < HIGHWAT ) {
-            		 // Drop the message with a probabilty that is linear in the range 0 to 1
-            		 float threshold = ((float)(messageQueue.size() - LOWAT))/ ((float)(HIGHWAT - LOWAT));
-            		 boolean decision = Math.random() > 1.0 - threshold;
-            		 if ( decision ) {
-            			 if (sipStack.isLoggingEnabled()) {
+             if ( this.messageQueue.size() >= HIGHWAT) {
+                    if (sipStack.isLoggingEnabled()) {
+                        sipStack.getStackLogger().logDebug("Dropping message -- queue length exceeded");
+
+                    }
+                    //System.out.println("HIGHWAT Drop!");
+                    continue;
+                } else if ( this.messageQueue.size() > LOWAT && this .messageQueue.size() < HIGHWAT ) {
+                    // Drop the message with a probabilty that is linear in the range 0 to 1
+                    float threshold = ((float)(messageQueue.size() - LOWAT))/ ((float)(HIGHWAT - LOWAT));
+                    boolean decision = Math.random() > 1.0 - threshold;
+                    if ( decision ) {
+                        if (sipStack.isLoggingEnabled()) {
                             sipStack.getStackLogger().logDebug("Dropping message with probability  " + (1.0 - threshold));
 
-            			 }
-            			 //System.out.println("RED Drop!");
-            			 continue;
-            		 }
-            	 }
+                        }
+                        //System.out.println("RED Drop!");
+                        continue;
+                    }
+
+                }
              }
                 
                 
@@ -242,11 +235,11 @@ public class UDPMessageProcessor extends MessageProcessor {
                     // condition you will have to call notifyAll instead of
                     // notify below.
 
-                    // was addLast
-                    this.messageQueue.offer(packet);
-//                    synchronized (messageQueue) {
-//                        this.messageQueue.notify();
-//                    }
+                    synchronized (this.messageQueue) {
+                        // was addLast
+                        this.messageQueue.add(packet);
+                        this.messageQueue.notify();
+                    }
                 } else {
                     new UDPMessageChannel(sipStack, this, packet);
                 }
@@ -259,9 +252,9 @@ public class UDPMessageProcessor extends MessageProcessor {
                 isRunning = false;
                 // The notifyAll should be in a synchronized block.
                 // ( bug report by Niklas Uhrberg ).
-//                synchronized (messageQueue) {
-//                    this.messageQueue.notifyAll();
-//                }
+                synchronized (this.messageQueue) {
+                    this.messageQueue.notifyAll();
+                }
             } catch (IOException ex) {
                 isRunning = false;
                 ex.printStackTrace();
@@ -283,11 +276,13 @@ public class UDPMessageProcessor extends MessageProcessor {
      * messages.
      */
     public void stop() {
-//        synchronized (messageQueue) {
+        synchronized (this.messageQueue) {
             this.isRunning = false;
-//            this.messageQueue.notifyAll();
+            this.messageQueue.notifyAll();
             sock.close();
-//        }
+
+
+        }
     }
 
     /**
@@ -347,10 +342,9 @@ public class UDPMessageProcessor extends MessageProcessor {
      * Return true if there are any messages in use.
      */
     public boolean inUse() {
-//        synchronized (messageQueue) {
-//            return messageQueue.size() != 0;
-//        }
-    	return !messageQueue.isEmpty();
+        synchronized (messageQueue) {
+            return messageQueue.size() != 0;
+        }
     }
 
 }

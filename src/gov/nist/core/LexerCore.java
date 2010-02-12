@@ -26,8 +26,7 @@
 package gov.nist.core;
 
 import java.text.ParseException;
-import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Hashtable;
 
 /** A lexical analyzer that is used by all parsers in our implementation.
  *
@@ -83,16 +82,15 @@ public class LexerCore extends StringTokenizer {
     public static final int AND = (int) '&';
     public static final int UNDERSCORE = (int) '_';
 
-    // jeand : using concurrent data structure to avoid excessive blocking
-    protected static final ConcurrentHashMap<Integer, String> globalSymbolTable;
-    protected static final ConcurrentHashMap<String, ConcurrentHashMap<String, Integer>> lexerTables;
-    protected Map<String, Integer> currentLexer;
+    protected static final Hashtable globalSymbolTable;
+    protected static final Hashtable lexerTables;
+    protected Hashtable currentLexer;
     protected String currentLexerName;
     protected Token currentMatch;
 
     static {
-        globalSymbolTable = new ConcurrentHashMap<Integer, String>();        
-        lexerTables = new ConcurrentHashMap<String, ConcurrentHashMap<String, Integer>>();
+        globalSymbolTable = new Hashtable();
+        lexerTables = new Hashtable();
     }
 
     protected void addKeyword(String name, int value) {
@@ -100,8 +98,8 @@ public class LexerCore extends StringTokenizer {
         // new Exception().printStackTrace();
         Integer val = Integer.valueOf(value);
         currentLexer.put(name, val);
-//        if (!globalSymbolTable.containsKey(val))
-        globalSymbolTable.putIfAbsent(val, name);
+        if (!globalSymbolTable.containsKey(val))
+            globalSymbolTable.put(val, name);
     }
 
     public String lookupToken(int value) {
@@ -113,14 +111,14 @@ public class LexerCore extends StringTokenizer {
         }
     }
 
-//    protected Map<String, Integer> addLexer(String lexerName) {
-//        currentLexer = (Map<String, Integer>) lexerTables.get(lexerName);
-//        if (currentLexer == null) {
-//            currentLexer = new Hashtable();
-//            lexerTables.put(lexerName, currentLexer);
-//        }
-//        return currentLexer;
-//    }
+    protected Hashtable addLexer(String lexerName) {
+        currentLexer = (Hashtable) lexerTables.get(lexerName);
+        if (currentLexer == null) {
+            currentLexer = new Hashtable();
+            lexerTables.put(lexerName, currentLexer);
+        }
+        return currentLexer;
+    }
 
     //public abstract void selectLexer(String lexerName);
 
@@ -129,7 +127,7 @@ public class LexerCore extends StringTokenizer {
     }
 
     protected LexerCore() {
-        this.currentLexer = new ConcurrentHashMap<String, Integer>();
+        this.currentLexer = new Hashtable();
         this.currentLexerName = "charLexer";
     }
 

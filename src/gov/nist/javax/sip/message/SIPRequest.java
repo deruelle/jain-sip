@@ -34,12 +34,9 @@ import gov.nist.core.*;
 import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.LinkedList;
-import java.util.Map;
 import java.util.Set;
 import java.io.UnsupportedEncodingException;
 import java.util.Iterator;
-import java.util.concurrent.ConcurrentHashMap;
-
 import javax.sip.address.URI;
 import javax.sip.message.*;
 
@@ -102,10 +99,8 @@ public final class SIPRequest extends SIPMessage implements javax.sip.message.Re
     /*
      * A table that maps a name string to its cannonical constant. This is used to speed up
      * parsing of messages .equals reduces to == if we use the constant value.
-     * 
-     * jeand : Setting the capacity to save on memory since the capacity here will never change
      */
-    private static final Map<String, String> nameTable = new ConcurrentHashMap<String, String>(15);
+    private static final Hashtable<String, String> nameTable = new Hashtable<String, String>();
 
     private static void putName(String name) {
         nameTable.put(name, name);
@@ -1204,4 +1199,9 @@ public final class SIPRequest extends SIPMessage implements javax.sip.message.Re
     public Object getInviteTransaction() {
         return inviteTransaction;
     }
+
+   
+   
+    
+
 }

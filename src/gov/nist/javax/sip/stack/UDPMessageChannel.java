@@ -55,6 +55,7 @@ import java.net.DatagramSocket;
 import java.net.InetAddress;
 import java.net.Socket;
 import java.text.ParseException;
+import java.util.HashSet;
 import java.util.Hashtable;
 import java.util.TimerTask;
 
@@ -249,44 +250,41 @@ public class UDPMessageChannel extends MessageChannel implements
                 myParser.setParseExceptionListener(this);
             }
             // messages that we write out to him.
-            DatagramPacket packet = null;
+            DatagramPacket packet;
 
             if (sipStack.threadPoolSize != -1) {
-//                synchronized (((UDPMessageProcessor) messageProcessor).messageQueue) {
-            		final UDPMessageProcessor udpMessageProcessor = (UDPMessageProcessor) messageProcessor;            		
-//                    while (udpMessageProcessor.messageQueue.isEmpty()) {
-//                        // Check to see if we need to exit.
-//                        if (!udpMessageProcessor.isRunning)
-//                            return;
-////                        try {
-//                            // We're part of a thread pool. Ask the auditor to
-//                            // monitor this thread.
-//                            if (threadHandle == null) {
-//                                threadHandle = sipStack.getThreadAuditor()
-//                                        .addCurrentThread();
-//                            }
-//
-//                            // Send a heartbeat to the thread auditor
-//                            threadHandle.ping();
-////                            long pingInterval = threadHandle.getPingIntervalInMillisecs();
-//                            // Wait for packets
-//                            // Note: getPingInterval returns 0 (infinite) if the
-//                            // thread auditor is disabled.
-////                            synchronized (udpMessageProcessor.messageQueue) {
-////                            	udpMessageProcessor.messageQueue.wait();
-////                            }
-////                        } catch (InterruptedException ex) {
-////                            if (!udpMessageProcessor.isRunning)
-////                                return;
-////                        }
-//                    }
-                    try {
-                    	packet = udpMessageProcessor.messageQueue.take();
-                    } catch (InterruptedException ex) {
-                      if (!udpMessageProcessor.isRunning)
-                          return;
+                synchronized (((UDPMessageProcessor) messageProcessor).messageQueue) {
+                    while (((UDPMessageProcessor) messageProcessor).messageQueue
+                            .isEmpty()) {
+                        // Check to see if we need to exit.
+                        if (!((UDPMessageProcessor) messageProcessor).isRunning)
+                            return;
+                        try {
+                            // We're part of a thread pool. Ask the auditor to
+                            // monitor this thread.
+                            if (threadHandle == null) {
+                                threadHandle = sipStack.getThreadAuditor()
+                                        .addCurrentThread();
+                            }
+
+                            // Send a heartbeat to the thread auditor
+                            threadHandle.ping();
+
+                            // Wait for packets
+                            // Note: getPingInterval returns 0 (infinite) if the
+                            // thread auditor is disabled.
+                            ((UDPMessageProcessor) messageProcessor).messageQueue
+                                    .wait(threadHandle
+                                            .getPingIntervalInMillisecs());
+                        } catch (InterruptedException ex) {
+                            if (!((UDPMessageProcessor) messageProcessor).isRunning)
+                                return;
+                        }
                     }
-//                }
+                    packet = (DatagramPacket) ((UDPMessageProcessor) messageProcessor).messageQueue
+                            .removeFirst();
+
+                }
                 this.incomingPacket = packet;
             } else {
                 packet = this.incomingPacket;

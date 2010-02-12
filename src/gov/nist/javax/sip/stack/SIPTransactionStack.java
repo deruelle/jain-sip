@@ -52,14 +52,15 @@ import java.io.IOException;
 import java.net.InetAddress;
 import java.net.SocketAddress;
 import java.net.UnknownHostException;
+import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Set;
 import java.util.Timer;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.atomic.AtomicInteger;
 
 import javax.sip.ClientTransaction;
@@ -94,7 +95,7 @@ import javax.sip.message.Response;
  *
  * @author M. Ranganathan <br/>
  *
- * @version 1.2 $Revision: 1.144 $ $Date: 2010/02/03 05:53:44 $
+ * @version 1.2 $Revision: 1.145 $ $Date: 2010/02/12 13:50:54 $
  */
 public abstract class SIPTransactionStack implements SIPTransactionEventListener, SIPDialogEventListener {
 
@@ -167,6 +168,8 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
     private ConcurrentHashMap<String,SIPServerTransaction> terminatedServerTransactionsPendingAck;
     
     private ConcurrentHashMap<String,SIPClientTransaction> forkedClientTransactionTable;
+    
+    protected boolean deliverRetransmittedAckToListener = false;
 
     /*
      * A wrapper around differnt logging implementations (log4j, commons logging, slf4j, ...) to help log debug.
@@ -371,6 +374,9 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
     // from the UDP message channel. 
     protected long minKeepAliveInterval = -1L;
 
+    // The time after which a "dialog timeout event" is delivered to a listener.
+	protected int dialogTimeoutFactor = 64;
+
    
     // / Timer to regularly ping the thread auditor (on behalf of the timer
     // thread)
@@ -445,8 +451,7 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
         // Max number of simultaneous connections.
         this.maxConnections = -1;
         // Array of message processors.
-        // jeand : using concurrent data structure to avoid excessive blocking
-        messageProcessors = new CopyOnWriteArrayList<MessageProcessor>();
+        messageProcessors = new ArrayList<MessageProcessor>();
         // Handle IO for this process.
         this.ioHandler = new IOHandler(this);
 
@@ -495,7 +500,7 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
             stackLogger.logDebug("Re-initializing !");
 
         // Array of message processors.
-        messageProcessors = new CopyOnWriteArrayList<MessageProcessor>();
+        messageProcessors = new ArrayList<MessageProcessor>();
         // Handle IO for this process.
         this.ioHandler = new IOHandler(this);
         // clientTransactions = new ConcurrentLinkedQueue();
@@ -821,8 +826,8 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
                     continue;
 
                 // if ( sipProvider.getListeningPoint(transport) == null)
-                String fromTag = ct.getOriginalRequest().getFromTag();
-                Event hisEvent = (Event) ct.getOriginalRequest().getHeader("Event");
+                String fromTag = ct.from.getTag();
+                Event hisEvent = ct.event;
                 // Event header is mandatory but some slopply clients
                 // dont include it.
                 if (hisEvent == null)
@@ -838,7 +843,7 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
                       && hisEvent != null
                       && eventHdr.match(hisEvent)
                       && notifyMessage.getCallId().getCallId().equalsIgnoreCase(
-                                ct.getOriginalRequest().getCallId().getCallId())) {
+                                ct.callId.getCallId())) {
                     if (!this.isDeliverUnsolicitedNotify() ) {
                         ct.acquireSem();
                     }      
@@ -887,8 +892,7 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
      */
     
     public boolean removeTransactionPendingAck(SIPServerTransaction serverTransaction) {
-//        String branchId = ((SIPRequest)serverTransaction.getRequest()).getTopmostVia().getBranch();
-    	String branchId = serverTransaction.getBranchId();
+        String branchId = ((SIPRequest)serverTransaction.getRequest()).getTopmostVia().getBranch();
         if ( branchId != null && this.terminatedServerTransactionsPendingAck.containsKey(branchId) ) {
             this.terminatedServerTransactionsPendingAck.remove(branchId);
             return true;
@@ -1666,15 +1670,17 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
             clientTransactionTable.notifyAll();
         }
 
-        // Threads must periodically check this flag.
-        MessageProcessor[] processorList;
-        processorList = getMessageProcessors();
-        for (int processorIndex = 0; processorIndex < processorList.length; processorIndex++) {
-            removeMessageProcessor(processorList[processorIndex]);
-        }
-        this.ioHandler.closeAll();
-        // Let the processing complete.
+        synchronized (this.messageProcessors) {
+            // Threads must periodically check this flag.
+            MessageProcessor[] processorList;
+            processorList = getMessageProcessors();
+            for (int processorIndex = 0; processorIndex < processorList.length; processorIndex++) {
+                removeMessageProcessor(processorList[processorIndex]);
+            }
+            this.ioHandler.closeAll();
+            // Let the processing complete.
 
+        }
         try {
 
             Thread.sleep(1000);
@@ -1900,15 +1906,18 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
      * it. You can use this method for dynamic stack configuration.
      */
     protected void addMessageProcessor(MessageProcessor newMessageProcessor) throws IOException {
-        // Suggested changes by Jeyashankher, jai@lucent.com
-        // newMessageProcessor.start() can fail
-        // because a local port is not available
-        // This throws an IOException.
-        // We should not add the message processor to the
-        // local list of processors unless the start()
-        // call is successful.
-        // newMessageProcessor.start();
-        messageProcessors.add(newMessageProcessor);
+        synchronized (messageProcessors) {
+            // Suggested changes by Jeyashankher, jai@lucent.com
+            // newMessageProcessor.start() can fail
+            // because a local port is not available
+            // This throws an IOException.
+            // We should not add the message processor to the
+            // local list of processors unless the start()
+            // call is successful.
+            // newMessageProcessor.start();
+            messageProcessors.add(newMessageProcessor);
+
+        }
     }
 
     /**
@@ -1917,8 +1926,10 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
      * @param oldMessageProcessor
      */
     protected void removeMessageProcessor(MessageProcessor oldMessageProcessor) {
-        if (messageProcessors.remove(oldMessageProcessor)) {
-            oldMessageProcessor.stop();
+        synchronized (messageProcessors) {
+            if (messageProcessors.remove(oldMessageProcessor)) {
+                oldMessageProcessor.stop();
+            }
         }
     }
 
@@ -1930,7 +1941,9 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
      * @return an array of running message processors.
      */
     protected MessageProcessor[] getMessageProcessors() {
-    	return (MessageProcessor[]) messageProcessors.toArray(new MessageProcessor[0]);
+        synchronized (messageProcessors) {
+            return (MessageProcessor[]) messageProcessors.toArray(new MessageProcessor[0]);
+        }
     }
 
     /**
@@ -2539,6 +2552,32 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
     public int getMaxForkTime() {
         return maxForkTime;
     }
+    
+    /**
+     * This is a testing interface. Normally the application does not see retransmitted
+     * ACK for 200 OK retransmissions.
+     * 
+     * @return
+     */
+    public boolean isDeliverRetransmittedAckToListener() {
+    	return this.deliverRetransmittedAckToListener;
+    }
+
+	
+    /**
+     * Get the dialog timeout counter.
+     * @return
+     */
+
+	public int getAckTimeoutFactor() {
+		if ( getSipListener() != null && getSipListener() instanceof SipListenerExt ) {
+			return dialogTimeoutFactor;
+		} else {
+			return 64;
+		}
+	}
+	
+	public abstract SipListener getSipListener();
 	
 	
 }

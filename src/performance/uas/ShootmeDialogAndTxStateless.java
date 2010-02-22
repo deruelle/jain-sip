@@ -156,13 +156,13 @@ public class ShootmeDialogAndTxStateless implements SipListener {
         properties.setProperty("gov.nist.javax.sip.LOG_MESSAGE_CONTENT", "false");
         properties.setProperty("javax.sip.AUTOMATIC_DIALOG_SUPPORT", "off");        
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-                "shootmedebug.txt");
+                "./shootmedebug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-        "shootmelog.txt");
+        "./shootmelog.txt");
         properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-        "shootmedebug.txt");
+        "./shootmedebug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-        "shootmelog.txt");
+        "./shootmelog.txt");
         properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER",
         "true");
         properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "4");

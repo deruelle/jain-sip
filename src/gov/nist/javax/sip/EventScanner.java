@@ -50,7 +50,7 @@ class EventScanner implements Runnable {
     private int refCount;
 
     // SIPquest: Fix for deadlocks
-    private LinkedList pendingEvents = new LinkedList();
+    private LinkedList pendingEvents;
 
     private int[] eventMutex = { 0 };
 

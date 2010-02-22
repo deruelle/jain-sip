@@ -28,15 +28,13 @@
  *******************************************************************************/
 package gov.nist.core;
 
-import java.util.concurrent.*;
-
 import java.io.Serializable;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * Implements a simple NameValue association with a quick lookup function (via a
@@ -65,15 +63,15 @@ public class NameValueList implements Serializable, Cloneable, Map<String,NameVa
      */
     public NameValueList() {
         this.separator = ";";
-        this.hmap = new LinkedHashMap<String,NameValue>();
+        this.hmap = new LinkedHashMap<String,NameValue>(0);
     }
 
     public NameValueList(boolean sync) {
         this.separator = ";";
         if (sync)
-            this.hmap = new ConcurrentHashMap<String,NameValue>();
+            this.hmap = new ConcurrentHashMap<String,NameValue>(0);
         else
-            this.hmap = new LinkedHashMap<String,NameValue>();
+            this.hmap = new LinkedHashMap<String,NameValue>(0);
     }
 
     public void setSeparator(String separator) {

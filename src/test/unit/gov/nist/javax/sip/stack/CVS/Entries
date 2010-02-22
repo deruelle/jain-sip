@@ -7,9 +7,9 @@
 /DialogIdentityTest.java/1.4/Fri Jul 17 18:58:51 2009//
 /LooseDialogValidationTest.java/1.6/Mon Nov  9 02:30:51 2009//
 /NoAutoDialogTest.java/1.6/Tue Nov  3 01:59:51 2009//
-/NoToTagOn1xxDialogLeakTest.java/1.4/Fri Feb 12 14:14:28 2010//
+/NoToTagOn1xxDialogLeakTest.java/1.5/Sat Feb 20 12:49:21 2010//
 /NonRfc3261ForkedInviteTest.java/1.2/Fri Jul 17 18:58:52 2009//
-/ReInviteBusyTest.java/1.7/Fri Feb 12 14:14:28 2010//
+/ReInviteBusyTest.java/1.8/Sat Feb 20 12:49:21 2010//
 /RejectInvalidResponseTest.java/1.3/Fri Jul 17 18:58:52 2009//
 /RejectOutOfSequenceMessageTest.java/1.3/Fri Jul 17 18:58:52 2009//
 /ServerTransactionRetransmissionTimerTest.java/1.8/Fri Feb 12 14:14:28 2010//
@@ -24,6 +24,8 @@ D/forkedinvite////
 D/forkedinvite482////
 D/no491////
 D/reInvite////
+D/reinvitechallenge////
 D/stx491////
 D/timeoutontermineted////
+D/tls////
 D/uasreinvite////

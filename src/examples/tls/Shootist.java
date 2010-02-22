@@ -1,11 +1,14 @@
 package examples.tls;
 import gov.nist.javax.sip.ClientTransactionExt;
+import gov.nist.javax.sip.TlsSecurityPolicy;
+import gov.nist.javax.sip.stack.SIPTransaction;
 
 import javax.sip.*;
 import javax.sip.address.*;
 import javax.sip.header.*;
 import javax.sip.message.*;
 
+import java.io.IOException;
 import java.security.cert.Certificate;
 import java.util.*;
 
@@ -19,7 +22,7 @@ import java.util.*;
  *@author Ivelin Ivanov
  */
 
-public class Shootist implements SipListener {
+public class Shootist implements SipListener, TlsSecurityPolicy {
 
     private static SipProvider tlsProvider;
     private static AddressFactory addressFactory;
@@ -216,12 +219,15 @@ public class Shootist implements SipListener {
             "gov.nist.javax.sip.SERVER_LOG",
             "shootistlog.txt");
 
+        properties.setProperty("gov.nist.javax.sip.TLS_SECURITY_POLICY",
+                this.getClass().getName());
+
         // Drop the client connection after we are done with the transaction.
         properties.setProperty("gov.nist.javax.sip.CACHE_CLIENT_CONNECTIONS", "false");
         // Set to 0 in your production code for max speed.
         // You need  16 for logging traces. 32 for debug + traces.
         // Your code will limp at 32 but it is best for debugging.
-        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "16");
+        properties.setProperty("gov.nist.javax.sip.TRACE_LEVEL", "32");
 
         try {
             // Create SipStack object
@@ -419,5 +425,33 @@ public class Shootist implements SipListener {
 
     public void processDialogTerminated(DialogTerminatedEvent dialogTerminatedEvent) {
         System.out.println("Dialog Terminated event: " + dialogTerminatedEvent);
+    }
+
+    public void enforceTlsPolicy(ClientTransactionExt transaction) throws IOException {
+        System.out.println("enforceTlsPolicy");
+        List<String> certIdentities = transaction.extractCertIdentities();
+        if (certIdentities.isEmpty()) {
+            System.out.println("Could not find any identities in the TLS certificate");
+        }
+        else {
+            System.out.println("found identities: " + certIdentities);
+        }
+
+        // the destination IP address should match one of the certIdentities
+        boolean foundPeerIdentity = false;
+        String expectedIpAddress = ((SipURI)transaction.getRequest().getRequestURI()).getHost();
+        for (String identity : certIdentities) {
+            // identities must be resolved to dotted quads before comparing: this is faked here
+            String peerIpAddress = "10.10.10.0";
+            if (identity.equals("localhost")) {
+                peerIpAddress = "127.0.0.1";
+            }
+            if (expectedIpAddress.equals(peerIpAddress)) {
+                foundPeerIdentity = true;
+            }
+        }
+        if (!foundPeerIdentity) {
+            throw new IOException("Certificate identity does not match requested domain");
+        }
     }
 }

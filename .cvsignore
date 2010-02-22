@@ -23,3 +23,6 @@ jain-sip.fas
 jain-sip.xml
 *.jar
 dist
+*debug*
+*log*
+*.swp

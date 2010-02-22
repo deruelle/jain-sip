@@ -617,33 +617,6 @@ public final class SIPResponse
     }
 
     /**
-     * Sets the Via branch for CANCEL or ACK requests
-     *
-     * @param via
-     * @param method
-     * @throws ParseException
-     */
-    private final void setBranch( Via via, String method ) {
-        String branch;
-        if (method.equals( Request.ACK ) ) {
-            if (statusLine.getStatusCode() >= 300 ) {
-                branch = getTopmostVia().getBranch();   // non-2xx ACK uses same branch
-            } else {
-                branch = Utils.getInstance().generateBranchId();    // 2xx ACK gets new branch
-            }
-        } else if (method.equals( Request.CANCEL )) {
-            branch = getTopmostVia().getBranch();   // CANCEL uses same branch
-        } else return;
-
-        try {
-            via.setBranch( branch );
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-    }
-
-
-    /**
      * Get the encoded first line.
      *
      *@return the status line encoded.
@@ -668,70 +641,10 @@ public final class SIPResponse
         if (statusLine == null) return  "";
         else return statusLine.encode() + super.encode();
     }
-
-    /**
-     * Generate a request from a response.
-     *
-     * @param requestURI -- the request URI to assign to the request.
-     * @param via -- the Via header to assign to the request
-     * @param cseq -- the CSeq header to assign to the request
-     * @param from -- the From header to assign to the request
-     * @param to -- the To header to assign to the request
-     * @return -- the newly generated sip request.
-     */
-    public SIPRequest createRequest(SipUri requestURI, Via via, CSeq cseq, From from, To to) {
-        SIPRequest newRequest = new SIPRequest();
-        String method = cseq.getMethod();
-
-        newRequest.setMethod(method);
-        newRequest.setRequestURI(requestURI);
-        this.setBranch( via, method );
-        newRequest.setHeader(via);
-        newRequest.setHeader(cseq);
-        Iterator headerIterator = getHeaders();
-        while (headerIterator.hasNext()) {
-            SIPHeader nextHeader = (SIPHeader) headerIterator.next();
-            // Some headers do not belong in a Request ....
-            if (SIPMessage.isResponseHeader(nextHeader)
-                || nextHeader instanceof ViaList
-                || nextHeader instanceof CSeq
-                || nextHeader instanceof ContentType
-                || nextHeader instanceof ContentLength
-                || nextHeader instanceof RecordRouteList
-                || nextHeader instanceof RequireList
-                || nextHeader instanceof ContactList    // JvB: added
-                || nextHeader instanceof ContentLength
-                || nextHeader instanceof ServerHeader
-                || nextHeader instanceof ReasonHeader
-                || nextHeader instanceof SessionExpires
-                || nextHeader instanceof ReasonList) {
-                continue;
-            }
-            if (nextHeader instanceof To)
-                nextHeader = (SIPHeader) to;
-            else if (nextHeader instanceof From)
-                nextHeader = (SIPHeader) from;
-            try {
-                newRequest.attachHeader(nextHeader, false);
-            } catch (SIPDuplicateHeaderException e) {
-                //Should not happen!
-                e.printStackTrace();
-            }
-        }
-
-        try {
-          // JvB: all requests need a Max-Forwards
-          newRequest.attachHeader( new MaxForwards(70), false);
-        } catch (Exception d) {
-
-        }
-
-        if (MessageFactoryImpl.getDefaultUserAgentHeader() != null ) {
-            newRequest.setHeader(MessageFactoryImpl.getDefaultUserAgentHeader());
-        }
-        return newRequest;
-
-    }
-   
     
+    @Override
+    public void cleanUp() {
+    	statusLine = null;
+    	super.cleanUp();
+    }
 }

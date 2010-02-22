@@ -905,6 +905,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public Iterator<SIPHeader> getHeaders() {
         return headers.iterator();
     }
+    
+    /**
+     * Return an iterator for the list of headers in this message.
+     * 
+     * @return an Iterator for the headers of this message.
+     */
+    public Collection<SIPHeader> getHeadersAsCollection() {
+        return headers;
+    }
 
     /**
      * Get the first header of the given name.
@@ -1905,5 +1914,34 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public abstract String getSIPVersion();
 
     public abstract String toString();
+    
+    public void cleanUp() {
+    	applicationData = null;
+    	callIdHeader = null;
+    	contentEncodingCharset = null;
+    	contentLengthHeader = null;
+    	cSeqHeader = null;
+    	forkId = null;
+    	fromHeader = null;
+    	if(headers != null) {
+    		headers.clear();
+    		headers = null;
+    	}
+    	matchExpression = null;
+    	maxForwardsHeader = null;
+    	messageContent = null;
+    	messageContentBytes = null;
+    	messageContentObject = null;
+    	if(nameTable != null) {
+    		nameTable.clear();
+    		nameTable = null;
+    	}
+    	stringRepresentation = null;
+    	toHeader = null;
+    	if(unrecognizedHeaders != null) {
+    		unrecognizedHeaders.clear();
+    		unrecognizedHeaders = null;
+    	}
+    }
 
 }

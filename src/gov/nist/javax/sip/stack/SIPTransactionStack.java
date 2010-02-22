@@ -985,6 +985,14 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
         return retval;
 
     }
+    
+    public SIPTransaction findTransaction(String transactionId, boolean isServer) {
+    	if(isServer) {
+    		return serverTransactionTable.get(transactionId);
+    	} else {
+    		return clientTransactionTable.get(transactionId);
+    	}
+    }
 
     /**
      * Get the transaction to cancel. Search the server transaction table for a transaction that

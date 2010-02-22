@@ -36,7 +36,6 @@ import gov.nist.javax.sip.header.ReferTo;
 import gov.nist.javax.sip.header.RetryAfter;
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.RouteList;
-import gov.nist.javax.sip.header.Server;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -50,19 +49,13 @@ import gov.nist.javax.sip.stack.ServerRequestInterface;
 import gov.nist.javax.sip.stack.ServerResponseInterface;
 
 import java.io.IOException;
-import java.util.TimerTask;
 
-import javax.sip.ClientTransaction;
 import javax.sip.DialogState;
-import javax.sip.InvalidArgumentException;
-import javax.sip.ObjectInUseException;
 import javax.sip.RequestEvent;
-import javax.sip.ResponseEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.SipException;
 import javax.sip.SipProvider;
 import javax.sip.TransactionState;
-import javax.sip.header.CSeqHeader;
 import javax.sip.header.EventHeader;
 import javax.sip.header.ReferToHeader;
 import javax.sip.header.ServerHeader;
@@ -408,18 +401,16 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
             /*
              * A refer cannot be processed until we have either sent or received an ACK.
              */
-            SIPTransaction lastTransaction = ((SIPDialog) dialog).getLastTransaction();
-            if (lastTransaction != null  && sipProvider.isDialogErrorsAutomaticallyHandled()) {
-                SIPRequest lastRequest = (SIPRequest) lastTransaction.getRequest();
-                if (lastTransaction instanceof SIPServerTransaction) {
-                    if (!((SIPDialog) dialog).isAckSeen()   
-                            && lastRequest.getMethod().equals(Request.INVITE)) {
+            if (dialog.isLastTransactionSeen() && sipProvider.isDialogErrorsAutomaticallyHandled()) {
+                if (!dialog.isLastTransactionClient()) {
+                    if (!dialog.isAckSeen()   
+                            && dialog.getlastTransactionMethod().equals(Request.INVITE)) {
                         this.sendRequestPendingResponse(sipRequest, transaction);
                         return;
                     }
-                } else if (lastTransaction instanceof SIPClientTransaction) {
-                    long cseqno = lastRequest.getCSeqHeader().getSeqNumber();
-                    String method = lastRequest.getMethod();
+                } else if (dialog.isLastTransactionClient()) {
+                    long cseqno = dialog.getlastTransactionRequestCSeqNumber();
+                    String method = dialog.getlastTransactionMethod();
                     if (method.equals(Request.INVITE) && !dialog.isAckSent(cseqno)) {
                         this.sendRequestPendingResponse(sipRequest, transaction);
                         return;
@@ -828,17 +819,16 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
              * receives an INVITE on a dialog while an INVITE it had sent on that dialog is in
              * progress MUST return a 491 (Request Pending) response to the received INVITE.
              */
-            lastTransaction = (dialog == null ? null : dialog.getLastTransaction());
+//            lastTransaction = (dialog == null ? null : dialog.getLastTransaction());
 
             if (dialog != null
                     && sipProvider.isDialogErrorsAutomaticallyHandled()
-                    && lastTransaction != null
-                    && lastTransaction.isInviteTransaction()
-                    && lastTransaction instanceof ClientTransaction
-                    && lastTransaction.getLastResponse() != null
-                    && lastTransaction.getLastResponse().getStatusCode() == 200
-                    && !dialog.isAckSent(lastTransaction.getLastResponse().getCSeq()
-                            .getSeqNumber())) {
+                    && dialog.isLastTransactionSeen()
+                    && dialog.getlastTransactionMethod().equals(Request.INVITE)
+                    && dialog.isLastTransactionClient()
+                    && dialog.getLastResponseStatusCode() != null
+                    && dialog.getLastResponseStatusCode().intValue() == 200
+                    && !dialog.isAckSent(dialog.getLastResponseCSeqNumber())) {
                 if (sipStack.isLoggingEnabled()) {
                     sipStack.getStackLogger().logDebug(
                             "Sending 491 response for client Dialog ACK not sent.");
@@ -860,7 +850,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                 if (sipStack.isLoggingEnabled()) {
                     sipStack.getStackLogger().logDebug(
                             "Sending 491 response for server Dialog ACK not seen.");
-                    sipStack.getStackLogger().logDebug("Last SipResponse sent " + dialog.getLastResponse());
+//                    sipStack.getStackLogger().logDebug("Last SipResponse sent " + dialog.getLastResponse());
                     
                     sipStack.getStackLogger().logDebug("last Transaction state = " + lastTransaction + " state "+ lastTransaction.getState());
                 }

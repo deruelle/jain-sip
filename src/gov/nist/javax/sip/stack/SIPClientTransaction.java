@@ -44,13 +44,11 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 
 import java.io.IOException;
-import java.security.cert.X509Certificate;
 import java.text.ParseException;
 import java.util.ListIterator;
 import java.util.TimerTask;
 import java.util.concurrent.ConcurrentHashMap;
 
-import javax.net.ssl.SSLPeerUnverifiedException;
 import javax.sip.Dialog;
 import javax.sip.DialogState;
 import javax.sip.InvalidArgumentException;
@@ -628,6 +626,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 if (!isReliable()) {
                     this.setState(TransactionState.COMPLETED);
                     enableTimeoutTimer(TIMER_K);
+                    cleanUpTimerK();
                 } else {
                     this.setState(TransactionState.TERMINATED);
                 }
@@ -650,6 +649,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 if (!isReliable()) {
                     this.setState(TransactionState.COMPLETED);
                     enableTimeoutTimer(TIMER_K);
+                    cleanUpTimerK();
                 } else {
                     this.setState(TransactionState.TERMINATED);
                 }
@@ -663,7 +663,23 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         }
     }
 
-    /**
+    private void cleanUpTimerK() {
+//    	applicationData = null;
+//    	defaultDialog = null;
+//    	if(sipDialogs != null) {
+//	    	sipDialogs.clear();
+//	    	sipDialogs = null;
+//    	}
+//    	originalRequest = null;
+    	originalRequest.setTransaction(null);
+    	lastRequest = null;
+    	lastResponse = null;
+    	respondTo = null;    	
+//    	sipStack = null;
+    	messageProcessor = null;
+	}
+
+	/**
      * Implements the state machine for invite client transactions.
      * 
      * <pre>
@@ -1397,11 +1413,10 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                      */
                     if (defaultDialog != null) {
                         if (sipResponse.getFromTag() != null) {
-                            SIPResponse dialogResponse = defaultDialog.getLastResponse();
                             String defaultDialogId = defaultDialog.getDialogId();
-                            if (dialogResponse == null
+                            if (defaultDialog.getLastResponseMethod() == null
                                     || (method.equals(Request.SUBSCRIBE)
-                                            && dialogResponse.getCSeq().getMethod().equals(
+                                            && defaultDialog.getLastResponseMethod().equals(
                                                     Request.NOTIFY) && defaultDialogId
                                             .equals(dialogId))) {
                                 // The default dialog has not been claimed yet.
@@ -1567,7 +1582,24 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         this.callingStateTimeoutCount = count;
     }
 
-    
+    @Override
+    public void cleanUp() {
+    	// release the connection associated with this transaction.
+        if (sipStack.isLoggingEnabled()) {
+            sipStack.getStackLogger().logDebug("cleanup : "
+                    + getTransactionId());
+        }
+        
+    	sipStack.removeTransaction(this);
+    	applicationData = null;
+    	defaultDialog = null;
+    	if(sipDialogs != null) {
+	    	sipDialogs.clear();
+	    	sipDialogs = null;
+    	}
+//    	originalRequest = null;
+        close();
+    }
     
    
 }

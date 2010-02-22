@@ -130,6 +130,9 @@ public class Shootme implements SipListener {
         final Dialog dialog = requestEvent.getDialog();
         try {
             final Response response = messageFactory.createResponse(200, request);
+            if(serverTransactionId == null) {
+            	serverTransactionId = ((SipProvider)requestEvent.getSource()).getNewServerTransaction(request);
+            }
             serverTransactionId.sendResponse(response);
 
         } catch (Exception ex) {

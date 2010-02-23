@@ -210,6 +210,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     private Semaphore provisionalResponseSem = new Semaphore(1);
 
 	private byte[] lastResponseAsBytes;
+	private int lastResponseStatusCode;
 	
 	private HostPort originalRequestSentBy;
 	private String originalRequestFromTag;
@@ -383,10 +384,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     if (!sipStack.isAlive())
                         return;
                 }
-
-                if(getMessageChannel().getPeerProtocol().equalsIgnoreCase(ListeningPoint.UDP)) {
-                	cleanUp();
-                } else {
+//
+//                if(getMessageChannel().getPeerProtocol().equalsIgnoreCase(ListeningPoint.UDP)) {
+//                	cleanUp();
+//                } else {
               
 	                // Oneshot timer that garbage collects the SeverTransaction
 	                // after a scheduled amount of time. The linger timer allows
@@ -397,7 +398,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 	
 	                sipStack.getTimer().schedule(myTimer,
                         SIPTransactionStack.CONNECTION_LINGER_TIME * 1000);
-                }
+//                }
             } else {
                 // Add to the fire list -- needs to be moved
                 // outside the synchronized block to prevent
@@ -857,7 +858,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     if (thisDialog == null || !thisDialog.ackProcessed) {
                         // Filter out duplicate acks
                         if (thisDialog != null) {
-                            thisDialog.ackReceived(transactionRequest);
+                            thisDialog.ackReceived(transactionRequest.getCSeq().getSeqNumber());
                             thisDialog.ackProcessed = true;
                         }
                         requestOf.processRequest(transactionRequest, this);
@@ -1139,12 +1140,17 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 sipStack.getStackLogger().logDebug("fireRetransmissionTimer() -- ");
             }
             // Resend the last response sent by this transaction
-            if (isInviteTransaction() && lastResponse != null) {
+            if (isInviteTransaction() && (lastResponse != null || lastResponseAsBytes != null)) {
                 // null can happen if this is terminating when the timer fires.
                 if (!this.retransmissionAlertEnabled || sipStack.isTransactionPendingAck(this) ) {
                     // Retransmit last response until ack.
-                    if (lastResponse.getStatusCode() / 100 > 2 && !this.isAckSeen)
-                        super.sendMessage(lastResponse);
+                    if ((lastResponse.getStatusCode() / 100 > 2 || lastResponseStatusCode /100 > 2)&& !this.isAckSeen)
+                    	if(lastResponse != null) {
+                    		super.sendMessage(lastResponse);
+                    	} else {
+                    		super.sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
+                    	}
+                    		
                 } else {
                     // alert the application to retransmit the last response
                     SipProviderImpl sipProvider = (SipProviderImpl) this.getSipProvider();
@@ -1769,7 +1775,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         // it should be available in the processTxTerminatedEvent, so we can nullify it only here
     	if(originalRequest != null) {
     		originalRequestSentBy = originalRequest.getTopmostVia().getSentBy();
-    		originalRequestFromTag = originalRequest.getFromTag();
+    		originalRequestFromTag = originalRequest.getFromTag();    		
 //    		originalRequest.cleanUp();
     		originalRequest = null;    		
     	}   
@@ -1795,9 +1801,14 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	inviteTransaction = null;
     	if(lastResponse != null) {    		
     		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
+    		lastResponseStatusCode = lastResponse.getStatusCode();
 //    		lastResponse.cleanUp();
     		lastResponse = null;
     	}    	 	    
+    	if(originalRequest !=null) {
+    		originalRequest.setTransaction(null);
+    		originalRequest.setInviteTransaction(null);
+    	}
     	pendingReliableResponse = null;
     	pendingSubscribeTransaction = null;
     	provisionalResponseSem = null;

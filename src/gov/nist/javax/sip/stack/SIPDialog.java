@@ -588,7 +588,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         hisTag = null;
         myTag = null;
         lastAckSent = null;
-        lastAckReceivedCSeqNumber = null;
+//        lastAckReceivedCSeqNumber = null;
         lastResponseDialogId = null;
 //        lastResponse = null;
         if(lastResponseHeaders != null) { 
@@ -1112,7 +1112,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     /**
      * Mark that the dialog has seen an ACK.
      */
-    void ackReceived(SIPRequest sipRequest) {
+    void ackReceived(long cseqNumber) {
 
         // Suppress retransmission of the final response
         if (this.isAckSeen()) {
@@ -1121,7 +1121,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
         SIPServerTransaction tr = this.getInviteTransaction();
         if (tr != null) {
-            if (tr.getCSeq() == sipRequest.getCSeq().getSeqNumber()) {
+            if (tr.getCSeq() == cseqNumber) {
             	acquireTimerTaskSem();
             	try {
 	                if (this.timerTask != null) {                	                	
@@ -1135,7 +1135,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                     this.dialogDeleteTask.cancel();
                     this.dialogDeleteTask = null;
                 }
-                lastAckReceivedCSeqNumber = Long.valueOf(sipRequest.getCSeq().getSeqNumber());
+                lastAckReceivedCSeqNumber = Long.valueOf(cseqNumber);
                 if (sipStack.isLoggingEnabled()) {
                     sipStack.getStackLogger().logDebug(
                             "ackReceived for " + ((SIPTransaction) tr).getMethod());
@@ -3350,7 +3350,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     public boolean handleAck(SIPServerTransaction ackTransaction) {
         SIPRequest sipRequest = ackTransaction.getOriginalRequest();
 
-        if (isAckSeen() && getRemoteSeqNumber() == sipRequest.getCSeq().getSeqNumber()) {
+        if (isAckSeen() && getRemoteSeqNumber() == ackTransaction.getCSeq()) {
 
             if (sipStack.isLoggingEnabled()) {
                 sipStack.getStackLogger().logDebug(
@@ -3383,17 +3383,15 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             // Idiot check for sending ACK from the wrong side!
             if (tr != null
                     && lastResponseStatusCode != null
-                    && lastResponseStatusCode / 100 == 2
+                    && lastResponseStatusCode.intValue() / 100 == 2
                     && lastResponseMethod.equals(Request.INVITE)
-                    && lastResponseCSeqNumber == sipRequest.getCSeq()
-                            .getSeqNumber()) {
+                    && lastResponseCSeqNumber == ackTransaction.getCSeq()) {
 
                 ackTransaction.setDialog(this, lastResponseDialogId);
                 /*
                  * record that we already saw an ACK for this dialog.
                  */
-
-                ackReceived(sipRequest);
+                ackReceived(ackTransaction.getCSeq());
                 if (sipStack.isLoggingEnabled())
                 	sipStack.getStackLogger().logDebug("ACK for 2XX response --- sending to TU ");
                 return true;

@@ -188,6 +188,7 @@ public abstract class SIPTransaction extends MessageChannel implements
 
     // Original request that is being handled by this transaction
     protected SIPRequest originalRequest;
+    protected long originalRequestCSeqNumber;
 
     // Underlying channel being used to send messages for this transaction
     private transient MessageChannel encapsulatedChannel;
@@ -358,7 +359,8 @@ public abstract class SIPTransaction extends MessageChannel implements
         // This will be cleared later.
 
         this.originalRequest = newOriginalRequest;
-
+        this.originalRequestCSeqNumber = newOriginalRequest.getCSeq().getSeqNumber();
+        
         // just cache the control information so the
         // original request can be released later.
         this.method = newOriginalRequest.getMethod();
@@ -487,7 +489,7 @@ public abstract class SIPTransaction extends MessageChannel implements
      * @return the cseq of the request used to create the transaction.
      */
     public final long getCSeq() {
-        return this.originalRequest.getCSeq().getSeqNumber();
+        return this.originalRequestCSeqNumber;
     }
 
     /**

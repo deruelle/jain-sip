@@ -183,7 +183,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     // Real RequestInterface to pass messages to
     private transient ServerRequestInterface requestOf;
 
-//    private SIPDialog dialog;
+    private SIPDialog dialog;
     private String dialogId;
 
     // the unacknowledged SIPResponse
@@ -816,7 +816,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 if (sipStack.isLoggingEnabled())
                 	sipStack.getStackLogger().logDebug("completed processing retransmitted request : "
                         + transactionRequest.getFirstLine() + this + " txState = "
-                        + this.getState() + " lastResponse = " + this.getLastResponse());
+                        + this.getState() + " lastResponse = " + this.lastResponseAsBytes);
                 return;
 
             }
@@ -1231,7 +1231,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     /**
      * Get the last response.
      */
-    public SIPResponse getLastResponse() {
+    public SIPResponse getLastResponseStatusCode() {
         return this.lastResponse;
     }
 
@@ -1509,10 +1509,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
      * @see gov.nist.javax.sip.stack.SIPTransaction#getDialog()
      */
     public Dialog getDialog() {
-    	if(dialogId != null) {
+    	if(dialog == null && dialogId != null) {
     		return this.sipStack.getDialog(dialogId);
     	}
-    	return null;
+    	return dialog;
     }
 
     /*
@@ -1524,7 +1524,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     public void setDialog(SIPDialog sipDialog, String dialogId) {
         if (sipStack.isLoggingEnabled())
             sipStack.getStackLogger().logDebug("setDialog " + this + " dialog = " + sipDialog);
-        this.dialogId = sipDialog.getDialogId();
+        this.dialog = sipDialog;
+        this.dialogId = dialogId;
         if (dialogId != null)
             sipDialog.setAssigned();
         if (this.retransmissionAlertEnabled && this.retransmissionAlertTimerTask != null) {
@@ -1754,9 +1755,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         sipStack.removeTransaction(this);
         cleanUpTimerJ();
         applicationData = null;
-//        dialog = null;   
         lastResponseAsBytes = null;
-//        originalRequest = null;
         if ((!sipStack.cacheServerConnections)
                 && --getMessageChannel().useCount <= 0) {
             // Close the encapsulated socket if stack is configured
@@ -1773,23 +1772,26 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     
     protected void cleanUpTimerJ() {
 //    	applicationData = null;
-//    	dialog = null;
+    	dialog = null;
     	inviteTransaction = null;
     	if(lastResponse != null) {    		
     		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
     		lastResponse.cleanUp();
     		lastResponse = null;
     	}
-    	if(originalRequest != null) {
+    	if(originalRequest != null) {    		
     		originalRequest.cleanUp();
-    		originalRequest = null;
+    		originalRequest = null;    		
     	}    	    	
     	pendingReliableResponse = null;
     	pendingSubscribeTransaction = null;
     	provisionalResponseSem = null;
     	requestOf = null;
     	retransmissionAlertTimerTask = null;
-//    	sipStack = null;
     	messageProcessor = null;
     }
+
+	public byte[] getLastResponseAsBytes() {
+		return lastResponseAsBytes;
+	}
 }

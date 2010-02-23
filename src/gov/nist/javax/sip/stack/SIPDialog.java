@@ -1708,7 +1708,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * Get the last transaction from the dialog.
      */
     public SIPTransaction getLastTransaction() {
-    	return this.sipStack.findTransaction(lastTransactionId, !lastTransactionClient);
+    	if(lastTransactionId != null) {
+    		return this.sipStack.findTransaction(lastTransactionId, !lastTransactionClient);
+    	}
+    	return null;
     }
 
 //    public boolean isLastTransactionSeen() {

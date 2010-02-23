@@ -189,7 +189,9 @@ public abstract class SIPTransaction extends MessageChannel implements
     // Original request that is being handled by this transaction
     protected SIPRequest originalRequest;
     protected long originalRequestCSeqNumber;
-
+    protected String originalRequestBranch;	
+    protected boolean originalRequestHasPort;
+	
     // Underlying channel being used to send messages for this transaction
     private transient MessageChannel encapsulatedChannel;
 
@@ -360,7 +362,8 @@ public abstract class SIPTransaction extends MessageChannel implements
 
         this.originalRequest = newOriginalRequest;
         this.originalRequestCSeqNumber = newOriginalRequest.getCSeq().getSeqNumber();
-        
+        this.originalRequestBranch = newOriginalRequest.getTopmostVia().getBranch();
+        this.originalRequestHasPort = newOriginalRequest.getTopmostVia().hasPort();
         // just cache the control information so the
         // original request can be released later.
         this.method = newOriginalRequest.getMethod();
@@ -469,7 +472,7 @@ public abstract class SIPTransaction extends MessageChannel implements
      */
     public final String getBranch() {
         if (this.branch == null) {
-            this.branch = getOriginalRequest().getTopmostVia().getBranch();
+            this.branch = originalRequestBranch;
         }
         return branch;
     }

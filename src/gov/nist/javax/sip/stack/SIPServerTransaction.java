@@ -25,6 +25,7 @@
  */
 package gov.nist.javax.sip.stack;
 
+import gov.nist.core.HostPort;
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.ServerTransactionExt;
@@ -209,6 +210,9 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     private Semaphore provisionalResponseSem = new Semaphore(1);
 
 	private byte[] lastResponseAsBytes;
+	
+	private HostPort originalRequestSentBy;
+	private String originalRequestFromTag;
 
     /**
      * This timer task is used for alerting the application to send retransmission alerts.
@@ -616,10 +620,15 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     } else {
                         // Matching server side transaction with only the
                         // branch parameter.
-                        transactionMatches = getBranch().equalsIgnoreCase(messageBranch)
+                    	if(originalRequest != null) {
+                    		transactionMatches = getBranch().equalsIgnoreCase(messageBranch)
                                 && topViaHeader.getSentBy().equals(
                                         ((Via) getOriginalRequest().getViaHeaders().getFirst())
                                                 .getSentBy());
+                    	} else {
+                    		transactionMatches = getBranch().equalsIgnoreCase(messageBranch)
+                            	&& topViaHeader.getSentBy().equals(originalRequestSentBy);
+                    	}
 
                     }
 
@@ -902,14 +911,14 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // Provided we have set the banch id for this we set the BID for
                 // the
                 // outgoing via.
-                if (this.getOriginalRequest().getTopmostVia().getBranch() != null)
+                if (originalRequestBranch != null)
                     transactionResponse.getTopmostVia().setBranch(this.getBranch());
                 else
                     transactionResponse.getTopmostVia().removeParameter(ParameterNames.BRANCH);
 
                 // Make the topmost via headers match identically for the
                 // transaction rsponse.
-                if (!this.getOriginalRequest().getTopmostVia().hasPort())
+                if (!originalRequestHasPort)
                     transactionResponse.getTopmostVia().removePort();
             } catch (ParseException ex) {
                 ex.printStackTrace();
@@ -918,7 +927,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             // Method of the response does not match the request used to
             // create the transaction - transaction state does not change.
             if (!transactionResponse.getCSeq().getMethod().equals(
-                    getOriginalRequest().getMethod())) {
+                    getMethod())) {
                 sendResponse(transactionResponse);
                 return;
             }
@@ -1374,7 +1383,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             // Backward compatibility slippery slope....
             // Only set the from tag in the response when the
             // incoming request has a from tag.
-            String fromTag = ((SIPRequest) this.getRequest()).getFrom().getTag();
+            String fromTag = originalRequestFromTag;
+            if(getRequest() != null) {
+            	fromTag = ((SIPRequest) this.getRequest()).getFrom().getTag();
+            }
             if (fromTag != null && sipResponse.getFromTag() != null
                     && !sipResponse.getFromTag().equals(fromTag)) {
                 throw new SipException("From tag of request does not match response from tag");
@@ -1754,6 +1766,13 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             sipStack.getStackLogger().logDebug("removing" + this);
         sipStack.removeTransaction(this);
         cleanUpTimerJ();
+        // it should be available in the processTxTerminatedEvent, so we can nullify it only here
+    	if(originalRequest != null) {
+    		originalRequestSentBy = originalRequest.getTopmostVia().getSentBy();
+    		originalRequestFromTag = originalRequest.getFromTag();
+//    		originalRequest.cleanUp();
+    		originalRequest = null;    		
+    	}   
         applicationData = null;
         lastResponseAsBytes = null;
         if ((!sipStack.cacheServerConnections)
@@ -1778,12 +1797,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
 //    		lastResponse.cleanUp();
     		lastResponse = null;
-    	}
-    	// move it to cleanUp method since it should be available in the processTxTerminatedEvent
-    	if(originalRequest != null) {    		
-//    		originalRequest.cleanUp();
-    		originalRequest = null;    		
-    	}    	    	
+    	}    	 	    
     	pendingReliableResponse = null;
     	pendingSubscribeTransaction = null;
     	provisionalResponseSem = null;

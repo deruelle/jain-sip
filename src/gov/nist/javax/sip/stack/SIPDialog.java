@@ -281,12 +281,13 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     protected int firstTransactionPort = 5060;   
     protected Contact contactHeader;
 
-    // jeand : those 6 attributes replace the storage and holding of lastTransaction to save on memory utilization
+    // jeand : those 2 attributes replace the storage and holding of lastTransaction to save on memory utilization
     // and transaction retention in memory which could lead to overload of GC old generation if kept for too long
-	protected boolean lastTransactionSeen = false;
+//	protected boolean lastTransactionSeen = false;
+	private String lastTransactionId;	
 	protected boolean lastTransactionClient = false;
-	protected String lastTransactionMethod;
-	protected long lastTransactionRequestCSeqNumber;	
+//	protected String lastTransactionMethod;
+//	protected long lastTransactionRequestCSeqNumber;	
 
     // //////////////////////////////////////////////////////
     // Inner classes
@@ -601,7 +602,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
         lastResponseMethod = null;
         lastResponseTopMostVia = null;
-        lastTransactionMethod = null;
+//        lastTransactionMethod = null;
         localParty = null;
         remoteParty = null;
         method = null;
@@ -1346,9 +1347,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * send ACK).
      */
     public boolean isAckSent(long cseqNo) {
-        if (!isLastTransactionSeen())
+        if (getLastTransaction() == null)
             return true;
-        if (isLastTransactionClient()) {
+        if (!getLastTransaction().isServerTransaction()) {
             if (this.getLastAckSent() == null) {
                 return false;
             } else {
@@ -1468,13 +1469,14 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         // they share this one
 //        d.lastTransaction = subscribeTx;
         if(subscribeTx != null) {
-	        d.lastTransactionSeen = true;
+//	        d.lastTransactionSeen = true;
+	        d.lastTransactionId = subscribeTx.getTransactionId();
 	        d.lastTransactionClient = !subscribeTx.isServerTransaction();
-	        final SIPRequest originalRequest = (SIPRequest) subscribeTx.getRequest();
-	        if(originalRequest != null) {
-	        	d.lastTransactionMethod =  originalRequest.getMethod();
-	        	d.lastTransactionRequestCSeqNumber =  originalRequest.getCSeqHeader().getSeqNumber();
-	        }	        
+//	        final SIPRequest originalRequest = (SIPRequest) subscribeTx.getRequest();
+//	        if(originalRequest != null) {
+//	        	d.lastTransactionMethod =  originalRequest.getMethod();
+//	        	d.lastTransactionRequestCSeqNumber =  originalRequest.getCSeqHeader().getSeqNumber();
+//	        }	        
         }
         storeFirstTransactionInfo(d, subscribeTx);
         d.terminateOnBye = false;
@@ -1634,13 +1636,14 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         	sipStack.getStackLogger().logDebug("isBackToBackUserAgent = " + this.isBackToBackUserAgent );
         }
         
-        lastTransactionSeen = true;
+//        lastTransactionSeen = true;
+        lastTransactionId = transaction.getTransactionId();
         lastTransactionClient = !transaction.isServerTransaction();
-        final SIPRequest originalRequest = (SIPRequest) transaction.getRequest();
-        if(originalRequest != null) {
-        	lastTransactionMethod =  originalRequest.getMethod();
-        	lastTransactionRequestCSeqNumber =  originalRequest.getCSeqHeader().getSeqNumber();
-        }	
+//        final SIPRequest originalRequest = (SIPRequest) transaction.getRequest();
+//        if(originalRequest != null) {
+//        	lastTransactionMethod =  originalRequest.getMethod();
+//        	lastTransactionRequestCSeqNumber =  originalRequest.getCSeqHeader().getSeqNumber();
+//        }	
     
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger()
@@ -1704,25 +1707,25 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     /**
      * Get the last transaction from the dialog.
      */
-//    public SIPTransaction getLastTransaction() {
-//        return this.lastTransaction;
-//    }
+    public SIPTransaction getLastTransaction() {
+    	return this.sipStack.findTransaction(lastTransactionId, !lastTransactionClient);
+    }
 
-    public boolean isLastTransactionSeen() {
-    	return lastTransactionSeen;
-    }
-    
-    public boolean isLastTransactionClient() {
-    	return lastTransactionClient;
-    }
-    
-    public String getlastTransactionMethod() {
-		return lastTransactionMethod;
-	}   
-    
-    public long getlastTransactionRequestCSeqNumber() {
-		return lastTransactionRequestCSeqNumber;
-	}
+//    public boolean isLastTransactionSeen() {
+//    	return lastTransactionSeen;
+//    }
+//    
+//    public boolean isLastTransactionClient() {
+//    	return lastTransactionClient;
+//    }
+//    
+//    public String getlastTransactionMethod() {
+//		return lastTransactionMethod;
+//	}   
+//    
+//    public long getlastTransactionRequestCSeqNumber() {
+//		return lastTransactionRequestCSeqNumber;
+//	}
         
     /**
      * Get the INVITE transaction (null if no invite transaction).

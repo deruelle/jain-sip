@@ -1779,6 +1779,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 //    		lastResponse.cleanUp();
     		lastResponse = null;
     	}
+    	// move it to cleanUp method since it should be available in the processTxTerminatedEvent
     	if(originalRequest != null) {    		
 //    		originalRequest.cleanUp();
     		originalRequest = null;    		

@@ -50,6 +50,7 @@ import gov.nist.javax.sip.stack.ServerResponseInterface;
 
 import java.io.IOException;
 
+import javax.sip.ClientTransaction;
 import javax.sip.DialogState;
 import javax.sip.RequestEvent;
 import javax.sip.ServerTransaction;
@@ -401,16 +402,17 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
             /*
              * A refer cannot be processed until we have either sent or received an ACK.
              */
-            if (dialog.isLastTransactionSeen() && sipProvider.isDialogErrorsAutomaticallyHandled()) {
-                if (!dialog.isLastTransactionClient()) {
+            SIPTransaction  lastTransaction = dialog.getLastTransaction();
+            if (lastTransaction != null && sipProvider.isDialogErrorsAutomaticallyHandled()) {
+                if (lastTransaction instanceof ServerTransaction) {
                     if (!dialog.isAckSeen()   
-                            && dialog.getlastTransactionMethod().equals(Request.INVITE)) {
+                            && lastTransaction.getMethod().equals(Request.INVITE)) {
                         this.sendRequestPendingResponse(sipRequest, transaction);
                         return;
                     }
-                } else if (dialog.isLastTransactionClient()) {
-                    long cseqno = dialog.getlastTransactionRequestCSeqNumber();
-                    String method = dialog.getlastTransactionMethod();
+                } else if (lastTransaction instanceof ClientTransaction) {
+                    long cseqno = lastTransaction.getCSeq();
+                    String method = lastTransaction.getMethod();
                     if (method.equals(Request.INVITE) && !dialog.isAckSent(cseqno)) {
                         this.sendRequestPendingResponse(sipRequest, transaction);
                         return;
@@ -819,13 +821,13 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
              * receives an INVITE on a dialog while an INVITE it had sent on that dialog is in
              * progress MUST return a 491 (Request Pending) response to the received INVITE.
              */
-//            lastTransaction = (dialog == null ? null : dialog.getLastTransaction());
+            lastTransaction = (dialog == null ? null : dialog.getLastTransaction());
 
             if (dialog != null
                     && sipProvider.isDialogErrorsAutomaticallyHandled()
-                    && dialog.isLastTransactionSeen()
-                    && dialog.getlastTransactionMethod().equals(Request.INVITE)
-                    && dialog.isLastTransactionClient()
+                    && lastTransaction != null
+                    && lastTransaction.isInviteTransaction()
+                    && lastTransaction instanceof ClientTransaction 
                     && dialog.getLastResponseStatusCode() != null
                     && dialog.getLastResponseStatusCode().intValue() == 200
                     && !dialog.isAckSent(dialog.getLastResponseCSeqNumber())) {

@@ -268,9 +268,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 	// added for Issue 248 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=248
 	private Semaphore timerTaskLock = new Semaphore(1);
 	
+	//needed for reliable response seding but nullifyed right after the ACK has been received or sent to let go of the ref ASAP
+	protected SIPTransaction firstTransaction;
 	// We store here the useful data from the first transaction without having to
 	// keep the whole transaction object for the duration of the dialog. It also
-	// contains the non-transient information used in the replication of dialogs.
+	// contains the non-transient information used in the replication of dialogs.		
 	protected boolean firstTransactionSecure;
 	protected boolean firstTransactionSeen;
     protected String firstTransactionMethod;
@@ -1045,6 +1047,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             this.setLastAckSent(ackRequest);
             messageChannel.sendMessage(ackRequest);
             // Sent atleast one ACK.
+            firstTransaction = null;
             this.isAcknowledged = true;
             this.highestSequenceNumberAcknowledged = Math.max(this.highestSequenceNumberAcknowledged,
                     ((SIPRequest)ackRequest).getCSeq().getSeqNumber());
@@ -1150,6 +1153,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         } else {
         	sipStack.getStackLogger().logDebug("tr is null -- not updating the ack state" );
         }
+        firstTransaction = null;
     }
 
     /**
@@ -1359,6 +1363,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * Get the transaction that created this dialog.
      */
     public Transaction getFirstTransaction() {
+    	if(firstTransaction != null) {
+    		return firstTransaction;
+    	}
         return this.sipStack.findTransaction(firstTransactionId, firstTransactionIsServerTransaction);
     }
 
@@ -1528,7 +1535,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         return this.dialogId;
     }
 
-    private static void storeFirstTransactionInfo(SIPDialog dialog, SIPTransaction transaction) {    	
+    private static void storeFirstTransactionInfo(SIPDialog dialog, SIPTransaction transaction) {
+    	dialog.firstTransaction = transaction;
     	dialog.firstTransactionSeen = true;
     	dialog.firstTransactionIsServerTransaction = transaction.isServerTransaction(); 
     	dialog.firstTransactionSecure = transaction.getRequest().getRequestURI().getScheme()
@@ -2754,7 +2762,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      */
     public void setLastResponse(SIPTransaction transaction, SIPResponse sipResponse) {
         this.callIdHeader = sipResponse.getCallId();     
-        int statusCode = sipResponse.getStatusCode();
+        final int statusCode = sipResponse.getStatusCode();
         if (statusCode == 100) {
         	if (sipStack.isLoggingEnabled())
         		sipStack.getStackLogger().logWarning(
@@ -2763,11 +2771,13 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         }
         
 //        this.lastResponse = sipResponse;
-        this.lastResponseStatusCode = Integer.valueOf(sipResponse.getStatusCode());
+        this.lastResponseStatusCode = Integer.valueOf(statusCode);
         this.lastResponseTopMostVia = sipResponse.getTopmostVia();
         this.lastResponseMethod = sipResponse.getCSeqHeader().getMethod();
         this.lastResponseCSeqNumber = sipResponse.getCSeq().getSeqNumber();
-        this.lastResponseDialogId = sipResponse.getDialogId(transaction.isServerTransaction());
+        if(transaction != null) {
+        	this.lastResponseDialogId = sipResponse.getDialogId(transaction.isServerTransaction());
+        }
         if(lastResponseHeaders != null) {
         	lastResponseHeaders.clear();        
         }
@@ -2813,11 +2823,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                         this.lastInviteOkReceived);
             }
             return;
-        }
-        String cseqMethod = sipResponse.getCSeq().getMethod();
+        }        
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger().logStackTrace();
-            sipStack.getStackLogger().logDebug("cseqMethod = " + cseqMethod);
+            sipStack.getStackLogger().logDebug("cseqMethod = " + lastResponseMethod);
             sipStack.getStackLogger().logDebug("dialogState = " + this.getState());
             sipStack.getStackLogger().logDebug("method = " + this.getMethod());
             sipStack.getStackLogger().logDebug("statusCode = " + statusCode);
@@ -2828,7 +2837,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         // note that the transaction can be null for forked
         // responses.
         if (transaction == null || transaction instanceof ClientTransaction) {
-            if (sipStack.isDialogCreated(cseqMethod)) {
+            if (sipStack.isDialogCreated(lastResponseMethod)) {
                 // Make a final tag assignment.
                 if (getState() == null && (statusCode / 100 == 1)) {
                     /*
@@ -2850,7 +2859,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                      * result of the forking. The remote target can also change as a result of the
                      * forking.
                      */
-                    if (cseqMethod.equals(getMethod()) && transaction != null
+                    if (lastResponseMethod.equals(getMethod()) && transaction != null
                             && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)) {
                         setRemoteTag(sipResponse.getToTag());
                         this.setDialogId(sipResponse.getDialogId(false));
@@ -2864,7 +2873,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
                     // Only do this if method equals initial request!
 
-                    if (cseqMethod.equals(getMethod())
+                    if (lastResponseMethod.equals(getMethod())
                             && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)
                             && this.getState() != DialogState.CONFIRMED) {
                         setRemoteTag(sipResponse.getToTag());
@@ -2876,14 +2885,14 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                     }
 
                     // Capture the OK response for later use in createAck
-                    if (cseqMethod.equals(Request.INVITE)) {
+                    if (lastResponseMethod.equals(Request.INVITE)) {
                         this.lastInviteOkReceived = Math.max(sipResponse.getCSeq().getSeqNumber(),
                                 this.lastInviteOkReceived);
                     }
 
                 } else if (statusCode >= 300
                         && statusCode <= 699
-                        && (getState() == null || (cseqMethod.equals(getMethod()) && getState()
+                        && (getState() == null || (lastResponseMethod.equals(getMethod()) && getState()
                                 .getValue() == SIPDialog.EARLY_STATE))) {
                     /*
                      * This case handles 3xx, 4xx, 5xx and 6xx responses. RFC 3261 Section 12.3 -
@@ -2922,7 +2931,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                     }
                 }
 
-            } else if (cseqMethod.equals(Request.NOTIFY)
+            } else if (lastResponseMethod.equals(Request.NOTIFY)
                     && (this.getMethod().equals(Request.SUBSCRIBE) || this.getMethod().equals(
                             Request.REFER)) && sipResponse.getStatusCode() / 100 == 2
                     && this.getState() == null) {
@@ -2931,7 +2940,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                 sipStack.putDialog(this);
                 this.setState(SIPDialog.CONFIRMED_STATE);
 
-            } else if (cseqMethod.equals(Request.BYE) && statusCode / 100 == 2
+            } else if (lastResponseMethod.equals(Request.BYE) && statusCode / 100 == 2
                     && isTerminatedOnBye()) {
                 // Dialog will be terminated when the transction is terminated.
                 setState(SIPDialog.TERMINATED_STATE);
@@ -2939,7 +2948,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         } else {
             // Processing Server Dialog.
 
-            if (cseqMethod.equals(Request.BYE) && statusCode / 100 == 2
+            if (lastResponseMethod.equals(Request.BYE) && statusCode / 100 == 2
                     && this.isTerminatedOnBye()) {
                 /*
                  * Only transition to terminated state when 200 OK is returned for the BYE. Other
@@ -2950,7 +2959,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                 boolean doPutDialog = false;
 
                 if (getLocalTag() == null && sipResponse.getTo().getTag() != null
-                        && sipStack.isDialogCreated(cseqMethod) && cseqMethod.equals(getMethod())) {
+                        && sipStack.isDialogCreated(lastResponseMethod) && lastResponseMethod.equals(getMethod())) {
                     setLocalTag(sipResponse.getTo().getTag());
 
                     doPutDialog = true;
@@ -2975,7 +2984,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                         // Bug Fix by Jens tinfors
                         // see https://jain-sip.dev.java.net/servlets/ReadMsg?list=users&msgNo=797
                         if (statusCode == 489
-                                && (cseqMethod.equals(Request.NOTIFY) || cseqMethod
+                                && (lastResponseMethod.equals(Request.NOTIFY) || lastResponseMethod
                                         .equals(Request.SUBSCRIBE))) {
                         	if (sipStack.isLoggingEnabled())
                         		sipStack.getStackLogger().logDebug(
@@ -2998,8 +3007,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                      * CONFIRMED
                      */
                     if (this.dialogState <= SIPDialog.EARLY_STATE
-                            && (cseqMethod.equals(Request.INVITE)
-                                    || cseqMethod.equals(Request.SUBSCRIBE) || cseqMethod
+                            && (lastResponseMethod.equals(Request.INVITE)
+                                    || lastResponseMethod.equals(Request.SUBSCRIBE) || lastResponseMethod
                                     .equals(Request.REFER))) {
                         this.setState(SIPDialog.CONFIRMED_STATE);
                     }
@@ -3015,7 +3024,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                     
                     if (transaction.getState() != TransactionState.TERMINATED
                             && sipResponse.getStatusCode() == Response.OK
-                            && cseqMethod.equals(Request.INVITE)
+                            && lastResponseMethod.equals(Request.INVITE)
                             && this.isBackToBackUserAgent) {
                             // 
                             //  Acquire the flag for re-INVITE so that we cannot re-INVITE before

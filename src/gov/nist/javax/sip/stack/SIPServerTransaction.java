@@ -1776,11 +1776,11 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	inviteTransaction = null;
     	if(lastResponse != null) {    		
     		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
-    		lastResponse.cleanUp();
+//    		lastResponse.cleanUp();
     		lastResponse = null;
     	}
     	if(originalRequest != null) {    		
-    		originalRequest.cleanUp();
+//    		originalRequest.cleanUp();
     		originalRequest = null;    		
     	}    	    	
     	pendingReliableResponse = null;

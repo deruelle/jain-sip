@@ -82,6 +82,8 @@ import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ConcurrentLinkedQueue;
 
 import javax.sip.InvalidArgumentException;
@@ -170,7 +172,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     private Object messageContentObject;
 
     // Table of headers indexed by name.
-    private Hashtable<String, SIPHeader> nameTable;
+    private Map<String, SIPHeader> nameTable;
 
     /**
      * The application data pointer. This is un-interpreted by the stack. This is provided as a
@@ -544,7 +546,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public SIPMessage() {
         this.unrecognizedHeaders = new LinkedList<String>();
         this.headers = new ConcurrentLinkedQueue<SIPHeader>();
-        nameTable = new Hashtable<String, SIPHeader>();
+        nameTable = new ConcurrentHashMap<String, SIPHeader>();
         try {
             this.attachHeader(new ContentLength(0), false);
         } catch (Exception ex) {

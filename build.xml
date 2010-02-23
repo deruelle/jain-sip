@@ -307,7 +307,6 @@ c:/jakarta-ant/bin/ant all
                             <pathelement location='lib/sipxcommons.jar' />
                         </classpath>
                     </jain-javac>
-                    <copy file="src/test/unit/gov/nist/javax/sip/stack/tls/testkeys" toDir="classes/test/unit/gov/nist/javax/sip/stack/tls" />
                     <jar destfile="${unit_test_jar}" basedir="${classes}" includes="test/unit/**/*.class,test/torture/**/*" />
                 </target>
 
@@ -399,11 +398,10 @@ c:/jakarta-ant/bin/ant all
                     <echo>The test report can be found at ./test-reports/html/index.html</echo>
                     <fail if="testing.failed" />
                 </target>
-                <!-- runs the other tests (i.e. tcp and tls) -->
+                <!-- runs  tcp and tls. These are not included in regression.  -->
                 <target name='runtckcallflows' depends="compiletck" description="Runs all TCK tests using the ant junit task.">
                     <mkdir dir="test-reports" />
                     <mkdir dir="logs" />
-                    <copy file="src/test/tck/msgflow/callflows/tls/testkeys" toDir="classes/test/tck/msgflow/callflows/tls" />
 
                     <junit fork="yes" showoutput="yes" failureproperty="testing.failed">
                         <classpath>
@@ -427,6 +425,9 @@ c:/jakarta-ant/bin/ant all
                                 <include name="test/tck/msgflow/callflows/**/*Test.java" />
                                 <exclude name="test/tck/msgflow/callflows/**/Udp*Test.java" />
                             	<exclude name="test/tck/msgflow/callflows/sctp/**" />
+                                <!-- Tls Tests excluded for tck compliance  -->
+                                <exclude name="test/tck/msgflow/callflows/tls/*Test.java" />
+                                <exclude name="test/tck/msgflow/callflows/sctp/*Test.java" />
                             </fileset>
                         </batchtest>
                     </junit>
@@ -435,13 +436,16 @@ c:/jakarta-ant/bin/ant all
                     <fail if="testing.failed" />
                 </target>
 
+
                 <!-- target for an individual unit test  -->
-                <target name='unit1'  depends="compileunit" description="Runs unit tests not included in tck.">
+                <target name='tlstests'  depends="compileunit" description="Runs unit tests not included in tck.">
                     <mkdir dir="test-reports" />
                     <delete failonerror="0">
                         <fileset file="logs/*" />
                     </delete>
                     <mkdir dir="logs" />
+                    <copy file="src/test/unit/gov/nist/javax/sip/stack/tls/testkeys" toDir= "classes/test/unit/gov/nist/javax/sip/stack/tls" />
+                    <copy file="src/test/tck/msgflow/callflows/tls/testkeys" toDir="classes/test/tck/msgflow/callflows/tls" />
 
                     <junit fork="yes" showoutput="yes" failureproperty="testing.failed">
                         <classpath>
@@ -464,6 +468,7 @@ c:/jakarta-ant/bin/ant all
                         <batchtest fork="yes" todir="test-reports" haltonfailure="no">
                             <fileset dir="${srcroot}">
                                 <include name="test/unit/gov/nist/javax/sip/stack/tls/*Test.java" />
+                                <include name="test/tck/msgflow/callflows/tls/*Test.java" />
                             </fileset>
                         </batchtest>
                     </junit>
@@ -658,7 +663,7 @@ c:/jakarta-ant/bin/ant all
 
                 <!-- This is the build verification test run by cruise control. -->
 
-                <target name="cc-buildloop" depends="dist,runtck,runtckcallflows,parsertest,unittest" />
+                <target name="cc-buildloop" depends="dist,runtck,runtckcallflows,parsertest,unittest,tlstests" />
 
 
                 <!-- compile to traces viewer jar -->

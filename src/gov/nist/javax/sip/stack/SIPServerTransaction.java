@@ -798,12 +798,12 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                         || TransactionState.COMPLETED == getRealState()) {
                     this.semRelease();
                     // Resend the last response to
-                    // the client
-                    if (lastResponseAsBytes != null) {
-
-                        // Send the message to the client
-                        super.sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
-
+                    // the client                    
+                    if(lastResponse != null) {
+                    	super.sendMessage(lastResponse);
+                    } else if (lastResponseAsBytes != null) {
+                         // Send the message to the client
+                         super.sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
                     }
                 } else if (transactionRequest.getMethod().equals(Request.ACK)) {
                     // This is passed up to the TU to suppress

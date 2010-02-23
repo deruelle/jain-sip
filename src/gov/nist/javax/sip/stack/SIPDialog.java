@@ -268,7 +268,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 	// added for Issue 248 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=248
 	private Semaphore timerTaskLock = new Semaphore(1);
 	
-	//needed for reliable response seding but nullifyed right after the ACK has been received or sent to let go of the ref ASAP
+	//needed for reliable response sending but nullifyed right after the ACK has been received or sent to let go of the ref ASAP
 	protected SIPTransaction firstTransaction;
 	// We store here the useful data from the first transaction without having to
 	// keep the whole transaction object for the duration of the dialog. It also
@@ -281,13 +281,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     protected int firstTransactionPort = 5060;   
     protected Contact contactHeader;
 
-    // jeand : those 2 attributes replace the storage and holding of lastTransaction to save on memory utilization
-    // and transaction retention in memory which could lead to overload of GC old generation if kept for too long
-//	protected boolean lastTransactionSeen = false;
-	private String lastTransactionId;	
-	protected boolean lastTransactionClient = false;
-//	protected String lastTransactionMethod;
-//	protected long lastTransactionRequestCSeqNumber;	
+    // needed for checking 491 but nullifyed right after the ACK has been received or sent to let go of the ref ASAP
+	protected SIPTransaction lastTransaction;
 
     // //////////////////////////////////////////////////////
     // Inner classes
@@ -1049,6 +1044,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             messageChannel.sendMessage(ackRequest);
             // Sent atleast one ACK.
             firstTransaction = null;
+            lastTransaction = null;
             this.isAcknowledged = true;
             this.highestSequenceNumberAcknowledged = Math.max(this.highestSequenceNumberAcknowledged,
                     ((SIPRequest)ackRequest).getCSeq().getSeqNumber());
@@ -1155,6 +1151,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         	sipStack.getStackLogger().logDebug("tr is null -- not updating the ack state" );
         }
         firstTransaction = null;
+        lastTransaction =  null;
     }
 
     /**
@@ -1347,9 +1344,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * send ACK).
      */
     public boolean isAckSent(long cseqNo) {
-        if (getLastTransaction() == null)
+        if (this.getLastTransaction() == null)
             return true;
-        if (!getLastTransaction().isServerTransaction()) {
+        if (this.getLastTransaction() instanceof ClientTransaction) {
             if (this.getLastAckSent() == null) {
                 return false;
             } else {
@@ -1465,19 +1462,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         //
         // The above sets d.firstTransaction to NOTIFY (ST), correct that
         //
-        d.serverTransactionFlag = false;
+        d.serverTransactionFlag = false;       	
         // they share this one
-//        d.lastTransaction = subscribeTx;
-        if(subscribeTx != null) {
-//	        d.lastTransactionSeen = true;
-	        d.lastTransactionId = subscribeTx.getTransactionId();
-	        d.lastTransactionClient = !subscribeTx.isServerTransaction();
-//	        final SIPRequest originalRequest = (SIPRequest) subscribeTx.getRequest();
-//	        if(originalRequest != null) {
-//	        	d.lastTransactionMethod =  originalRequest.getMethod();
-//	        	d.lastTransactionRequestCSeqNumber =  originalRequest.getCSeqHeader().getSeqNumber();
-//	        }	        
-        }
+        d.lastTransaction = subscribeTx;
         storeFirstTransactionInfo(d, subscribeTx);
         d.terminateOnBye = false;
         d.localSequenceNumber = subscribeTx.getCSeq();
@@ -1636,14 +1623,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         	sipStack.getStackLogger().logDebug("isBackToBackUserAgent = " + this.isBackToBackUserAgent );
         }
         
-//        lastTransactionSeen = true;
-        lastTransactionId = transaction.getTransactionId();
-        lastTransactionClient = !transaction.isServerTransaction();
-//        final SIPRequest originalRequest = (SIPRequest) transaction.getRequest();
-//        if(originalRequest != null) {
-//        	lastTransactionMethod =  originalRequest.getMethod();
-//        	lastTransactionRequestCSeqNumber =  originalRequest.getCSeqHeader().getSeqNumber();
-//        }	
+        this.lastTransaction = transaction;        
     
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger()
@@ -1708,10 +1688,14 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * Get the last transaction from the dialog.
      */
     public SIPTransaction getLastTransaction() {
-    	if(lastTransactionId != null) {
-    		return this.sipStack.findTransaction(lastTransactionId, !lastTransactionClient);
-    	}
-    	return null;
+    	return this.lastTransaction;
+//    	if(lastTransaction != null) {
+//    		return lastTransaction;
+//    	}
+//    	if(lastTransactionId != null) {
+//    		return this.sipStack.findTransaction(lastTransactionId, !lastTransactionClient);
+//    	}
+//    	return null;
     }
 
 //    public boolean isLastTransactionSeen() {

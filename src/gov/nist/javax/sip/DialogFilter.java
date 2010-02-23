@@ -402,17 +402,18 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
             /*
              * A refer cannot be processed until we have either sent or received an ACK.
              */
-            SIPTransaction  lastTransaction = dialog.getLastTransaction();
-            if (lastTransaction != null && sipProvider.isDialogErrorsAutomaticallyHandled()) {
-                if (lastTransaction instanceof ServerTransaction) {
-                    if (!dialog.isAckSeen()   
-                            && lastTransaction.getMethod().equals(Request.INVITE)) {
+            SIPTransaction lastTransaction = ((SIPDialog) dialog).getLastTransaction();
+            if (lastTransaction != null  && sipProvider.isDialogErrorsAutomaticallyHandled()) {
+                SIPRequest lastRequest = (SIPRequest) lastTransaction.getRequest();
+                if (lastTransaction instanceof SIPServerTransaction) {
+                    if (!((SIPDialog) dialog).isAckSeen()   
+                            && lastRequest.getMethod().equals(Request.INVITE)) {
                         this.sendRequestPendingResponse(sipRequest, transaction);
                         return;
                     }
-                } else if (lastTransaction instanceof ClientTransaction) {
-                    long cseqno = lastTransaction.getCSeq();
-                    String method = lastTransaction.getMethod();
+                } else if (lastTransaction instanceof SIPClientTransaction) {
+                    long cseqno = lastRequest.getCSeqHeader().getSeqNumber();
+                    String method = lastRequest.getMethod();
                     if (method.equals(Request.INVITE) && !dialog.isAckSent(cseqno)) {
                         this.sendRequestPendingResponse(sipRequest, transaction);
                         return;
@@ -827,10 +828,11 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                     && sipProvider.isDialogErrorsAutomaticallyHandled()
                     && lastTransaction != null
                     && lastTransaction.isInviteTransaction()
-                    && lastTransaction instanceof ClientTransaction 
-                    && dialog.getLastResponseStatusCode() != null
-                    && dialog.getLastResponseStatusCode().intValue() == 200
-                    && !dialog.isAckSent(dialog.getLastResponseCSeqNumber())) {
+                    && lastTransaction instanceof ClientTransaction
+                    && lastTransaction.getLastResponse() != null
+                    && lastTransaction.getLastResponse().getStatusCode() == 200
+                    && !dialog.isAckSent(lastTransaction.getLastResponse().getCSeq()
+                            .getSeqNumber())) {
                 if (sipStack.isLoggingEnabled()) {
                     sipStack.getStackLogger().logDebug(
                             "Sending 491 response for client Dialog ACK not sent.");

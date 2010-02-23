@@ -40,7 +40,7 @@ import java.text.ParseException;
 
 public class StringTokenizer {
 
-    protected char[] buffer;
+    protected String buffer;
     protected int bufferLen;
     protected int ptr;
     protected int savedPtr;
@@ -49,25 +49,23 @@ public class StringTokenizer {
     }
 
     public StringTokenizer(String buffer) {
-        this.buffer = buffer.toCharArray();
+        this.buffer = buffer;
         bufferLen = buffer.length();
         ptr = 0;
     }
 
     public String nextToken() {
         int startIdx = ptr;
-        int count = 0;
-        
+
         while (ptr < bufferLen) {
-            char c = buffer[ptr];
+            char c = buffer.charAt(ptr);
             ptr++;
-            count++;
             if (c == '\n') {
                 break;
             }
         }
 
-        return String.valueOf(buffer, startIdx, count);
+        return buffer.substring(startIdx, ptr);
     }
 
     public boolean hasMoreChars() {
@@ -113,16 +111,13 @@ public class StringTokenizer {
 
     public String getLine() {
         int startIdx = ptr;
-        int count = 0;
-        while (ptr < bufferLen && buffer[ptr] != '\n') {
+        while (ptr < bufferLen && buffer.charAt(ptr) != '\n') {
             ptr++;
-            count++;
         }
-        if (ptr < bufferLen && buffer[ptr] == '\n') {
+        if (ptr < bufferLen && buffer.charAt(ptr) == '\n') {
             ptr++;
-            count++;
         }
-        return String.valueOf(buffer,startIdx, count);
+        return buffer.substring(startIdx, ptr);
     }
 
     public String peekLine() {
@@ -139,7 +134,7 @@ public class StringTokenizer {
     public char lookAhead(int k) throws ParseException {
         // Debug.out.println("ptr = " + ptr);
         try {
-            return buffer[ptr + k];
+            return buffer.charAt(ptr + k);
         }
         catch (IndexOutOfBoundsException e) {
             return '\0';
@@ -152,7 +147,7 @@ public class StringTokenizer {
                 buffer + " getNextChar: End of buffer",
                 ptr);
         else
-            return buffer[ptr++];
+            return buffer.charAt(ptr++);
     }
 
     public void consume() {
@@ -178,7 +173,6 @@ public class StringTokenizer {
     */
     public String getNextToken(char delim) throws ParseException {
         int startIdx = ptr;
-        int count = 0;
         while (true) {
             char la = lookAhead(0);
             if (la == delim)
@@ -186,9 +180,8 @@ public class StringTokenizer {
             else if (la == '\0')
                 throw new ParseException("EOL reached", 0);
             consume(1);
-            count++;
         }
-        return String.valueOf(buffer, startIdx, count);
+        return buffer.substring(startIdx, ptr);
     }
 
     /** get the SDP field name of the line

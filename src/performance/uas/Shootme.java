@@ -95,12 +95,12 @@ public class Shootme implements SipListener {
         	if (st == null) {
         		st = sipProvider.getNewServerTransaction(request);
             }
+        	sipProvider.getNewDialog(st);
         	final String toTag = ""+System.nanoTime();
             Response response = messageFactory.createResponse(Response.RINGING,
                     request);            
             ToHeader toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
-            toHeader.setTag(toTag); // Application is supposed to set.
-            sipProvider.getNewDialog(st);
+            toHeader.setTag(toTag); // Application is supposed to set.            
 			// Creates a dialog only for non trying responses				
             st.sendResponse(response);
 

@@ -602,13 +602,15 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         remoteParty = null;
         method = null;
         nextSeqno = null;
-        if(originalRequestRecordRouteHeaders != null)
+        if(originalRequestRecordRouteHeaders != null) {
         	originalRequestRecordRouteHeaders.clear();
-        originalRequestRecordRouteHeaders = null;
+        	originalRequestRecordRouteHeaders = null;
+        }
         remoteTarget = null;
-        if(routeList != null)
+        if(routeList != null) {
         	routeList.clear();
-        routeList = null;
+        	routeList = null;
+        }
 	}
 
 	private void recordStackTrace() {
@@ -628,10 +630,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
        
         SIPRequest sipRequest = (SIPRequest) transaction.getRequest();
         this.callIdHeader = sipRequest.getCallId();
-        this.earlyDialogId = sipRequest.getDialogId(false);
+        this.earlyDialogId = sipRequest.getDialogId(false);        
         if (transaction == null)
             throw new NullPointerException("Null tx");
         this.sipStack = transaction.sipStack;
+//        sipStack.putNullStateDialog(this);
 
         // this.defaultRouter = new DefaultRouter((SipStack) sipStack,
         // sipStack.outboundProxy);
@@ -980,6 +983,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      */
     private void sendAck(Request request, boolean throwIOExceptionAsSipException)
             throws SipException {
+    	if(originalRequest != null) {
+    		originalRequestRecordRouteHeaders = originalRequest.getRecordRouteHeaders();
+            originalRequest = null;
+    	}
         SIPRequest ackRequest = (SIPRequest) request;
         if (sipStack.isLoggingEnabled())
             sipStack.getStackLogger().logDebug("sendAck" + this);
@@ -1113,7 +1120,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * Mark that the dialog has seen an ACK.
      */
     void ackReceived(long cseqNumber) {
-
+    	if(originalRequest != null) {
+    		originalRequestRecordRouteHeaders = originalRequest.getRecordRouteHeaders();
+            originalRequest = null;
+    	}
         // Suppress retransmission of the final response
         if (this.isAckSeen()) {
         	sipStack.getStackLogger().logDebug("Ack already seen for response -- dropping");
@@ -1439,7 +1449,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     /**
      * Set the dialog identifier.
      */
-    public void setDialogId(String dialogId) {
+    public void setDialogId(String dialogId) {   
+//    	sipStack.removeNullStateDialog(earlyDialogId);
+    	if(firstTransaction != null) {
+    		firstTransaction.setDialog(this, dialogId);
+    	}
         this.dialogId = dialogId;
     }
 
@@ -1576,8 +1590,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             this.setLocalParty(sipRequest);
             this.setRemoteParty(sipRequest);
             this.setCallId(sipRequest);
-            if (this.originalRequest == null) {
+            if (this.originalRequest == null && transaction.getMethod().equals(Request.INVITE)) {
                 this.originalRequest = sipRequest;
+            } else if(originalRequest != null) {
+                originalRequestRecordRouteHeaders = sipRequest.getRecordRouteHeaders();
             }
             if (this.method == null) {
                 this.method = sipRequest.getMethod();
@@ -1606,7 +1622,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             this.setLocalParty(sipRequest);
             this.setRemoteParty(sipRequest);
             this.setCallId(sipRequest);
-            this.originalRequest = sipRequest;
+            if(transaction.getMethod().equals(Request.INVITE)) {
+            	this.originalRequest = sipRequest;            	
+            } else {
+            	originalRequestRecordRouteHeaders = sipRequest.getRecordRouteHeaders();
+            }
             this.method = sipRequest.getMethod();
 
         }
@@ -1622,8 +1642,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         if ( sipStack.isLoggingEnabled() ) {
         	sipStack.getStackLogger().logDebug("isBackToBackUserAgent = " + this.isBackToBackUserAgent );
         }
-        
-        this.lastTransaction = transaction;        
+        if(transaction.getMethod().equals(Request.INVITE)) {
+        	this.lastTransaction = transaction;        
+        }
     
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger()
@@ -2126,6 +2147,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         this.setBranch( via, method );
         newRequest.setHeader(via);
         newRequest.setHeader(cseq);
+        newRequest.setHeader(from);
+        newRequest.setHeader(to);
         Iterator<SIPHeader> headerIterator = lastResponseHeaders.iterator();
         while (headerIterator.hasNext()) {
             SIPHeader nextHeader = (SIPHeader) headerIterator.next();
@@ -2144,11 +2167,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 //                || nextHeader instanceof SessionExpires
 //                || nextHeader instanceof ReasonList) {
 //                continue;
-//            }
-            if (nextHeader instanceof To)
-                nextHeader = (SIPHeader) to;
-            else if (nextHeader instanceof From)
-                nextHeader = (SIPHeader) from;
+//            }           
             try {
                 newRequest.attachHeader(nextHeader, false);
             } catch (SIPDuplicateHeaderException e) {
@@ -2788,7 +2807,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                 || nextHeader instanceof ServerHeader
                 || nextHeader instanceof ReasonHeader
                 || nextHeader instanceof SessionExpires
-                || nextHeader instanceof ReasonList) {
+                || nextHeader instanceof ReasonList
+                || nextHeader instanceof From
+                || nextHeader instanceof To) {
                 continue;
             }            
             lastResponseHeaders.add(nextHeader);
@@ -3408,10 +3429,6 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                 return false;
             }
         }
-    }
-
-    void setEarlyDialogId(String earlyDialogId) {
-        this.earlyDialogId = earlyDialogId;
     }
 
     String getEarlyDialogId() {

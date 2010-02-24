@@ -384,7 +384,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     if (!sipStack.isAlive())
                         return;
                 }
-//
+
 //                if(getMessageChannel().getPeerProtocol().equalsIgnoreCase(ListeningPoint.UDP)) {
 //                	cleanUp();
 //                } else {
@@ -813,7 +813,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     	super.sendMessage(lastResponse);
                     } else if (lastResponseAsBytes != null) {
                          // Send the message to the client
-                         super.sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
+                         super.getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
                     }
                 } else if (transactionRequest.getMethod().equals(Request.ACK)) {
                     // This is passed up to the TU to suppress
@@ -1101,7 +1101,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     sipStack.getStackLogger().logDebug(
                             "sendMessage : tx = " + this + " getState = " + this.getState());
                 }
-                lastResponse = transactionResponse;
+        		lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
+        		lastResponseStatusCode = transactionResponse.getStatusCode();
+//            		lastResponse.cleanUp();
+        		lastResponse = null;
                 this.sendResponse(transactionResponse);
 
             } catch (IOException e) {
@@ -1139,18 +1142,19 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             if (sipStack.isLoggingEnabled()) {
                 sipStack.getStackLogger().logDebug("fireRetransmissionTimer() -- ");
             }
+            if(lastResponse != null) {    		
+        		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
+        		lastResponseStatusCode = lastResponse.getStatusCode();
+//        		lastResponse.cleanUp();
+        		lastResponse = null;        		
+        	}    
             // Resend the last response sent by this transaction
-            if (isInviteTransaction() && (lastResponse != null || lastResponseAsBytes != null)) {
+            if (isInviteTransaction() && lastResponseAsBytes != null) {
                 // null can happen if this is terminating when the timer fires.
                 if (!this.retransmissionAlertEnabled || sipStack.isTransactionPendingAck(this) ) {
                     // Retransmit last response until ack.
-                    if ((lastResponse.getStatusCode() / 100 > 2 || lastResponseStatusCode /100 > 2)&& !this.isAckSeen)
-                    	if(lastResponse != null) {
-                    		super.sendMessage(lastResponse);
-                    	} else {
-                    		super.sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
-                    	}
-                    		
+                    if (lastResponseStatusCode /100 > 2 && !this.isAckSeen)
+                    	super.getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
                 } else {
                     // alert the application to retransmit the last response
                     SipProviderImpl sipProvider = (SipProviderImpl) this.getSipProvider();
@@ -1528,9 +1532,23 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
      */
     public Dialog getDialog() {
     	if(dialog == null && dialogId != null) {
-    		return this.sipStack.getDialog(dialogId);
+    		return sipStack.getDialog(dialogId);
     	}
     	return dialog;
+//    	SIPDialog sipDialog = null;
+//    	if(dialog != null) {
+//    		return dialog;
+//    	}
+//    	if(dialogId != null) {
+//    		sipDialog = this.sipStack.getDialog(dialogId);
+//    		if(sipDialog == null) {
+//    			sipDialog = this.sipStack.getEarlyDialog(dialogId);
+//    		}
+//    		if(sipDialog == null) {
+//    			sipDialog = this.sipStack.getNullStateDialog(dialogId);
+//    		}
+//    	}
+//    	return sipDialog;
     }
 
     /*
@@ -1542,8 +1560,13 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     public void setDialog(SIPDialog sipDialog, String dialogId) {
         if (sipStack.isLoggingEnabled())
             sipStack.getStackLogger().logDebug("setDialog " + this + " dialog = " + sipDialog);
-        this.dialog = sipDialog;
-        this.dialogId = dialogId;
+        dialog = sipDialog;
+//        if(dialogId == null) {
+//        	this.dialogId = sipDialog.getEarlyDialogId();
+//        } else {
+        	this.dialogId = dialogId;
+//        }
+        
         if (dialogId != null)
             sipDialog.setAssigned();
         if (this.retransmissionAlertEnabled && this.retransmissionAlertTimerTask != null) {
@@ -1706,7 +1729,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
     public void setMapped(boolean b) {
         this.isMapped = true;
-
     }
 
     public void setPendingSubscribe(SIPClientTransaction pendingSubscribeClientTx) {
@@ -1799,12 +1821,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 //    	applicationData = null;
     	dialog = null;
     	inviteTransaction = null;
-    	if(lastResponse != null) {    		
-    		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
-    		lastResponseStatusCode = lastResponse.getStatusCode();
-//    		lastResponse.cleanUp();
-    		lastResponse = null;
-    	}    	 	    
     	if(originalRequest !=null) {
     		originalRequest.setTransaction(null);
     		originalRequest.setInviteTransaction(null);

@@ -632,10 +632,10 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
         dialog.setStack(this);
         if (stackLogger.isLoggingEnabled())
             stackLogger.logStackTrace();
-        dialogTable.put(dialogId, dialog);
-
+        dialogTable.put(dialogId, dialog);        
     }
-
+    
+   
     /**
      * Create a dialog and add this transaction to it.
      *
@@ -771,6 +771,16 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
         SIPDialog sipDialog = (SIPDialog) dialogTable.get(dialogId);
         if (stackLogger.isLoggingEnabled()) {
             stackLogger.logDebug("getDialog(" + dialogId + ") : returning " + sipDialog);
+        }
+        return sipDialog;
+
+    }
+    
+    public SIPDialog getEarlyDialog(String dialogId) {
+
+        SIPDialog sipDialog = (SIPDialog) earlyDialogTable.get(dialogId);
+        if (stackLogger.isLoggingEnabled()) {
+            stackLogger.logDebug("getEarlyDialog(" + dialogId + ") : returning " + sipDialog);
         }
         return sipDialog;
 

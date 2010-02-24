@@ -838,7 +838,7 @@ public class SipProviderImpl implements javax.sip.SipProvider, gov.nist.javax.si
 
         if (transaction instanceof ServerTransaction) {
             SIPServerTransaction st = (SIPServerTransaction) transaction;
-            Response response = st.getLastResponseStatusCode();
+            Response response = st.getLastResponse();
             if (response != null) {
                 if (response.getStatusCode() != 100)
                     throw new SipException(

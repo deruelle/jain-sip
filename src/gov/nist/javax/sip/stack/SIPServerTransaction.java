@@ -1248,10 +1248,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     }
 
     /**
-     * Get the last response.
+     * Get the last response status code.
      */
-    public SIPResponse getLastResponseStatusCode() {
-        return this.lastResponse;
+    public int getLastResponseStatusCode() {
+        return this.lastResponseStatusCode;
     }
 
     /**

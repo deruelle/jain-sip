@@ -13,6 +13,7 @@ public class UserCredentialsImpl implements UserCredentials {
         this.password = password;
     }
 
+  
     public String getPassword() {
         return password;
     }

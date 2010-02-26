@@ -27,7 +27,9 @@ package gov.nist.javax.sip.header;
 import gov.nist.core.*;
 import gov.nist.javax.sip.header.ims.*;
 
+import java.util.HashMap;
 import java.util.Hashtable;
+import java.util.Map;
 
 /**
  * A mapping class that returns the SIPHeader for a given header name.
@@ -37,7 +39,7 @@ import java.util.Hashtable;
  * @since 1.1
  */
 public class NameMap implements SIPHeaderNames, PackageNames {
-    static Hashtable nameMap;
+    static Map<String, String> nameMap;
     static {
         initializeNameMap();
     }
@@ -75,7 +77,7 @@ public class NameMap implements SIPHeaderNames, PackageNames {
     }
 
     private static void initializeNameMap() {
-        nameMap = new Hashtable();
+        nameMap = new HashMap<String, String>(63);
         putNameMap(MinExpires.NAME, MinExpires.class.getName()); // 1
 
         putNameMap(ErrorInfo.NAME, ErrorInfo.class.getName()); // 2

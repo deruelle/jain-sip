@@ -28,27 +28,53 @@
  *******************************************************************************/
 package gov.nist.javax.sip.message;
 
-import gov.nist.javax.sip.address.*;
-import gov.nist.core.*;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.javax.sip.address.GenericURI;
+import gov.nist.javax.sip.address.SipUri;
+import gov.nist.javax.sip.header.CSeq;
+import gov.nist.javax.sip.header.CallID;
+import gov.nist.javax.sip.header.ContactList;
+import gov.nist.javax.sip.header.ContentLength;
+import gov.nist.javax.sip.header.ContentType;
+import gov.nist.javax.sip.header.Expires;
+import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.header.MaxForwards;
+import gov.nist.javax.sip.header.ProxyAuthorization;
+import gov.nist.javax.sip.header.RecordRouteList;
+import gov.nist.javax.sip.header.RequestLine;
+import gov.nist.javax.sip.header.RouteList;
+import gov.nist.javax.sip.header.SIPHeader;
+import gov.nist.javax.sip.header.SIPHeaderList;
+import gov.nist.javax.sip.header.TimeStamp;
+import gov.nist.javax.sip.header.To;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.ViaList;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
 
+import java.io.UnsupportedEncodingException;
+import java.text.ParseException;
 import java.util.HashSet;
-import java.util.Hashtable;
+import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.Map;
 import java.util.Set;
-import java.io.UnsupportedEncodingException;
-import java.util.Iterator;
 import java.util.concurrent.ConcurrentHashMap;
 
+import javax.sip.InvalidArgumentException;
+import javax.sip.SipException;
 import javax.sip.address.URI;
-import javax.sip.message.*;
-
-import java.text.ParseException;
-import javax.sip.*;
-import javax.sip.header.*;
-
-import gov.nist.javax.sip.header.*;
-import gov.nist.javax.sip.stack.SIPTransactionStack;
+import javax.sip.header.CSeqHeader;
+import javax.sip.header.CallIdHeader;
+import javax.sip.header.ContactHeader;
+import javax.sip.header.EventHeader;
+import javax.sip.header.FromHeader;
+import javax.sip.header.Header;
+import javax.sip.header.MaxForwardsHeader;
+import javax.sip.header.ServerHeader;
+import javax.sip.header.SubscriptionStateHeader;
+import javax.sip.header.ToHeader;
+import javax.sip.header.ViaHeader;
+import javax.sip.message.Request;
 
 /*
  * Acknowledgements: Mark Bednarek made a few fixes to this code. Jeff Keyser added two methods

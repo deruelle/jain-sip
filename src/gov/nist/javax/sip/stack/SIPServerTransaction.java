@@ -968,7 +968,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                              * fires, at which point it MUST transition to the "Terminated" state.
                              */
                             enableTimeoutTimer(TIMER_J);
-                            cleanUpTimerJ();
+                            cleanUpOnTimer();
                         } else {
                             this.setState(TransactionState.TERMINATED);
                         }
@@ -1793,12 +1793,11 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         if (sipStack.isLoggingEnabled())
             sipStack.getStackLogger().logDebug("removing" + this);
         sipStack.removeTransaction(this);
-        cleanUpTimerJ();
+        cleanUpOnTimer();
         // it should be available in the processTxTerminatedEvent, so we can nullify it only here
     	if(originalRequest != null) {
     		originalRequestSentBy = originalRequest.getTopmostVia().getSentBy();
     		originalRequestFromTag = originalRequest.getFromTag();    		
-//    		originalRequest.cleanUp();
     		originalRequest = null;    		
     	}   
         applicationData = null;
@@ -1817,8 +1816,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         }
     }
     
-    protected void cleanUpTimerJ() {
-//    	applicationData = null;
+    protected void cleanUpOnTimer() {
     	dialog = null;
     	inviteTransaction = null;
     	if(originalRequest !=null) {

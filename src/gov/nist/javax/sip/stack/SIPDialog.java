@@ -2828,9 +2828,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             }
             // Capture the OK response for later use in createAck
             // This is handy for late arriving OK's that we want to ACK.
-            if (sipResponse.getCSeq().getMethod().equals(Request.INVITE) && statusCode == 200) {
+            if (lastResponseMethod.equals(Request.INVITE) && statusCode == 200) {
                
-                this.lastInviteOkReceived = Math.max(sipResponse.getCSeq().getSeqNumber(),
+                this.lastInviteOkReceived = Math.max(lastResponseCSeqNumber,
                         this.lastInviteOkReceived);
             }
             return;

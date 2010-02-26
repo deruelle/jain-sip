@@ -77,7 +77,6 @@ import java.io.UnsupportedEncodingException;
 import java.lang.reflect.Field;
 import java.text.ParseException;
 import java.util.Collection;
-import java.util.Hashtable;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -475,7 +474,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public Object clone() {
         SIPMessage retval = (SIPMessage) super.clone();
-        retval.nameTable = new Hashtable<String, SIPHeader>();
+        retval.nameTable = new ConcurrentHashMap<String, SIPHeader>();
         retval.fromHeader = null;
         retval.toHeader = null;
         retval.cSeqHeader = null;

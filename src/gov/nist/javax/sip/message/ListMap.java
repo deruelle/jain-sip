@@ -99,9 +99,8 @@ import gov.nist.javax.sip.header.ims.SecurityVerifyList;
 import gov.nist.javax.sip.header.ims.ServiceRoute;
 import gov.nist.javax.sip.header.ims.ServiceRouteList;
 
-import java.util.Hashtable;
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * A map of which of the standard headers may appear as a list
@@ -129,7 +128,7 @@ class ListMap {
          * class of such objects.
          */
     	// jeand : using concurrent data structure to avoid excessive blocking
-        headerListTable = new ConcurrentHashMap<Class<?>, Class<?>>(34);
+        headerListTable = new HashMap<Class<?>, Class<?>>(34);
         headerListTable.put(ExtensionHeaderImpl.class, ExtensionHeaderList.class);
 
         headerListTable.put(Contact.class, ContactList.class);

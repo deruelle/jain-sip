@@ -240,7 +240,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 // Client transaction terminated. Kill connection if
                 // this is a TCP after the linger timer has expired.
                 // The linger timer is needed to allow any pending requests to
-                // return responses.
+                // return responses.                
                 if ((!sipStack.cacheClientConnections) && clientTransaction.isReliable()) {
 
                     int newUseCount = --clientTransaction.getMessageChannel().useCount;
@@ -260,7 +260,8 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                        	int useCount = clientTransaction.getMessageChannel().useCount;
                        	if (sipStack.isLoggingEnabled())
                        		sipStack.getStackLogger().logDebug("Client Use Count = " + useCount);
-                    }
+                    }                    
+                    cleanUp();
                 }
 
             } else {
@@ -1492,7 +1493,10 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     public SIPDialog getDialog(String dialogId) {
     	SIPDialog retval = null;
     	if(sipDialogs.contains(dialogId)) {
-    		retval = this.sipStack.getEarlyDialog(dialogId);
+    		retval = this.sipStack.getDialog(dialogId);
+    		if(retval == null) {
+    			retval = this.sipStack.getEarlyDialog(dialogId);
+    		}
     	}
         return retval;
 
@@ -1507,7 +1511,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     public void setDialog(SIPDialog sipDialog, String dialogId) {
         if (sipStack.isLoggingEnabled())
             sipStack.getStackLogger().logDebug(
-                    "setDialog: " + dialogId + "sipDialog = " + sipDialog);
+                    "setDialog: " + dialogId + " sipDialog = " + sipDialog);
 
         if (sipDialog == null) {
         	if (sipStack.isLoggingEnabled())
@@ -1522,19 +1526,17 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         }
         if (dialogId != null && sipDialog.getDialogId() != null) {
             this.sipDialogs.add(dialogId);
-
         }
 
     }
 
     public SIPDialog getDefaultDialog() {
-    	if(defaultDialog != null) {
-    		return defaultDialog;
+    	SIPDialog dialog = defaultDialog;
+    	
+    	if(dialog == null && defaultDialogId != null) {
+    		dialog = this.sipStack.getDialog(defaultDialogId);    		
     	}
-    	if(defaultDialogId != null) {
-    		return this.sipStack.getDialog(defaultDialogId);
-    	}
-    	return null;
+    	return dialog;
     }
 
     /**
@@ -1581,8 +1583,12 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     protected void cleanUpOnTimer() {
     	// we release the ref to the dialog asap and just keep the id of the dialog to look it up in the dialog table
     	if(defaultDialog != null) {
-	    	defaultDialogId = defaultDialog.getDialogId();
-	    	defaultDialog = null;
+	    	String dialogId = defaultDialog.getDialogId();
+	    	// we nullify the ref only if it can be find in the dialog table (not always true, check challenge unittest of the testsuite)
+	    	if(dialogId != null && sipStack.getDialog(dialogId) != null) {
+	    		defaultDialogId = dialogId;
+	    		defaultDialog = null;	    		
+	    	}
     	}
     	if(originalRequest != null) {
 	    	originalRequest.setTransaction(null);
@@ -1602,18 +1608,21 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
             sipStack.getStackLogger().logDebug("cleanup : "
                     + getTransactionId());
         }        
-    	sipStack.removeTransaction(this);
+    	if(defaultDialog != null) {
+    		defaultDialogId = defaultDialog.getDialogId();
+    		defaultDialog = null;
+    	}
     	cleanUpOnTimer();
-    	lastResponse = null;
-    	originalRequest = null;    		
+    	// we nullify it only if there was a linger timer started otherwise it won't be available in processtxterminated callback
+    	if(isReliable()) {	    	
+	    	originalRequest = null;
+    	}
     	applicationData = null;    	
     	if(sipDialogs != null) {
 	    	sipDialogs.clear();
 	    	sipDialogs = null;
     	}
     	respondTo = null;
-    	messageProcessor = null;
-        close();
     }
     
    

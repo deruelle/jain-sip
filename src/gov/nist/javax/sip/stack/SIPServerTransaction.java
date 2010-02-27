@@ -385,20 +385,16 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                         return;
                 }
 
-//                if(getMessageChannel().getPeerProtocol().equalsIgnoreCase(ListeningPoint.UDP)) {
-//                	cleanUp();
-//                } else {
               
-	                // Oneshot timer that garbage collects the SeverTransaction
-	                // after a scheduled amount of time. The linger timer allows
-	                // the client side of the tx to use the same connection to
-	                // send an ACK and prevents a race condition for creation
-	                // of new server tx
-	                TimerTask myTimer = new LingerTimer();
-	
-	                sipStack.getTimer().schedule(myTimer,
-                        SIPTransactionStack.CONNECTION_LINGER_TIME * 1000);
-//                }
+                // Oneshot timer that garbage collects the SeverTransaction
+                // after a scheduled amount of time. The linger timer allows
+                // the client side of the tx to use the same connection to
+                // send an ACK and prevents a race condition for creation
+                // of new server tx
+                TimerTask myTimer = new LingerTimer();
+
+                sipStack.getTimer().schedule(myTimer,
+                    SIPTransactionStack.CONNECTION_LINGER_TIME * 1000);
             } else {
                 // Add to the fire list -- needs to be moved
                 // outside the synchronized block to prevent

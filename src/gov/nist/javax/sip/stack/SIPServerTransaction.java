@@ -966,6 +966,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                             enableTimeoutTimer(TIMER_J);
                             cleanUpOnTimer();
                         } else {
+                        	cleanUpOnTimer();
                             this.setState(TransactionState.TERMINATED);
                         }
                     } else {
@@ -997,6 +998,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                             this.disableRetransmissionTimer();
                             this.disableTimeoutTimer();
                             this.collectionTime = TIMER_J;
+                            cleanUpOnTimer();
                             this.setState(TransactionState.TERMINATED);
                             if (this.getDialog() != null)
                                 ((SIPDialog) this.getDialog()).setRetransmissionTicks();
@@ -1018,6 +1020,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                                 enableRetransmissionTimer();
 
                             }
+                            cleanUpOnTimer();
                             enableTimeoutTimer(TIMER_H);
                         }
                     }
@@ -1038,6 +1041,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                         this.disableRetransmissionTimer();
                         this.disableTimeoutTimer();
                         this.collectionTime = TIMER_J;
+                        cleanUpOnTimer();
                         this.setState(TransactionState.TERMINATED);
                         if (this.getDialog() != null)
                             ((SIPDialog) this.getDialog()).setRetransmissionTicks();
@@ -1059,6 +1063,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                             enableRetransmissionTimer();
 
                         }
+                        cleanUpOnTimer();
                         enableTimeoutTimer(TIMER_H);
 
                     }
@@ -1081,6 +1086,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                         this.setState(TransactionState.TERMINATED);
 
                     }
+                    cleanUpOnTimer();
 
                 }
 
@@ -1814,7 +1820,11 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     
     protected void cleanUpOnTimer() {
     	dialog = null;
-    	inviteTransaction = null;
+    	if(inviteTransaction != null) {
+    		// we release the semaphore for Cancel processing
+    		inviteTransaction.releaseSem();
+    		inviteTransaction = null;
+    	}
     	if(originalRequest !=null) {
     		originalRequest.setTransaction(null);
     		originalRequest.setInviteTransaction(null);

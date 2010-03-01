@@ -217,7 +217,7 @@ public class CancelEventTest extends  ScenarioHarness {
             logger.info("dialog = " + transaction.getDialog());
             logger.info("dialogState = " + transaction.getDialog().getState());
             logger.info("Transaction Time out");
-            fail("Timeout Shouldnt happen on UAS side!!!");
+            fail("Timeout Shouldnt happen on UAC side!!!");
         }
 
         private void sendCancel() {

@@ -432,6 +432,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                     } else {
                         this.setState(TransactionState.COMPLETED);
                     }
+                    cleanUpOnTimer();
                     // BUGBUG -- This suppresses sending the ACK uncomment this
                     // to
                     // test 4xx retransmission
@@ -458,6 +459,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                     } else if (transactionRequest.getMethod().equals(Request.ACK)) {
                         // Acks are never retransmitted.
                         this.setState(TransactionState.TERMINATED);
+                        cleanUpOnTimer();
                     } else {
                         this.setState(TransactionState.TRYING);
                     }
@@ -628,10 +630,10 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 if (!isReliable()) {
                     this.setState(TransactionState.COMPLETED);
                     enableTimeoutTimer(TIMER_K);
-                    cleanUpOnTimer();
                 } else {
                     this.setState(TransactionState.TERMINATED);
                 }
+                cleanUpOnTimer();
             }
         } else if (TransactionState.PROCEEDING == this.getState()) {
             if (statusCode / 100 == 1) {
@@ -655,6 +657,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 } else {
                     this.setState(TransactionState.TERMINATED);
                 }
+                cleanUpOnTimer();
             }
         } else {
             if (sipStack.isLoggingEnabled()) {
@@ -815,11 +818,11 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 if (!isReliable()) {
                     this.setState(TransactionState.COMPLETED);
                     enableTimeoutTimer(TIMER_D);
-                    cleanUpOnTimer();
                 } else {
                     // Proceed immediately to the TERMINATED state.
                     this.setState(TransactionState.TERMINATED);
                 }
+                cleanUpOnTimer();
             }
         } else if (TransactionState.PROCEEDING == this.getState()) {
             if (statusCode / 100 == 1) {
@@ -851,10 +854,10 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 if (!isReliable()) {
                     this.setState(TransactionState.COMPLETED);
                     this.enableTimeoutTimer(TIMER_D);
-                    cleanUpOnTimer();
                 } else {
                     this.setState(TransactionState.TERMINATED);
                 }
+                cleanUpOnTimer();
 
                 // Pass up to the TU for processing.
                 if (respondTo != null)
@@ -1619,8 +1622,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     	}
     	applicationData = null;    	
     	if(sipDialogs != null) {
-	    	sipDialogs.clear();
-	    	sipDialogs = null;
+	    	sipDialogs.clear();	    	
     	}
     	respondTo = null;
     }

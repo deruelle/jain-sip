@@ -53,7 +53,7 @@ import java.io.*;
  * accessed from the SIPMessage using the getContent and getContentBytes methods
  * provided by the SIPMessage class.
  *
- * @version 1.2 $Revision: 1.23 $ $Date: 2009/08/16 17:28:28 $
+ * @version 1.2 $Revision: 1.25 $ $Date: 2010/02/27 17:34:04 $
  *
  * @author M. Ranganathan
  *
@@ -74,8 +74,8 @@ public final class PipelinedMsgParser implements Runnable {
     private Pipeline rawInputStream;
     private int maxMessageSize;
     private int sizeCounter;
-    //private int messageSize;
-
+    
+  
     /**
      * default constructor.
      */
@@ -175,18 +175,22 @@ public final class PipelinedMsgParser implements Runnable {
     }
 
     /**
-     * read a line of input (I cannot use buffered reader because we may need to
-     * switch encodings mid-stream!
+     * read a line of input. Note that we encode the result in UTF-8
      */
+  
+    
     private String readLine(InputStream inputStream) throws IOException {
-        StringBuffer retval = new StringBuffer("");
+        int counter = 0;
+        int increment = 1024;
+        int bufferSize = increment;
+        byte[] lineBuffer = new byte[bufferSize];
         while (true) {
             char ch;
             int i = inputStream.read();
             if (i == -1) {
                 throw new IOException("End of stream");
             } else
-                ch = (char) i;
+                ch = (char) ( i & 0xFF);
             // reduce the available read size by 1 ("size" of a char).
             if (this.maxMessageSize > 0) {
                 this.sizeCounter--;
@@ -194,14 +198,22 @@ public final class PipelinedMsgParser implements Runnable {
                     throw new IOException("Max size exceeded!");
             }
             if (ch != '\r')
-                retval.append(ch);
+                lineBuffer[counter++] = (byte) (i&0xFF);
+           
             if (ch == '\n') {
                 break;
             }
+            
+            if( counter == bufferSize ) {
+             	byte[] tempBuffer = new byte[bufferSize + increment];
+                System.arraycopy((Object)lineBuffer,0, (Object)tempBuffer, 0, bufferSize);
+             	bufferSize = bufferSize + increment;
+             	lineBuffer = tempBuffer;
+                
+            }
         }
-        return retval.toString();
+        return new String(lineBuffer,0,counter,"UTF-8");
     }
-
     /**
      * This is input reading thread for the pipelined parser. You feed it input
      * through the input stream (see the constructor) and it calls back an event
@@ -366,6 +378,13 @@ public final class PipelinedMsgParser implements Runnable {
 }
 /*
  * $Log: PipelinedMsgParser.java,v $
+ * Revision 1.25  2010/02/27 17:34:04  mranga
+ * Issue number:  269
+ * Fix PipelinedMessageParser.java to use UTF-8 encoding when reading stream.
+ *
+ * Revision 1.24  2010/02/27 06:09:00  mranga
+ * Patch from Frederic
+ *
  * Revision 1.23  2009/08/16 17:28:28  mranga
  * Issue number:  208
  * Obtained from:

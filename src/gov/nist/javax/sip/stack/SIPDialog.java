@@ -81,9 +81,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
@@ -2793,7 +2792,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         if(lastResponseHeaders != null) {
         	lastResponseHeaders.clear();        
         }
-        this.lastResponseHeaders = new ArrayList<SIPHeader>();
+        this.lastResponseHeaders = new CopyOnWriteArrayList<SIPHeader>();
         Iterator<SIPHeader> headerIterator = sipResponse.getHeaders();
         while (headerIterator.hasNext()) {
             SIPHeader nextHeader = headerIterator.next();

@@ -1,7 +1,12 @@
 package performance.uas;
 
-import java.util.Properties;
+import gov.nist.javax.sip.message.RequestExt;
 
+import java.util.Properties;
+import java.util.Timer;
+import java.util.TimerTask;
+
+import javax.sip.ClientTransaction;
 import javax.sip.Dialog;
 import javax.sip.DialogTerminatedEvent;
 import javax.sip.IOExceptionEvent;
@@ -17,6 +22,7 @@ import javax.sip.SipStack;
 import javax.sip.TransactionTerminatedEvent;
 import javax.sip.address.Address;
 import javax.sip.address.AddressFactory;
+import javax.sip.address.SipURI;
 import javax.sip.header.ContactHeader;
 import javax.sip.header.HeaderFactory;
 import javax.sip.header.ToHeader;
@@ -38,22 +44,49 @@ public class Shootme implements SipListener {
     private static HeaderFactory headerFactory;
 
     private static SipStack sipStack;
+    
+    private static SipFactory sipFactory;
+    
+    private static SipProvider sipProvider; 
+    
+    private static Timer timer = new Timer();
 
     private static final String myAddress = "127.0.0.1";
 
     private static final int myPort = 5080;
 
-
     protected static final String usageString = "java "
             + Shootme.class.getCanonicalName() + " \n"
             + ">>>> is your class path set to the root?";
 
+	private static final long BYE_DELAY = 60000;
+
+	private static final String TIMER_USER = "sipp-timer";
+
     private static void usage() {
         System.out.println(usageString);
         System.exit(0);
-
     }
 
+    class ByeTask extends TimerTask {
+        Dialog dialog;
+        
+        public ByeTask(Dialog dialog)  {
+            this.dialog = dialog;
+        }
+        public void run () {
+            try {
+               Request byeRequest = this.dialog.createRequest(Request.BYE);
+               ClientTransaction ct = sipProvider.getNewClientTransaction(byeRequest);
+               dialog.sendRequest(ct);
+               dialog = null;
+            } catch (Exception ex) {
+                ex.printStackTrace();                
+            }
+
+        }
+    }
+    
     public void processRequest(RequestEvent requestEvent) {
         final Request request = requestEvent.getRequest();
         final ServerTransaction serverTransactionId = requestEvent.getServerTransaction();
@@ -79,7 +112,10 @@ public class Shootme implements SipListener {
     public void processAck(RequestEvent requestEvent,
             ServerTransaction serverTransaction) {
     	final Dialog dialog = requestEvent.getDialog();
-    	dialog.getDialogId();
+    	final RequestExt request = (RequestExt) requestEvent.getRequest();
+    	if(((SipURI)request.getFromHeader().getAddress().getURI()).getUser().equalsIgnoreCase(TIMER_USER)) {
+    		timer.schedule(new ByeTask(dialog), BYE_DELAY) ;
+    	}
     }
 
     /**
@@ -150,8 +186,7 @@ public class Shootme implements SipListener {
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
     }
 
-    public void init() {
-        SipFactory sipFactory = null;
+    public void init() {        
         sipStack = null;
         sipFactory = SipFactory.getInstance();
         sipFactory.setPathName("gov.nist");
@@ -200,7 +235,7 @@ public class Shootme implements SipListener {
 
             Shootme listener = this;
 
-            SipProvider sipProvider = sipStack.createSipProvider(lp);
+            sipProvider = sipStack.createSipProvider(lp);
             sipProvider.addSipListener(listener);
 
         } catch (Exception ex) {

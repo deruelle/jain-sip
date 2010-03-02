@@ -138,7 +138,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     /**
      * unparsed headers
      */
-    protected LinkedList<String> unrecognizedHeaders;
+    private LinkedList<String> unrecognizedHeaders;
 
     /**
      * List of parsed headers (in the order they were added)
@@ -371,8 +371,10 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         }
         // Append the unrecognized headers. Headers that are not
         // recognized are passed through unchanged.
-        for (String unrecognized : this.unrecognizedHeaders) {
-            encoding.append(unrecognized).append(NEWLINE);
+        if(unrecognizedHeaders != null) {
+	        for (String unrecognized : unrecognizedHeaders) {
+	            encoding.append(unrecognized).append(NEWLINE);
+	        }
         }
 
         encoding.append(contentLengthHeader.encode()).append(NEWLINE);
@@ -493,7 +495,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             retval.messageContentBytes = (byte[]) this.messageContentBytes.clone();
         if (this.messageContentObject != null)
             retval.messageContentObject = makeClone(messageContentObject);
-        retval.unrecognizedHeaders = this.unrecognizedHeaders;
+        retval.setUnrecognizedHeadersList(this.getUnrecognizedHeadersList());
         return retval;
     }
 
@@ -543,7 +545,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * headers are derived from SIPHeader class.
      */
     public SIPMessage() {
-        this.unrecognizedHeaders = new LinkedList<String>();
         this.headers = new ConcurrentLinkedQueue<SIPHeader>();
         nameTable = new ConcurrentHashMap<String, SIPHeader>();
         try {
@@ -1556,7 +1557,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @param unparsed -- unparsed header to add to the list.
      */
     public void addUnparsed(String unparsed) {
-        this.unrecognizedHeaders.add(unparsed);
+        this.getUnrecognizedHeadersList().add(unparsed);
     }
 
     /**
@@ -1572,7 +1573,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             SIPHeader sh = parser.parse();
             this.attachHeader(sh, false);
         } catch (ParseException ex) {
-            this.unrecognizedHeaders.add(hdrString);
+            this.getUnrecognizedHeadersList().add(hdrString);
         }
     }
 
@@ -1582,7 +1583,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @return a linked list containing unrecongnized headers.
      */
     public ListIterator<String> getUnrecognizedHeaders() {
-        return this.unrecognizedHeaders.listIterator();
+        return this.getUnrecognizedHeadersList().listIterator();
     }
 
     /**
@@ -1944,5 +1945,22 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     		unrecognizedHeaders = null;
     	}
     }
+
+	/**
+	 * @param unrecognizedHeaders the unrecognizedHeaders to set
+	 */
+	protected void setUnrecognizedHeadersList(LinkedList<String> unrecognizedHeaders) {
+		this.unrecognizedHeaders = unrecognizedHeaders;
+	}
+
+	/**
+	 * @return the unrecognizedHeaders
+	 */
+	protected LinkedList<String> getUnrecognizedHeadersList() {
+		if(unrecognizedHeaders == null) {
+			unrecognizedHeaders = new LinkedList<String>();
+		}
+		return unrecognizedHeaders;
+	}
 
 }

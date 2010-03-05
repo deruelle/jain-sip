@@ -383,9 +383,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 	class LingerTimer extends SIPStackTimerTask implements Serializable {
 
         protected void runTask() {
-            SIPDialog dialog = SIPDialog.this;
-            cleanUp();            
+            SIPDialog dialog = SIPDialog.this;                       
             sipStack.removeDialog(dialog);
+            cleanUp();
         }
 
     }

@@ -1802,6 +1802,9 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     		originalRequestFromTag = originalRequest.getFromTag();    		
     		originalRequest = null;    		
     	}   
+    	if(inviteTransaction != null) {    		
+    		inviteTransaction = null;
+    	}
         applicationData = null;
         lastResponseAsBytes = null;
         if ((!sipStack.cacheServerConnections)
@@ -1819,8 +1822,13 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     }
     
     protected void cleanUpOnTimer() {
+    	if (sipStack.isLoggingEnabled()) {
+            sipStack.getStackLogger().logDebug("cleanup on timer : "
+                    + getTransactionId());
+        }
     	dialog = null;
-    	if(inviteTransaction != null) {
+    	// we don't nullify the inviteTx for CANCEL since the app can get it from getCanceledInviteTransaction
+    	if(inviteTransaction != null && !getMethod().equals(Request.CANCEL)) {
     		// we release the semaphore for Cancel processing
     		inviteTransaction.releaseSem();
     		inviteTransaction = null;

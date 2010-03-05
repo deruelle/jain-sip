@@ -25,6 +25,7 @@
 */
 package gov.nist.javax.sip.parser;
 
+import gov.nist.core.StringTokenizer;
 import gov.nist.javax.sip.header.*;
 import java.util.*;
 import java.text.ParseException;
@@ -172,9 +173,21 @@ public class HeaderParser extends Parser {
         String body = lexer.getLine().trim();
         // we dont set any fields because the header is
         // ok
-        ExtensionHeaderImpl retval = new ExtensionHeaderImpl(name);
-        retval.setValue(body);
-        return retval;
+        java.util.StringTokenizer tokenizer = new java.util.StringTokenizer(body, ",");
+        if(tokenizer.countTokens() > 1) {
+        	ExtensionHeaderList retval = new ExtensionHeaderList(name);
+        	while (tokenizer.hasMoreTokens()) {
+				String token = (String) tokenizer.nextToken().trim();
+				ExtensionHeaderImpl extensionHeaderImpl = new ExtensionHeaderImpl(name);
+		        extensionHeaderImpl.setValue(token);
+		        retval.add(extensionHeaderImpl);
+			}	        
+	        return retval;
+        } else {
+        	ExtensionHeaderImpl retval = new ExtensionHeaderImpl(name);
+	        retval.setValue(body);
+	        return retval;
+        }
 
     }
 

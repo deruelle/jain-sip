@@ -1100,12 +1100,18 @@ public abstract class SIPTransactionStack implements SIPTransactionEventListener
             return null;
         }
         String mergeId = sipRequest.getMergeId();
+        if(stackLogger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+    		stackLogger.logDebug("checking for merged transaction for mergedId " + mergeId);
+    	}
         SIPServerTransaction mergedTransaction = (SIPServerTransaction) this.mergeTable.get(mergeId);
         if (mergeId == null ) {
             return null;
         } else if (mergedTransaction != null && !mergedTransaction.isMessagePartOfTransaction(sipRequest) ) {
             return mergedTransaction;
         } else {
+        	if(stackLogger.isLoggingEnabled(StackLogger.TRACE_DEBUG)) {
+        		stackLogger.logDebug("merged transaction not found for mergedId " + mergeId + ", checking the dialogTable");
+        	}
             /*
              * Check the server transactions that have resulted in dialogs.
              */

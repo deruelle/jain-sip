@@ -1630,6 +1630,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             }
             this.method = sipRequest.getMethod();
 
+        } else if (firstTransaction == null) {
+        	//needed for reinvite reliable processing
+        	firstTransaction = transaction;
         }
         if (transaction instanceof SIPServerTransaction) {
             setRemoteSequenceNumber(sipRequest.getCSeq().getSeqNumber());

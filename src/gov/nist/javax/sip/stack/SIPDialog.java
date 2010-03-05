@@ -1630,7 +1630,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             }
             this.method = sipRequest.getMethod();
 
-        } else if (firstTransaction == null) {
+        } else if (firstTransaction == null && transaction.getMethod().equals(Request.INVITE)) {
         	//needed for reinvite reliable processing
         	firstTransaction = transaction;
         }

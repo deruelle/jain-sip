@@ -1700,15 +1700,5 @@ public class HeaderFactoryImpl implements HeaderFactory , HeaderFactoryExt {
     }
 
 
-    public static void main(String[] args) {
-    	try {
-			List<Header> headers = new HeaderFactoryImpl().createHeaders("SEL" + ": " + "noAckReceived succeeded, getRequest() succeeded, getResponse() succeeded");
-			System.out.println(headers);
-		} catch (ParseException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}		
-	}
-
 
 }

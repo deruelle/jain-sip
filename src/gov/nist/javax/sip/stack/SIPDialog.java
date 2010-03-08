@@ -132,7 +132,7 @@ import javax.sip.message.Response;
  * that has a To tag). The SIP Protocol stores enough state in the message structure to extract a
  * dialog identifier that can be used to retrieve this structure from the SipStack.
  * 
- * @version 1.2 $Revision: 1.166 $ $Date: 2010/02/27 06:09:01 $
+ * @version 1.2 $Revision: 1.167 $ $Date: 2010/03/06 19:03:10 $
  * 
  * @author M. Ranganathan
  * 
@@ -271,6 +271,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 	
 	//needed for reliable response sending but nullifyed right after the ACK has been received or sent to let go of the ref ASAP
 	protected SIPTransaction firstTransaction;
+	// needed for checking 491 but nullifyed right after the ACK has been received or sent to let go of the ref ASAP
+	protected SIPTransaction lastTransaction;
 	// We store here the useful data from the first transaction without having to
 	// keep the whole transaction object for the duration of the dialog. It also
 	// contains the non-transient information used in the replication of dialogs.		
@@ -279,11 +281,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     protected String firstTransactionMethod;
     protected String firstTransactionId;
     protected boolean firstTransactionIsServerTransaction;
+    protected String firstTransactionMergeId;
     protected int firstTransactionPort = 5060;   
     protected Contact contactHeader;
 
-    // needed for checking 491 but nullifyed right after the ACK has been received or sent to let go of the ref ASAP
-	protected SIPTransaction lastTransaction;
+	private String mergeId;
 
     // //////////////////////////////////////////////////////
     // Inner classes
@@ -1547,7 +1549,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         	.equalsIgnoreCase("sips");
     	dialog.firstTransactionPort = transaction.getPort();
     	dialog.firstTransactionId = transaction.getBranchId();
-    	dialog.firstTransactionMethod = transaction.getMethod();
+    	dialog.firstTransactionMethod = transaction.getMethod();    	
+    	if ( transaction instanceof SIPServerTransaction && dialog.firstTransactionMethod.equals(Request.INVITE) ) {
+    		dialog.firstTransactionMergeId = ((SIPRequest) transaction.getRequest()).getMergeId();
+    	}
     	
         if (dialog.isServer()) {
             SIPServerTransaction st = (SIPServerTransaction) transaction;
@@ -3579,6 +3584,15 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     public void releaseTimerTaskSem() {
         this.timerTaskLock.release();
     }
+
+	
+	
+	public String getMergeId( ) {
+		return mergeId;
+	}
+	
+    
+	
 
 	public String getLastResponseMethod() {
 		return lastResponseMethod;

@@ -25,10 +25,16 @@
 */
 package gov.nist.javax.sip.parser;
 
-import gov.nist.core.StringTokenizer;
-import gov.nist.javax.sip.header.*;
-import java.util.*;
+import gov.nist.javax.sip.header.ExtensionHeaderImpl;
+import gov.nist.javax.sip.header.ExtensionHeaderList;
+import gov.nist.javax.sip.header.SIPHeader;
+
+import java.nio.CharBuffer;
 import java.text.ParseException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.List;
+import java.util.TimeZone;
 
 /**
  * Generic header parser class. The parsers for various headers extend this
@@ -170,22 +176,53 @@ public class HeaderParser extends Parser {
     public SIPHeader parse() throws ParseException {
         String name = lexer.getNextToken(':');
         lexer.consume(1);
-        String body = lexer.getLine().trim();
+//        String body = lexer.getLine().trim();
         // we dont set any fields because the header is
         // ok
-        java.util.StringTokenizer tokenizer = new java.util.StringTokenizer(body, ",");
-        if(tokenizer.countTokens() > 1) {
+        List<String> values = new ArrayList<String>();
+                
+        boolean isDoubleQuoted = false;
+        boolean isQuoted = false;
+        char currentChar = lexer.lookAhead();
+        lexer.consume(1);
+        StringBuilder currentValue = new StringBuilder();        
+        while(currentChar != '\0') {        	
+        	if(currentChar == '"') {
+        		if(isDoubleQuoted) {
+        			isDoubleQuoted = false;
+        		} else {
+        			isDoubleQuoted  = true;
+        		}
+        		currentValue.append(currentChar);
+        	} else if(currentChar == '\'') {
+        		if(isQuoted) {
+        			isQuoted = false;
+        		} else {
+        			isQuoted  = true;
+        		}
+        		currentValue.append(currentChar);
+        	} else if ((!isDoubleQuoted && !isQuoted) && currentChar == ',') {
+        		values.add(currentValue.toString().trim());
+        		currentValue.delete(0, currentValue.length());
+        	} else {
+        		currentValue.append(currentChar);
+        	}
+        	currentChar = lexer.lookAhead();
+        	lexer.consume(1);
+        }
+        values.add(currentValue.toString().trim());
+        
+        if(values.size() > 1) {
         	ExtensionHeaderList retval = new ExtensionHeaderList(name);
-        	while (tokenizer.hasMoreTokens()) {
-				String token = (String) tokenizer.nextToken().trim();
+        	for(String value : values) {			
 				ExtensionHeaderImpl extensionHeaderImpl = new ExtensionHeaderImpl(name);
-		        extensionHeaderImpl.setValue(token);
+		        extensionHeaderImpl.setValue(value);
 		        retval.add(extensionHeaderImpl);
 			}	        
 	        return retval;
         } else {
         	ExtensionHeaderImpl retval = new ExtensionHeaderImpl(name);
-	        retval.setValue(body);
+	        retval.setValue(values.get(0));
 	        return retval;
         }
 

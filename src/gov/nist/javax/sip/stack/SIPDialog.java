@@ -161,12 +161,12 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
     // Last response (JvB: either sent or received).
 //    private SIPResponse lastResponse;
-    private Collection<SIPHeader> lastResponseHeaders;
-    private String lastResponseDialogId;
-    private Via lastResponseTopMostVia;
-    private Integer lastResponseStatusCode;
-    private long lastResponseCSeqNumber;
-    private String lastResponseMethod;           
+    protected Collection<SIPHeader> lastResponseHeaders;
+    protected String lastResponseDialogId;
+    protected Via lastResponseTopMostVia;
+    protected Integer lastResponseStatusCode;
+    protected long lastResponseCSeqNumber;
+    protected String lastResponseMethod;           
 
     private String dialogId;
 

@@ -1620,7 +1620,8 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     	if(isReliable()) {	    	
 	    	originalRequest = null;
     	}
-    	applicationData = null;    	
+    	// Application Data has to be cleared by the application
+//    	applicationData = null;    	
     	if(sipDialogs != null) {
 	    	sipDialogs.clear();	    	
     	}

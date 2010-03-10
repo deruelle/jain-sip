@@ -1805,7 +1805,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	if(inviteTransaction != null) {    		
     		inviteTransaction = null;
     	}
-        applicationData = null;
+    	// Application Data has to be cleared by the application
+//        applicationData = null;
         lastResponseAsBytes = null;
         if ((!sipStack.cacheServerConnections)
                 && --getMessageChannel().useCount <= 0) {

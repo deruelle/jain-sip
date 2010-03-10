@@ -1103,10 +1103,11 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     sipStack.getStackLogger().logDebug(
                             "sendMessage : tx = " + this + " getState = " + this.getState());
                 }
-        		lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
+//        		lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
+                lastResponse = transactionResponse;
         		lastResponseStatusCode = transactionResponse.getStatusCode();
 //            		lastResponse.cleanUp();
-        		lastResponse = null;
+//        		lastResponse = null;
                 this.sendResponse(transactionResponse);
 
             } catch (IOException e) {
@@ -1145,17 +1146,20 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 sipStack.getStackLogger().logDebug("fireRetransmissionTimer() -- ");
             }
             if(lastResponse != null) {    		
-        		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
+//        		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
         		lastResponseStatusCode = lastResponse.getStatusCode();
 //        		lastResponse.cleanUp();
-        		lastResponse = null;        		
+//        		lastResponse = null;        		
         	}    
             // Resend the last response sent by this transaction
-            if (isInviteTransaction() && lastResponseAsBytes != null) {
+            if (isInviteTransaction() && (lastResponse != null || lastResponseAsBytes != null)) {
                 // null can happen if this is terminating when the timer fires.
                 if (!this.retransmissionAlertEnabled || sipStack.isTransactionPendingAck(this) ) {
                     // Retransmit last response until ack.
-                    if (lastResponseStatusCode /100 > 2 && !this.isAckSeen)
+                	if(lastResponse != null) {
+                		sendMessage(lastResponse);
+                    } 
+                	else if (lastResponseStatusCode /100 > 2 && !this.isAckSeen)
                     	super.getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
                 } else {
                     // alert the application to retransmit the last response
@@ -1807,7 +1811,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	}
     	// Application Data has to be cleared by the application
 //        applicationData = null;
-        lastResponseAsBytes = null;
+        lastResponse = null;       
         if ((!sipStack.cacheServerConnections)
                 && --getMessageChannel().useCount <= 0) {
             // Close the encapsulated socket if stack is configured
@@ -1840,10 +1844,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	}
     	pendingReliableResponse = null;
     	pendingSubscribeTransaction = null;
-    	provisionalResponseSem = null;
-    	requestOf = null;
+    	provisionalResponseSem = null;    	
     	retransmissionAlertTimerTask = null;
-    	messageProcessor = null;
+    	requestOf = null;
+        messageProcessor = null;
     }
 
 	public byte[] getLastResponseAsBytes() {

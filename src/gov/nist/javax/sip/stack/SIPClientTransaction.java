@@ -1600,8 +1600,8 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     	// for subscribe Tx we need to keep the last response longer to be able to create notify from dialog
     	if(!getMethod().equalsIgnoreCase(Request.SUBSCRIBE)) {
     		lastResponse = null;
-    	}
-    	lastRequest = null;    	
+    	}    	 
+    	lastRequest = null;
 	}
     
     @Override

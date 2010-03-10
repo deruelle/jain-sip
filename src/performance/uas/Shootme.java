@@ -201,10 +201,6 @@ public class Shootme implements SipListener {
                 "shootmedebug.txt");
         properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
         "shootmelog.txt");
-        properties.setProperty("gov.nist.javax.sip.DEBUG_LOG",
-        "shootmedebug.txt");
-        properties.setProperty("gov.nist.javax.sip.SERVER_LOG",
-        "shootmelog.txt");
         properties.setProperty("gov.nist.javax.sip.REENTRANT_LISTENER",
         "true");
         properties.setProperty("gov.nist.javax.sip.THREAD_POOL_SIZE", "4");

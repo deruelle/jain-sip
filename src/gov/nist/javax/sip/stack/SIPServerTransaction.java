@@ -1158,9 +1158,9 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     // Retransmit last response until ack.
                 	if(lastResponse != null) {
                 		sendMessage(lastResponse);
-                    } 
-                	else if (lastResponseStatusCode /100 > 2 && !this.isAckSeen)
+                    } else if (lastResponseStatusCode /100 > 2 && !this.isAckSeen) {
                     	super.getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
+                    }
                 } else {
                     // alert the application to retransmit the last response
                     SipProviderImpl sipProvider = (SipProviderImpl) this.getSipProvider();
@@ -1811,7 +1811,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	}
     	// Application Data has to be cleared by the application
 //        applicationData = null;
-        lastResponse = null;       
+        lastResponse = null;   
+        lastResponseAsBytes = null;
         if ((!sipStack.cacheServerConnections)
                 && --getMessageChannel().useCount <= 0) {
             // Close the encapsulated socket if stack is configured
@@ -1841,6 +1842,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	if(originalRequest !=null) {
     		originalRequest.setTransaction(null);
     		originalRequest.setInviteTransaction(null);
+    	}
+    	if(lastResponse != null) {
+    		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
+    		lastResponse = null;
     	}
     	pendingReliableResponse = null;
     	pendingSubscribeTransaction = null;

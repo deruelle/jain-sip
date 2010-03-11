@@ -436,13 +436,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
                         // resend the last response.
                         if (dialog.toRetransmitFinalResponse(transaction.T2)) {
-                        	if(transaction.getLastResponse() != null) {
-                        		transaction.sendMessage(transaction.getLastResponse());
-                            } 
-                        	else if (transaction.getLastResponseAsBytes() != null) {
-                                // Send the message to the client
-                            	transaction.getMessageChannel().sendMessage(transaction.getLastResponseAsBytes(), transaction.getPeerInetAddress(), transaction.getPeerPort(), false);
-                            }                            
+                            transaction.resendLastResponseAsBytes();
                         }
                     } catch (IOException ex) {
 

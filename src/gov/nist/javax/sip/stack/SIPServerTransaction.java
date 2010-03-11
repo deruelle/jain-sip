@@ -41,6 +41,7 @@ import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
@@ -210,6 +211,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     private Semaphore provisionalResponseSem = new Semaphore(1);
 
 	private byte[] lastResponseAsBytes;
+	private String lastResponseHost;
+	private int lastResponsePort;
+	private String lastResponseTransport;
+	
 	private int lastResponseStatusCode;
 	
 	private HostPort originalRequestSentBy;
@@ -494,6 +499,9 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                                 hop.getTransport()).getIPAddress(), this.getPort(), hop);
                 if (messageChannel != null) {
                     messageChannel.sendMessage(transactionResponse);
+                    lastResponseHost = host;
+                    lastResponsePort = port;
+                    lastResponseTransport = transport;
                 } else {
                     throw new IOException("Could not create a message channel for " + hop + " with source IP:Port "+
                     		this.getSipProvider().getListeningPoint(
@@ -501,6 +509,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 }
 
             }
+            lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
+            lastResponse = null;
         } finally {
             this.startTransactionTimer();
         }
@@ -929,171 +939,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 return;
             }
 
-            // If the TU sends a provisional response while in the
-            // trying state,
-
-            if (getRealState() == TransactionState.TRYING) {
-                if (statusCode / 100 == 1) {
-                    this.setState(TransactionState.PROCEEDING);
-                } else if (200 <= statusCode && statusCode <= 699) {
-                    // INVITE ST has TRYING as a Pseudo state
-                    // (See issue 76). We are using the TRYING
-                    // pseudo state invite Transactions
-                    // to signal if the application
-                    // has sent trying or not and hence this
-                    // check is necessary.
-                    if (!isInviteTransaction()) {
-                        if (!isReliable()) {
-                            // Linger in the completed state to catch
-                            // retransmissions if the transport is not
-                            // reliable.
-                            this.setState(TransactionState.COMPLETED);
-                            // Note that Timer J is only set for Unreliable
-                            // transports -- see Issue 75.
-                            /*
-                             * From RFC 3261 Section 17.2.2 (non-invite server transaction)
-                             *
-                             * When the server transaction enters the "Completed" state, it MUST
-                             * set Timer J to fire in 64*T1 seconds for unreliable transports, and
-                             * zero seconds for reliable transports. While in the "Completed"
-                             * state, the server transaction MUST pass the final response to the
-                             * transport layer for retransmission whenever a retransmission of the
-                             * request is received. Any other final responses passed by the TU to
-                             * the server transaction MUST be discarded while in the "Completed"
-                             * state. The server transaction remains in this state until Timer J
-                             * fires, at which point it MUST transition to the "Terminated" state.
-                             */
-                            enableTimeoutTimer(TIMER_J);
-                            cleanUpOnTimer();
-                        } else {
-                        	cleanUpOnTimer();
-                            this.setState(TransactionState.TERMINATED);
-                        }
-                    } else {
-                        // This is the case for INVITE server transactions.
-                        // essentially, it duplicates the code in the
-                        // PROCEEDING case below. There is no TRYING state for INVITE
-                        // transactions in the RFC. We are using it to signal whether the
-                        // application has sent a provisional response or not. Hence
-                        // this is treated the same as as Proceeding.
-                        if (statusCode / 100 == 2) {
-                            // Status code is 2xx means that the
-                            // transaction transitions to TERMINATED
-                            // for both Reliable as well as unreliable
-                            // transports. Note that the dialog layer
-                            // takes care of retransmitting 2xx final
-                            // responses.
-                            /*
-                             * RFC 3261 Section 13.3.1.4 Note, however, that the INVITE server
-                             * transaction will be destroyed as soon as it receives this final
-                             * response and passes it to the transport. Therefore, it is necessary
-                             * to periodically pass the response directly to the transport until
-                             * the ACK arrives. The 2xx response is passed to the transport with
-                             * an interval that starts at T1 seconds and doubles for each
-                             * retransmission until it reaches T2 seconds (T1 and T2 are defined
-                             * in Section 17). Response retransmissions cease when an ACK request
-                             * for the response is received. This is independent of whatever
-                             * transport protocols are used to send the response.
-                             */
-                            this.disableRetransmissionTimer();
-                            this.disableTimeoutTimer();
-                            this.collectionTime = TIMER_J;
-                            cleanUpOnTimer();
-                            this.setState(TransactionState.TERMINATED);
-                            if (this.getDialog() != null)
-                                ((SIPDialog) this.getDialog()).setRetransmissionTicks();
-                        } else {
-                            // This an error final response.
-                            this.setState(TransactionState.COMPLETED);
-                            if (!isReliable()) {
-                                /*
-                                 * RFC 3261
-                                 *
-                                 * While in the "Proceeding" state, if the TU passes a response
-                                 * with status code from 300 to 699 to the server transaction, the
-                                 * response MUST be passed to the transport layer for
-                                 * transmission, and the state machine MUST enter the "Completed"
-                                 * state. For unreliable transports, timer G is set to fire in T1
-                                 * seconds, and is not set to fire for reliable transports.
-                                 */
-
-                                enableRetransmissionTimer();
-
-                            }
-                            cleanUpOnTimer();
-                            enableTimeoutTimer(TIMER_H);
-                        }
-                    }
-
-                }
-
-                // If the transaction is in the proceeding state,
-            } else if (getRealState() == TransactionState.PROCEEDING) {
-
-                if (isInviteTransaction()) {
-
-                    // If the response is a failure message,
-                    if (statusCode / 100 == 2) {
-                        // Set up to catch returning ACKs
-                        // The transaction lingers in the
-                        // terminated state for some time
-                        // to catch retransmitted INVITEs
-                        this.disableRetransmissionTimer();
-                        this.disableTimeoutTimer();
-                        this.collectionTime = TIMER_J;
-                        cleanUpOnTimer();
-                        this.setState(TransactionState.TERMINATED);
-                        if (this.getDialog() != null)
-                            ((SIPDialog) this.getDialog()).setRetransmissionTicks();
-
-                    } else if (300 <= statusCode && statusCode <= 699) {
-
-                        // Set up to catch returning ACKs
-                        this.setState(TransactionState.COMPLETED);
-                        if (!isReliable()) {
-                            /*
-                             * While in the "Proceeding" state, if the TU passes a response with
-                             * status code from 300 to 699 to the server transaction, the response
-                             * MUST be passed to the transport layer for transmission, and the
-                             * state machine MUST enter the "Completed" state. For unreliable
-                             * transports, timer G is set to fire in T1 seconds, and is not set to
-                             * fire for reliable transports.
-                             */
-
-                            enableRetransmissionTimer();
-
-                        }
-                        cleanUpOnTimer();
-                        enableTimeoutTimer(TIMER_H);
-
-                    }
-
-                    // If the transaction is not an invite transaction
-                    // and this is a final response,
-                } else if (200 <= statusCode && statusCode <= 699) {
-                    // This is for Non-invite server transactions.
-
-                    // Set up to retransmit this response,
-                    // or terminate the transaction
-                    this.setState(TransactionState.COMPLETED);
-                    if (!isReliable()) {
-
-                        disableRetransmissionTimer();
-                        enableTimeoutTimer(TIMER_J);
-
-                    } else {
-
-                        this.setState(TransactionState.TERMINATED);
-
-                    }
-                    cleanUpOnTimer();
-
-                }
-
-                // If the transaction has already completed,
-            } else if (TransactionState.COMPLETED == this.getRealState()) {
-
-                return;
+            if(!checkStateTimers(statusCode)) {
+            	return;
             }
 
             try {
@@ -1103,12 +950,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     sipStack.getStackLogger().logDebug(
                             "sendMessage : tx = " + this + " getState = " + this.getState());
                 }
-//        		lastResponseAsBytes = transactionResponse.encodeAsBytes(this.getTransport());
                 lastResponse = transactionResponse;
         		lastResponseStatusCode = transactionResponse.getStatusCode();
-//            		lastResponse.cleanUp();
-//        		lastResponse = null;
-                this.sendResponse(transactionResponse);
+
+        		this.sendResponse(transactionResponse);
 
             } catch (IOException e) {
 
@@ -1121,6 +966,177 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             this.startTransactionTimer();
         }
 
+    }
+    
+    
+    private boolean checkStateTimers(int statusCode) {
+    	// If the TU sends a provisional response while in the
+        // trying state,
+
+        if (getRealState() == TransactionState.TRYING) {
+            if (statusCode / 100 == 1) {
+                this.setState(TransactionState.PROCEEDING);
+            } else if (200 <= statusCode && statusCode <= 699) {
+                // INVITE ST has TRYING as a Pseudo state
+                // (See issue 76). We are using the TRYING
+                // pseudo state invite Transactions
+                // to signal if the application
+                // has sent trying or not and hence this
+                // check is necessary.
+                if (!isInviteTransaction()) {
+                    if (!isReliable()) {
+                        // Linger in the completed state to catch
+                        // retransmissions if the transport is not
+                        // reliable.
+                        this.setState(TransactionState.COMPLETED);
+                        // Note that Timer J is only set for Unreliable
+                        // transports -- see Issue 75.
+                        /*
+                         * From RFC 3261 Section 17.2.2 (non-invite server transaction)
+                         *
+                         * When the server transaction enters the "Completed" state, it MUST
+                         * set Timer J to fire in 64*T1 seconds for unreliable transports, and
+                         * zero seconds for reliable transports. While in the "Completed"
+                         * state, the server transaction MUST pass the final response to the
+                         * transport layer for retransmission whenever a retransmission of the
+                         * request is received. Any other final responses passed by the TU to
+                         * the server transaction MUST be discarded while in the "Completed"
+                         * state. The server transaction remains in this state until Timer J
+                         * fires, at which point it MUST transition to the "Terminated" state.
+                         */
+                        enableTimeoutTimer(TIMER_J);
+                        cleanUpOnTimer();
+                    } else {
+                    	cleanUpOnTimer();
+                        this.setState(TransactionState.TERMINATED);
+                    }
+                } else {
+                    // This is the case for INVITE server transactions.
+                    // essentially, it duplicates the code in the
+                    // PROCEEDING case below. There is no TRYING state for INVITE
+                    // transactions in the RFC. We are using it to signal whether the
+                    // application has sent a provisional response or not. Hence
+                    // this is treated the same as as Proceeding.
+                    if (statusCode / 100 == 2) {
+                        // Status code is 2xx means that the
+                        // transaction transitions to TERMINATED
+                        // for both Reliable as well as unreliable
+                        // transports. Note that the dialog layer
+                        // takes care of retransmitting 2xx final
+                        // responses.
+                        /*
+                         * RFC 3261 Section 13.3.1.4 Note, however, that the INVITE server
+                         * transaction will be destroyed as soon as it receives this final
+                         * response and passes it to the transport. Therefore, it is necessary
+                         * to periodically pass the response directly to the transport until
+                         * the ACK arrives. The 2xx response is passed to the transport with
+                         * an interval that starts at T1 seconds and doubles for each
+                         * retransmission until it reaches T2 seconds (T1 and T2 are defined
+                         * in Section 17). Response retransmissions cease when an ACK request
+                         * for the response is received. This is independent of whatever
+                         * transport protocols are used to send the response.
+                         */
+                        this.disableRetransmissionTimer();
+                        this.disableTimeoutTimer();
+                        this.collectionTime = TIMER_J;
+                        cleanUpOnTimer();
+                        this.setState(TransactionState.TERMINATED);
+                        if (this.getDialog() != null)
+                            ((SIPDialog) this.getDialog()).setRetransmissionTicks();
+                    } else {
+                        // This an error final response.
+                        this.setState(TransactionState.COMPLETED);
+                        if (!isReliable()) {
+                            /*
+                             * RFC 3261
+                             *
+                             * While in the "Proceeding" state, if the TU passes a response
+                             * with status code from 300 to 699 to the server transaction, the
+                             * response MUST be passed to the transport layer for
+                             * transmission, and the state machine MUST enter the "Completed"
+                             * state. For unreliable transports, timer G is set to fire in T1
+                             * seconds, and is not set to fire for reliable transports.
+                             */
+
+                            enableRetransmissionTimer();
+
+                        }
+                        cleanUpOnTimer();
+                        enableTimeoutTimer(TIMER_H);
+                    }
+                }
+
+            }
+
+            // If the transaction is in the proceeding state,
+        } else if (getRealState() == TransactionState.PROCEEDING) {
+
+            if (isInviteTransaction()) {
+
+                // If the response is a failure message,
+                if (statusCode / 100 == 2) {
+                    // Set up to catch returning ACKs
+                    // The transaction lingers in the
+                    // terminated state for some time
+                    // to catch retransmitted INVITEs
+                    this.disableRetransmissionTimer();
+                    this.disableTimeoutTimer();
+                    this.collectionTime = TIMER_J;
+                    cleanUpOnTimer();
+                    this.setState(TransactionState.TERMINATED);
+                    if (this.getDialog() != null)
+                        ((SIPDialog) this.getDialog()).setRetransmissionTicks();
+
+                } else if (300 <= statusCode && statusCode <= 699) {
+
+                    // Set up to catch returning ACKs
+                    this.setState(TransactionState.COMPLETED);
+                    if (!isReliable()) {
+                        /*
+                         * While in the "Proceeding" state, if the TU passes a response with
+                         * status code from 300 to 699 to the server transaction, the response
+                         * MUST be passed to the transport layer for transmission, and the
+                         * state machine MUST enter the "Completed" state. For unreliable
+                         * transports, timer G is set to fire in T1 seconds, and is not set to
+                         * fire for reliable transports.
+                         */
+
+                        enableRetransmissionTimer();
+
+                    }
+                    cleanUpOnTimer();
+                    enableTimeoutTimer(TIMER_H);
+
+                }
+
+                // If the transaction is not an invite transaction
+                // and this is a final response,
+            } else if (200 <= statusCode && statusCode <= 699) {
+                // This is for Non-invite server transactions.
+
+                // Set up to retransmit this response,
+                // or terminate the transaction
+                this.setState(TransactionState.COMPLETED);
+                if (!isReliable()) {
+
+                    disableRetransmissionTimer();
+                    enableTimeoutTimer(TIMER_J);
+
+                } else {
+
+                    this.setState(TransactionState.TERMINATED);
+
+                }
+                cleanUpOnTimer();
+
+            }
+
+            // If the transaction has already completed,
+        } else if (TransactionState.COMPLETED == this.getRealState()) {
+
+            return false;
+        }
+        return true;
     }
 
     public String getViaHost() {
@@ -1145,21 +1161,13 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             if (sipStack.isLoggingEnabled()) {
                 sipStack.getStackLogger().logDebug("fireRetransmissionTimer() -- ");
             }
-            if(lastResponse != null) {    		
-//        		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
-        		lastResponseStatusCode = lastResponse.getStatusCode();
-//        		lastResponse.cleanUp();
-//        		lastResponse = null;        		
-        	}    
             // Resend the last response sent by this transaction
             if (isInviteTransaction() && (lastResponse != null || lastResponseAsBytes != null)) {
                 // null can happen if this is terminating when the timer fires.
                 if (!this.retransmissionAlertEnabled || sipStack.isTransactionPendingAck(this) ) {
                     // Retransmit last response until ack.
-                	if(lastResponse != null) {
-                		sendMessage(lastResponse);
-                    } else if (lastResponseStatusCode /100 > 2 && !this.isAckSeen) {
-                    	super.getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
+                	if (lastResponseStatusCode / 100 >= 2 && !this.isAckSeen) {
+	                    resendLastResponseAsBytes();
                     }
                 } else {
                     // alert the application to retransmit the last response
@@ -1179,7 +1187,37 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
     }
 
-    private void fireReliableResponseRetransmissionTimer() {
+    public void resendLastResponseAsBytes() throws IOException {
+	
+    	if(lastResponse != null) {
+    		sendMessage(lastResponse);
+        } else if (lastResponseAsBytes != null) {
+            // Send the message to the client
+	    	if(!checkStateTimers(lastResponseStatusCode)) {
+	        	return;
+	        }
+	    	if(isReliable()) {
+	    		getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
+	    	} else {
+	    		Hop hop = sipStack.addressResolver.resolveAddress(new HopImpl(lastResponseHost, lastResponsePort,
+	                    lastResponseTransport));
+	
+	            MessageChannel messageChannel = ((SIPTransactionStack) getSIPStack())
+	                    .createRawMessageChannel(this.getSipProvider().getListeningPoint(
+	                            hop.getTransport()).getIPAddress(), this.getPort(), hop);
+	            if (messageChannel != null) {
+	                messageChannel.sendMessage(lastResponseAsBytes, InetAddress.getByName(hop.getHost()), hop.getPort(), false);                                
+	            } else {
+	                throw new IOException("Could not create a message channel for " + hop + " with source IP:Port "+
+	                		this.getSipProvider().getListeningPoint(
+	                                hop.getTransport()).getIPAddress() + ":" + this.getPort());
+	            }                    		
+	    	}
+        }
+		
+	}
+
+	private void fireReliableResponseRetransmissionTimer() {
         try {
 
             super.sendMessage(this.pendingReliableResponse);
@@ -1854,8 +1892,4 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	requestOf = null;
         messageProcessor = null;
     }
-
-	public byte[] getLastResponseAsBytes() {
-		return lastResponseAsBytes;
-	}
 }

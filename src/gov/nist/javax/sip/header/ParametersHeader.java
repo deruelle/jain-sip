@@ -611,6 +611,6 @@ public abstract class ParametersHeader
     
     
     // ----------- Abstract methods --------------
-    protected abstract String encodeBody();
+    protected abstract StringBuilder encodeBody(StringBuilder buffer);
 
 }

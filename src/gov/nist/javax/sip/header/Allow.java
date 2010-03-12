@@ -84,7 +84,8 @@ public final class Allow extends
     /** Return body encoded in canonical form.
      * @return body encoded as a string.
      */
-    protected String encodeBody() {
-        return method;
+    @Override
+    protected StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(method);
     }
 }

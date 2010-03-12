@@ -235,10 +235,10 @@ public class SipUri extends GenericURI implements javax.sip.address.SipURI , Sip
      * @return String
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         buffer.append(scheme).append(COLON);
         if (authority != null)
             authority.encode(buffer);
@@ -274,11 +274,11 @@ public class SipUri extends GenericURI implements javax.sip.address.SipURI , Sip
             user = authority.getUserInfo().getUser();
 
         String host = authority.getHost().encode();
-        StringBuffer s = null;
+        StringBuilder s = null;
         if (user.equals("")) {
-            s = new StringBuffer();
+            s = new StringBuilder();
         } else {
-            s = new StringBuffer(user).append(AT);
+            s = new StringBuilder(user).append(AT);
         }
         return s.append(host).toString();
     }
@@ -295,11 +295,11 @@ public class SipUri extends GenericURI implements javax.sip.address.SipURI , Sip
         String host = authority.getHost().encode();
         int port = authority.getPort();
         // If port not set assign the default.
-        StringBuffer s = null;
+        StringBuilder s = null;
         if (user.equals("")) {
-            s = new StringBuffer();
+            s = new StringBuilder();
         } else {
-            s = new StringBuffer(user).append(AT);
+            s = new StringBuilder(user).append(AT);
         }
         if (port != -1) {
             return s.append(host).append(COLON).append(port).toString();

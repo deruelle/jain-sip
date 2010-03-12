@@ -67,10 +67,10 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
      * @since v1.0
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         if (!nameValueMap.isEmpty()) {
             Iterator<NameValue> iterator = nameValueMap.values().iterator();
             if (iterator.hasNext()) {

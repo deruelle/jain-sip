@@ -74,10 +74,10 @@ public final class From
      * @return String
      */
     protected String encodeBody() {
-        return encodeBody(new StringBuffer()).toString();
+        return encodeBody(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         if (address.getAddressType() == AddressImpl.ADDRESS_SPEC) {
             buffer.append(LESS_THAN);
         }

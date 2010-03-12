@@ -114,7 +114,7 @@ public class AddressFactoryImpl implements javax.sip.address.AddressFactory {
         if (host == null)
             throw new NullPointerException("null host");
 
-        StringBuffer uriString = new StringBuffer("sip:");
+        StringBuilder uriString = new StringBuilder("sip:");
         if (user != null) {
             uriString.append(user);
             uriString.append("@");

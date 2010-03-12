@@ -252,7 +252,7 @@ public class SIPDate implements Cloneable,Serializable {
      * Get canonical string representation.
      * @return String
      */
-    public String encode() {
+    public StringBuilder encode(StringBuilder encoding) {
 
         String dayString;
         if (day < 10) {
@@ -277,28 +277,24 @@ public class SIPDate implements Cloneable,Serializable {
             secondString = "0" + second;
         } else
             secondString = "" + second;
-
-        String encoding = "";
-
+        
         if (sipWkDay != null)
-            encoding += sipWkDay + Separators.COMMA + Separators.SP;
+            encoding .append(sipWkDay).append(Separators.COMMA).append(Separators.SP);
 
-        encoding += dayString + Separators.SP;
+        encoding.append(dayString).append(Separators.SP);
 
         if (sipMonth != null)
-            encoding += sipMonth + Separators.SP;
+            encoding.append(sipMonth).append(Separators.SP);
 
-        encoding += year
-            + Separators.SP
-            + hourString
-            + Separators.COLON
-            + minuteString
-            + Separators.COLON
-            + secondString
-            + Separators.SP
-            + GMT;
-
-        return encoding;
+        return encoding.append(year)
+            .append(Separators.SP)
+            .append(hourString)
+            .append(Separators.COLON)
+            .append(minuteString)
+            .append(Separators.COLON)
+            .append(secondString)
+            .append(Separators.SP)
+            .append(GMT);
     }
 
     /**

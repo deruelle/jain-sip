@@ -63,11 +63,11 @@ public class RAck extends SIPHeader implements javax.sip.header.RAckHeader {
      * headerValue.
      *
      */
-    protected String encodeBody() {
+    public StringBuilder encodeBody(StringBuilder buffer) {
         // Bug reported by Bruno Konik - was encoded in
         // the wrong order.
-        return new StringBuffer().append(rSeqNumber).append(SP).append(
-                cSeqNumber).append(SP).append(method).toString();
+        return buffer.append(rSeqNumber).append(SP).append(
+                cSeqNumber).append(SP).append(method);
 
     }
 

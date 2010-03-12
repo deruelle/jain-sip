@@ -84,10 +84,10 @@ public class Route
      *@return a canonical encoding of the header.
      */
     public String encodeBody() {
-        return encodeBody(new StringBuffer()).toString();
+        return encodeBody(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         boolean addrFlag = address.getAddressType() == AddressImpl.NAME_ADDR;
         if (!addrFlag) {
             buffer.append('<');

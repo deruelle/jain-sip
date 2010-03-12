@@ -2,6 +2,7 @@
 * Product of NIST/ITL Advanced Networking Technologies Division (ANTD).        *
 *******************************************************************************/
 package gov.nist.javax.sip.header.extensions;
+import java.nio.Buffer;
 import java.text.ParseException;
 import gov.nist.javax.sip.header.*;
 
@@ -56,15 +57,16 @@ public class Replaces
      * Encode the body part of this header (i.e. leave out the hdrName).
      * @return String encoded body part of the header.
      */
-    public String encodeBody() {
+    public StringBuilder encodeBody(StringBuilder retval) {
         if (callId == null)
-            return null;
+            return retval;
         else {
-            String retVal = callId;
+            retval.append(callId);
             if (!parameters.isEmpty()) {
-                retVal += SEMICOLON + parameters.encode();
+                retval.append(SEMICOLON);
+                parameters.encode(retval);
             }
-            return retVal;
+            return retval;
         }
     }
 

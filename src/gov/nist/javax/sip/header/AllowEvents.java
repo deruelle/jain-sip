@@ -94,7 +94,8 @@ public final class AllowEvents
     /** Return body encoded in canonical form.
         * @return body encoded as a string.
         */
-    protected String encodeBody() {
-        return eventType;
+    @Override
+    protected StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(eventType);
     }
 }

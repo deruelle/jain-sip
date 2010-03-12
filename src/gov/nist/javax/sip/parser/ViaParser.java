@@ -111,7 +111,7 @@ public class ViaParser extends HeaderParser {
         if (lexer.lookAhead(0) == '(') {
             this.lexer.selectLexer("charLexer");
             lexer.consume(1);
-            StringBuffer comment = new StringBuffer();
+            StringBuilder comment = new StringBuilder();
             while (true) {
                 char ch = lexer.lookAhead(0);
                 if (ch == ')') {

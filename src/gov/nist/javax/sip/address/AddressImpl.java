@@ -161,10 +161,10 @@ public final class AddressImpl
      * @return String canonical encoded version of this address.
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         if (this.addressType == WILD_CARD) {
             buffer.append('*');
         }

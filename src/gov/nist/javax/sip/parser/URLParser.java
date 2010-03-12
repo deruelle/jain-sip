@@ -195,7 +195,7 @@ public class URLParser extends Parser {
         char next = lexer.lookAhead(0);
         if (isReserved(next)) {
             lexer.consume(1);
-            return new StringBuffer().append(next).toString();
+            return new StringBuilder().append(next).toString();
         } else
             throw createParseException("reserved");
     }
@@ -214,7 +214,7 @@ public class URLParser extends Parser {
         if (debug)
             dbg_enter("escaped");
         try {
-            StringBuffer retval = new StringBuffer();
+            StringBuilder retval = new StringBuilder();
             char next = lexer.lookAhead(0);
             char next1 = lexer.lookAhead(1);
             char next2 = lexer.lookAhead(2);
@@ -306,7 +306,7 @@ public class URLParser extends Parser {
     }
 
     protected String uricString() throws ParseException {
-        StringBuffer retval = new StringBuffer();
+        StringBuilder retval = new StringBuilder();
         while (true) {
             String next = uric();
             if (next == null) {
@@ -371,7 +371,7 @@ public class URLParser extends Parser {
      * Parser for the base phone number.
      */
     private String base_phone_number() throws ParseException {
-        StringBuffer s = new StringBuffer();
+        StringBuilder s = new StringBuilder();
 
         if (debug)
             dbg_enter("base_phone_number");
@@ -404,7 +404,7 @@ public class URLParser extends Parser {
      * Parser for the local phone #.
      */
     private String local_number() throws ParseException {
-        StringBuffer s = new StringBuffer();
+        StringBuilder s = new StringBuilder();
         if (debug)
             dbg_enter("local_number");
         try {
@@ -693,7 +693,7 @@ public class URLParser extends Parser {
     }
 
     protected String hvalue() throws ParseException {
-        StringBuffer retval = new StringBuffer();
+        StringBuilder retval = new StringBuilder();
         while (lexer.hasMoreChars()) {
             char la = lexer.lookAhead(0);
             // Look for a character that can terminate a URL.
@@ -735,7 +735,7 @@ public class URLParser extends Parser {
      * the next delimiter).
      */
     protected String urlString() throws ParseException {
-        StringBuffer retval = new StringBuffer();
+        StringBuilder retval = new StringBuilder();
         lexer.selectLexer("charLexer");
 
         while (lexer.hasMoreChars()) {

@@ -237,8 +237,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * 
      * @return a string with all the headers encoded.
      */
-    protected String encodeSIPHeaders() {
-        StringBuffer encoding = new StringBuffer();
+    protected StringBuilder encodeSIPHeaders(StringBuilder encoding) {
+//        StringBuilder encoding = new StringBuilder();
         Iterator<SIPHeader> it = this.headers.iterator();
 
         while (it.hasNext()) {
@@ -247,13 +247,13 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
                 siphdr.encode(encoding);
         }
 
-        return contentLengthHeader.encode(encoding).append(NEWLINE).toString();
+        return contentLengthHeader.encode(encoding).append(NEWLINE);
     }
 
     /**
      * Encode all the headers except the contents. For debug logging.
      */
-    public abstract String encodeMessage();
+    public abstract StringBuilder encodeMessage(StringBuilder retval);
 
     /**
      * Get A dialog identifier constructed from this messsage. This is an id that can be used to
@@ -361,13 +361,13 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *         representation of the SDP payload if it exists).
      */
     public String encode() {
-        StringBuffer encoding = new StringBuffer();
+        StringBuilder encoding = new StringBuilder();
         Iterator<SIPHeader> it = this.headers.iterator();
 
         while (it.hasNext()) {
             SIPHeader siphdr = (SIPHeader) it.next();
             if (!(siphdr instanceof ContentLength))
-                encoding.append(siphdr.encode());
+                siphdr.encode(encoding);
         }
         // Append the unrecognized headers. Headers that are not
         // recognized are passed through unchanged.
@@ -377,7 +377,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
 	        }
         }
 
-        encoding.append(contentLengthHeader.encode()).append(NEWLINE);
+        contentLengthHeader.encode(encoding).append(NEWLINE);
 
         if (this.messageContentObject != null) {
             String mbody = this.getContent().toString();
@@ -423,7 +423,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             InternalErrorHandler.handleException(e);
         }
 
-        StringBuffer encoding = new StringBuffer();
+        StringBuilder encoding = new StringBuilder();
         synchronized (this.headers) {
             Iterator<SIPHeader> it = this.headers.iterator();
 
@@ -852,7 +852,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         } else {
             // Old style client so construct the transaction identifier
             // from various fields of the request.
-            StringBuffer retval = new StringBuffer();
+            StringBuilder retval = new StringBuilder();
             From from = (From) this.getFrom();
             To to = (To) this.getTo();
             // String hpFrom = from.getUserAtHostPort();

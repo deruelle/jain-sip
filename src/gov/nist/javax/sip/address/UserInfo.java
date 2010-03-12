@@ -103,10 +103,10 @@ public final class UserInfo extends NetObject {
      * @return String
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         if (password != null)
             buffer.append(user).append(COLON).append(password);
         else

@@ -1205,7 +1205,7 @@ public class HeaderFactoryImpl implements HeaderFactory , HeaderFactoryExt {
         if (headerName == null)
             throw new NullPointerException("header name is null");
         String hdrText =
-            new StringBuffer()
+            new StringBuilder()
                 .append(headerName)
                 .append(":")
                 .append(headerValue)

@@ -60,8 +60,8 @@ public class SIPDateHeader extends SIPHeader implements DateHeader {
     /** Encode the header into a String.
      * @return String
      */
-    public String encodeBody() {
-        return date.encode();
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return date.encode(retval);
     }
 
     /**

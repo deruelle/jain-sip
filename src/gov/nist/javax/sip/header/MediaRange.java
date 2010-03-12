@@ -106,10 +106,10 @@ public class MediaRange extends SIPObject {
      * @return String
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         return buffer.append(type)
                 .append(SLASH)
                 .append(subtype);

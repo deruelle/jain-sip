@@ -72,16 +72,16 @@ public class Warning extends SIPHeader implements WarningHeader {
     /** Encode the body of the header (return the stuff following name:).
      *@return the string encoding of the header value.
      */
-    public String encodeBody() {
+    public StringBuilder encodeBody(StringBuilder buffer) {
         return text != null
-            ? Integer.toString(code)
-                + SP
-                + agent
-                + SP
-                + DOUBLE_QUOTE
-                + text
-                + DOUBLE_QUOTE
-            : Integer.toString(code) + SP + agent;
+            ? buffer.append(Integer.toString(code))
+            	.append(SP)
+                .append(agent)
+                .append(SP)
+                .append(DOUBLE_QUOTE)
+                .append(text)
+                .append(DOUBLE_QUOTE)
+            : buffer.append(Integer.toString(code)).append(SP).append(agent);
     }
 
     /**

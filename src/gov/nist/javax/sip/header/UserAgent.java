@@ -56,15 +56,15 @@ public class UserAgent extends SIPHeader implements UserAgentHeader {
      * pmusgrave - put a space between products (preserves format of header)
      * @return String
      */
-    private String encodeProduct() {
-        StringBuffer tokens = new StringBuffer();
+    private StringBuilder encodeProduct(StringBuilder tokens) {
+//        StringBuilder tokens = new StringBuilder();
         ListIterator it = productTokens.listIterator();
 
         while (it.hasNext()) {
             tokens.append((String) it.next());
 
         }
-        return tokens.toString();
+        return tokens;
     }
 
     /** set the productToken field
@@ -85,8 +85,8 @@ public class UserAgent extends SIPHeader implements UserAgentHeader {
     /** Encode only the body of this header.
     *@return encoded value of the header.
     */
-    public String encodeBody() {
-        return encodeProduct();
+    public StringBuilder encodeBody(StringBuilder buffer) {
+        return encodeProduct(buffer);
     }
 
     /**

@@ -81,13 +81,14 @@ public final class SessionExpires
      * Encode the header content into a String.
      * @return String
      */
-    protected String encodeBody() {
+    protected StringBuilder encodeBody(StringBuilder retval) {
 
-        String retval = Integer.toString(expires);
+        retval.append(Integer.toString(expires));
 
         if (!parameters.isEmpty()) {
-            retval += SEMICOLON + parameters.encode();
-        }
+    		retval.append(SEMICOLON); 
+    		parameters.encode(retval);
+    	}
         return retval;
     }
 

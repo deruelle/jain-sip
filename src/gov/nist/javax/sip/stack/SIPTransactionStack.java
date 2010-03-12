@@ -2616,7 +2616,7 @@ public abstract class SIPTransactionStack implements
         String fromTag = replacesHeader.getFromTag();
         String toTag = replacesHeader.getToTag();
 
-        StringBuffer dialogId = new StringBuffer(cid);
+        StringBuilder dialogId = new StringBuilder(cid);
 
         // retval.append(COLON).append(to.getUserAtHostPort());
         if (toTag != null) {
@@ -2662,7 +2662,7 @@ public abstract class SIPTransactionStack implements
         String fromTag = joinHeader.getFromTag();
         String toTag = joinHeader.getToTag();
 
-        StringBuffer retval = new StringBuffer(cid);
+        StringBuilder retval = new StringBuilder(cid);
 
         // retval.append(COLON).append(to.getUserAtHostPort());
         if (toTag != null) {

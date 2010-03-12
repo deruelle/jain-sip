@@ -64,8 +64,8 @@ public class SIPETag extends SIPHeader implements SIPETagHeader , ExtensionHeade
      * Encode into canonical form.
      * @return String
      */
-    public String encodeBody() {
-        return entityTag;
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return retval.append(entityTag);
     }
 
     /**

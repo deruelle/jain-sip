@@ -141,7 +141,7 @@ public class AddressParser extends Parser {
  * Converts indentation tabs to spaces so that we have a uniform indentation policy in the whole project.
  *
  * Revision 1.9  2007/02/12 15:19:26  belangery
- * Changed the encode() and encodeBody() methods of SIP headers and basic classes to make them use the same StringBuffer instance during the encoding phase.
+ * Changed the encode() and encodeBody() methods of SIP headers and basic classes to make them use the same StringBuilder instance during the encoding phase.
  *
  * Revision 1.8  2007/02/06 16:40:02  belangery
  * Introduced simple code optimizations.

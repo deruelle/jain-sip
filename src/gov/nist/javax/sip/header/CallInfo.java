@@ -61,10 +61,10 @@ public final class CallInfo
      * @return String
      */
     public String encodeBody() {
-        return encodeBody(new StringBuffer()).toString();
+        return encodeBody(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         buffer.append(LESS_THAN);
         info.encode(buffer);
         buffer.append(GREATER_THAN);

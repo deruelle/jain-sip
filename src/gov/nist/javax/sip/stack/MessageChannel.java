@@ -385,7 +385,7 @@ public abstract class MessageChannel {
      */
     protected final String createBadReqRes(String badReq, ParseException pe) {
 
-        StringBuffer buf = new StringBuffer(512);
+        StringBuilder buf = new StringBuilder(512);
         buf.append("SIP/2.0 400 Bad Request (" + pe.getLocalizedMessage() + ')');
 
         // We need the following headers: all Vias, CSeq, Call-ID, From, To
@@ -444,7 +444,7 @@ public abstract class MessageChannel {
      * Note: some limitations here: does not work for short forms of headers, or continuations;
      * problems when header names appear in other parts of the request
      */
-    private static final boolean copyHeader(String name, String fromReq, StringBuffer buf) {
+    private static final boolean copyHeader(String name, String fromReq, StringBuilder buf) {
         int start = fromReq.indexOf(name);
         if (start != -1) {
             int end = fromReq.indexOf("\r\n", start);
@@ -467,7 +467,7 @@ public abstract class MessageChannel {
      * 
      * Note: some limitations here: does not work for short forms of headers, or continuations
      */
-    private static final boolean copyViaHeaders(String fromReq, StringBuffer buf) {
+    private static final boolean copyViaHeaders(String fromReq, StringBuilder buf) {
         int start = fromReq.indexOf(ViaHeader.NAME);
         boolean found = false;
         while (start != -1) {

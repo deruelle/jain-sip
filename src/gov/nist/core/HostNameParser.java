@@ -87,7 +87,7 @@ public class HostNameParser extends ParserCore {
     }
 
     protected String ipv6Reference() throws ParseException {
-        StringBuffer retval = new StringBuffer();
+        StringBuilder retval = new StringBuilder();
         if (debug)
             dbg_enter("ipv6Reference");
 
@@ -178,7 +178,7 @@ public class HostNameParser extends ParserCore {
                 lexer.consumeValidChars(
                         new char[] {LexerCore.ALPHADIGIT_VALID_CHARS, ':'});
                 hostname
-                    = new StringBuffer("[").append(
+                    = new StringBuilder("[").append(
                         lexer.getBuffer().substring(startPtr, lexer.getPtr()))
                         .append("]").toString();
             }

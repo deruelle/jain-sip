@@ -126,10 +126,10 @@ public class ContentLength
      * @return String
      */
     public String encodeBody() {
-        return encodeBody(new StringBuffer()).toString();
+        return encodeBody(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         if (contentLength == null)
             buffer.append("0");
         else

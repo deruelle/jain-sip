@@ -79,7 +79,7 @@ public class Challenge extends SIPObject {
      * @return String
      */
     public String encode() {
-        return new StringBuffer(scheme)
+        return new StringBuilder(scheme)
             .append(SP)
             .append(authParams.encode())
             .toString();

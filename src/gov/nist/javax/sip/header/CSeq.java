@@ -109,10 +109,10 @@ public class CSeq extends SIPHeader implements javax.sip.header.CSeqHeader {
      * @return encoded string.
      */
     public String encodeBody() {
-        return encodeBody(new StringBuffer()).toString();
+        return encodeBody(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         return buffer.append(seqno).append(SP).append(method.toUpperCase());
     }
 

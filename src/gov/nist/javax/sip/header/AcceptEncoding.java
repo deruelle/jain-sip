@@ -91,10 +91,10 @@ public final class AcceptEncoding extends ParametersHeader implements
      * @return the value of this header encoded into a string.
      */
     protected String encodeBody() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         if (contentCoding != null) {
             buffer.append(contentCoding);
         }

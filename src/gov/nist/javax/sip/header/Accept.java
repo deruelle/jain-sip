@@ -89,10 +89,10 @@ public final class Accept
     *@return encoded value of the header as a string.
     */
     protected String encodeBody() {
-        return encodeBody(new StringBuffer()).toString();
+        return encodeBody(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         if (mediaRange != null)
             mediaRange.encode(buffer);
         if (parameters != null && !parameters.isEmpty()) {

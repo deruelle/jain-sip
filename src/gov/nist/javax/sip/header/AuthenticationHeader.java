@@ -153,9 +153,10 @@ public abstract class AuthenticationHeader extends ParametersHeader {
      *
      * @return canonical string.
      */
-    public String encodeBody() {
+    public StringBuilder encodeBody(StringBuilder buffer) {
         this.parameters.setSeparator(Separators.COMMA);
-        return this.scheme + SP + parameters.encode();
+        buffer = buffer.append(this.scheme).append(SP);
+        return parameters.encode(buffer);
     }
 
     /**

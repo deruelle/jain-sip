@@ -120,10 +120,10 @@ public class MimeVersion extends SIPHeader implements MimeVersionHeader {
      * Return canonical form.
      * @return String
      */
-    public String encodeBody() {
-        return Integer.toString(majorVersion)
-            + DOT
-            + Integer.toString(minorVersion);
+    public StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(Integer.toString(majorVersion))
+            .append(DOT)
+            .append(Integer.toString(minorVersion));
     }
 
 }

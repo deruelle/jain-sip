@@ -63,12 +63,13 @@ public final class ContentDisposition
      * @return encoded value of header.
      *
      */
-    public String encodeBody() {
-        StringBuffer encoding = new StringBuffer(dispositionType);
+    public StringBuilder encodeBody(StringBuilder encoding) {
+//        StringBuilder encoding = new StringBuilder(dispositionType);
+    	encoding.append(dispositionType);
         if (!this.parameters.isEmpty()) {
             encoding.append(SEMICOLON).append(parameters.encode());
         }
-        return encoding.toString();
+        return encoding;
     }
 
     /**
@@ -118,7 +119,7 @@ public final class ContentDisposition
      * @return interpretation of the message body or message body part
      */
     public String getContentDisposition() {
-        return this.encodeBody();
+        return this.encodeBody(new StringBuilder()).toString();
     }
 }
 /*

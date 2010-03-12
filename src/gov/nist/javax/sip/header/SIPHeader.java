@@ -89,7 +89,7 @@ public abstract class SIPHeader
     * the headerName:
     */
     public String getHeaderValue() {
-      return encodeBody();
+      return encode();
     }
 
     /** Return false if this is not a header list
@@ -103,10 +103,10 @@ public abstract class SIPHeader
     /** Encode this header into canonical form.
     */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         buffer.append(this.headerName).append(COLON).append(SP);
         this.encodeBody(buffer);
         buffer.append(NEWLINE);
@@ -116,14 +116,15 @@ public abstract class SIPHeader
     /** Encode the body of this header (the stuff that follows headerName).
     * A.K.A headerValue.
     */
-    protected abstract String encodeBody();
+    protected abstract StringBuilder encodeBody(StringBuilder buffer);
+        
 
-    /** Encode the body of this header in the given buffer.
-     * Default implementation calls encodeBody();
-     */
-    protected StringBuffer encodeBody(StringBuffer buffer) {
-        return buffer.append(encodeBody());
-    }
+//    /** Encode the body of this header in the given buffer.
+//     * Default implementation calls encodeBody();
+//     */
+//    protected StringBuilder encodeBody(StringBuilder buffer) {
+//        return buffer.append(encodeBody());
+//    }
 
     /** Alias for getHeaderValue.
      */

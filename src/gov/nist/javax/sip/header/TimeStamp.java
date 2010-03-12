@@ -95,17 +95,17 @@ public class TimeStamp extends SIPHeader implements TimeStampHeader {
      *
      * @return String
      */
-    public String encodeBody() {
-        StringBuffer retval = new StringBuffer();
+    public StringBuilder encodeBody(StringBuilder retval) {        
+//        StringBuilder retval = new StringBuilder();
         String s1 = getTimeStampAsString();
         String s2 = getDelayAsString();
         if (s1.equals("") && s2.equals(""))
-            return "";
+            return retval.append("");
         if (!s1.equals(""))
             retval.append(s1);
         if (!s2.equals(""))
             retval.append(" ").append(s2);
-        return retval.toString();
+        return retval;
 
     }
 

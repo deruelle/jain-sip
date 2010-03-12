@@ -96,8 +96,8 @@ public class InReplyTo extends SIPHeader implements InReplyToHeader {
          * Generate canonical form of the header.
          * @return String
          */
-    public String encodeBody() {
-        return callId.encode();
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return callId.encode(retval);
     }
 
     public Object clone() {

@@ -29,6 +29,8 @@
 package gov.nist.javax.sip.header;
 
 import javax.sip.header.*;
+
+import java.nio.Buffer;
 import java.text.ParseException;
 
 /**
@@ -76,8 +78,8 @@ public class Priority extends SIPHeader implements PriorityHeader {
      * Encode into canonical form.
      * @return String
      */
-    public String encodeBody() {
-        return priority;
+    public StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(priority);
     }
 
     /**

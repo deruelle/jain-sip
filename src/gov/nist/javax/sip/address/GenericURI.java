@@ -85,7 +85,7 @@ public class GenericURI extends NetObject implements javax.sip.address.URI {
         return uriString;
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         return buffer.append(uriString);
     }
 

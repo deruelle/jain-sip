@@ -59,8 +59,8 @@ public class Organization extends SIPHeader implements OrganizationHeader {
      * Return encoding of value of the header.
      * @return String
      */
-    public String encodeBody() {
-        return organization;
+    public StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(organization);
     }
 
     /**

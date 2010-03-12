@@ -103,10 +103,10 @@ public class ContentType
      * @return String.
      */
     public String encodeBody() {
-        return encodeBody(new StringBuffer()).toString();
+        return encodeBody(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         mediaRange.encode(buffer);
         if (hasParameters()) {
             buffer.append(SEMICOLON);

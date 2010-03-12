@@ -112,10 +112,10 @@ public class Host extends GenericObject {
      * @return String
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         if (addressType == IPV6ADDRESS && !isIPv6Reference(hostname)) {
             buffer.append('[').append(hostname).append(']');
         } else {

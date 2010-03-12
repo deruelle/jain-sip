@@ -85,8 +85,8 @@ public class Supported extends SIPHeader implements SupportedHeader {
      * Just the encoded body of the header.
      * @return the string encoded header body.
      */
-    public String encodeBody() {
-        return optionTag != null ? optionTag : "";
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return optionTag != null ? retval.append(optionTag) : retval.append("");
     }
 
     /**

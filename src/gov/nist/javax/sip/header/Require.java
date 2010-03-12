@@ -70,8 +70,8 @@ public class Require extends SIPHeader implements RequireHeader {
      * Encode in canonical form.
      * @return String
      */
-    public String encodeBody() {
-        return optionTag;
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return retval.append(optionTag);
     }
 
     /**

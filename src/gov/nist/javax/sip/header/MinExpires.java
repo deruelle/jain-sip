@@ -63,8 +63,8 @@ public class MinExpires extends SIPHeader implements MinExpiresHeader {
      * Return canonical form.
      * @return String
      */
-    public String encodeBody() {
-        return Integer.toString(expires);
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return retval.append(Integer.toString(expires));
     }
 
     /**

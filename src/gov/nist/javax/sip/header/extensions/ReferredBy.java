@@ -49,20 +49,21 @@ public final class ReferredBy
      * Encode the header content into a String.
      * @return String
      */
-    protected String encodeBody() {
+    public StringBuilder encodeBody(StringBuilder retval) {
         if (address == null)
             return null;
-        String retval = "";
+//        String retval = "";
         if (address.getAddressType() == AddressImpl.ADDRESS_SPEC) {
-            retval += LESS_THAN;
+            retval.append(LESS_THAN);
         }
-        retval += address.encode();
+        address.encode(retval);
         if (address.getAddressType() == AddressImpl.ADDRESS_SPEC) {
-            retval += GREATER_THAN;
+            retval.append(GREATER_THAN);
         }
 
         if (!parameters.isEmpty()) {
-            retval += SEMICOLON + parameters.encode();
+            retval.append(SEMICOLON); 
+            parameters.encode(retval);
         }
         return retval;
     }

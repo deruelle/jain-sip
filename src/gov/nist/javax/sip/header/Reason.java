@@ -139,12 +139,13 @@ public class Reason
      * Encode the body of this header (the stuff that follows headerName).
      * A.K.A headerValue.
      */
-    protected String encodeBody() {
-        StringBuffer s = new StringBuffer();
-        s.append(protocol);
-        if (parameters != null && !parameters.isEmpty())
-            s.append(SEMICOLON).append(parameters.encode());
-        return s.toString();
+    public StringBuilder encodeBody(StringBuilder buffer) {        
+        buffer.append(protocol);
+        if (parameters != null && !parameters.isEmpty()) {
+            buffer = buffer.append(SEMICOLON);
+            buffer = parameters.encode(buffer);
+        }
+        return buffer;
     }
 
 }

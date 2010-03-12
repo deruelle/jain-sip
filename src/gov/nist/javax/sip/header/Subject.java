@@ -65,11 +65,11 @@ public class Subject extends SIPHeader implements SubjectHeader {
      * Generate the canonical form.
      * @return String.
      */
-    public String encodeBody() {
+    public StringBuilder encodeBody(StringBuilder retval) {        
         if (subject != null) {
-            return subject;
+            return retval.append(subject);
         } else {
-            return "";
+            return retval.append("");
         }
     }
 

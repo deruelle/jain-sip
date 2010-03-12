@@ -89,7 +89,7 @@ public class ListeningPointImpl implements javax.sip.ListeningPoint, gov.nist.ja
      * @return a string that is used as a key
      */
     public static String makeKey(String host, int port, String transport) {
-        return new StringBuffer(host)
+        return new StringBuilder(host)
             .append(":")
             .append(port)
             .append("/")

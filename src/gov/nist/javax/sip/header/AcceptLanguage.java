@@ -71,15 +71,16 @@ public final class AcceptLanguage
     /** Encode the value of this header to a string.
      *@return  encoded header as a string.
      */
-    protected String encodeBody() {
-        StringBuffer encoding = new StringBuffer();
+    @Override
+    protected StringBuilder encodeBody(StringBuilder encoding) {
+//        StringBuilder encoding = new StringBuilder();
         if (languageRange != null) {
             encoding.append(languageRange);
         }
         if (!parameters.isEmpty()) {
             encoding.append(SEMICOLON).append(parameters.encode());
         }
-        return encoding.toString();
+        return encoding;
     }
 
     /** get the LanguageRange field

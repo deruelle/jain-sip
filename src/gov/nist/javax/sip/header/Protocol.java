@@ -64,10 +64,10 @@ public class Protocol extends SIPObject {
      * @return String
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         buffer.append(protocolName.toUpperCase())
                 .append(SLASH)
                 .append(protocolVersion)
@@ -155,7 +155,7 @@ public class Protocol extends SIPObject {
  * Converts indentation tabs to spaces so that we have a uniform indentation policy in the whole project.
  *
  * Revision 1.7  2007/02/12 15:19:23  belangery
- * Changed the encode() and encodeBody() methods of SIP headers and basic classes to make them use the same StringBuffer instance during the encoding phase.
+ * Changed the encode() and encodeBody() methods of SIP headers and basic classes to make them use the same StringBuilder instance during the encoding phase.
  *
  * Revision 1.6  2006/07/13 09:01:24  mranga
  * Issue number:

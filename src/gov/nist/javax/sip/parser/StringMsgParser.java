@@ -542,7 +542,7 @@ public class StringMsgParser {
             throw new ParseException("Empty header.", 0);
         }
 
-        StringBuffer buffer = new StringBuffer(end + 1);
+        StringBuilder buffer = new StringBuilder(end + 1);
         int i = start;
         int lineStart = start;
         boolean endOfLine = false;

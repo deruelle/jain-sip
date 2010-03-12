@@ -71,11 +71,13 @@ public class References extends ParametersHeader  implements ReferencesHeader,Ex
     }
 
    
-    protected String encodeBody() {
+    public StringBuilder encodeBody(StringBuilder buffer) {
         if ( super.parameters.isEmpty()) {
-            return callId ;
+            return buffer.append(callId);
         } else {
-            return callId + ";" + super.parameters.encode();
+        	buffer = buffer.append(callId).append(";");
+        	buffer = super.parameters.encode(buffer);
+            return buffer;
         }
     }
 

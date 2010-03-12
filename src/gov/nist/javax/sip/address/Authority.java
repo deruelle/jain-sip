@@ -56,10 +56,10 @@ public class Authority extends NetObject {
      * @return encoded string (does the same thing as toString)
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         if (userInfo != null) {
             userInfo.encode(buffer);
             buffer.append(AT);

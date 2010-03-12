@@ -30,6 +30,7 @@ package gov.nist.javax.sip.header;
 
 import gov.nist.core.*;
 import gov.nist.javax.sip.address.*;
+
 import javax.sip.header.*;
 
 /**
@@ -73,26 +74,28 @@ public final class ReplyTo
      * @return String
      */
     public String encode() {
-        return headerName + COLON + SP + encodeBody() + NEWLINE;
+        return headerName + COLON + SP + encodeBody(new StringBuilder()).toString() + NEWLINE;
     }
 
     /**
      * Encode the header content into a String.
      * @return String
      */
-    public String encodeBody() {
-        String retval = "";
-        if (address.getAddressType() == AddressImpl.ADDRESS_SPEC) {
-            retval += LESS_THAN;
+    public StringBuilder encodeBody(StringBuilder retval) {
+//        String retval = "";
+    	if (address.getAddressType() == AddressImpl.ADDRESS_SPEC) {
+            retval.append(LESS_THAN);
         }
-        retval += address.encode();
+        address.encode(retval);
         if (address.getAddressType() == AddressImpl.ADDRESS_SPEC) {
-            retval += GREATER_THAN;
+            retval.append(GREATER_THAN);
         }
+
         if (!parameters.isEmpty()) {
-            retval += SEMICOLON + parameters.encode();
+            retval.append(SEMICOLON); 
+            parameters.encode(retval);
         }
-        return retval;
+        return retval;        
     }
 
     /**

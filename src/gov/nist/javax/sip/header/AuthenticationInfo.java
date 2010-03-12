@@ -58,8 +58,8 @@ public final class AuthenticationInfo
     /** Value of header encoded in canonical form.
      */
 
-    protected String encodeBody() {
-        return parameters.encode();
+    protected StringBuilder encodeBody(StringBuilder buffer) {
+        return parameters.encode(buffer);
 
     }
 
@@ -84,7 +84,7 @@ public final class AuthenticationInfo
      *
      */
     public String getAuthenticationInfo() {
-        return this.encodeBody();
+        return this.encodeBody(new StringBuilder()).toString();
     }
 
     /** Returns the CNonce value of this AuthenticationInfoHeader.

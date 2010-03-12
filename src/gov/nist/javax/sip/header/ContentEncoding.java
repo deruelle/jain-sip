@@ -110,8 +110,8 @@ public class ContentEncoding
      * Canonical encoding of body of the header.
      * @return  encoded body of the header.
      */
-    public String encodeBody() {
-        return contentEncoding;
+    public StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(contentEncoding);
     }
 
     /**

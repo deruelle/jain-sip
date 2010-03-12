@@ -91,7 +91,7 @@ public class ExtensionHeaderImpl
             } catch (Exception ex) {
                 return null;
             }
-            StringBuffer buffer = new StringBuffer(encodedHdr);
+            StringBuilder buffer = new StringBuilder(encodedHdr);
             while (buffer.length() > 0 && buffer.charAt(0) != ':') {
                 buffer.deleteCharAt(0);
             }
@@ -111,6 +111,13 @@ public class ExtensionHeaderImpl
             .append(this.value)
             .append(NEWLINE)
             .toString();
+    }
+    
+    /**
+     * Return the canonical encoding of this header.
+     */
+    public StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(this.encodeBody());          
     }
 
     /**

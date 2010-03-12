@@ -72,8 +72,8 @@ public class ProxyRequire extends SIPHeader implements ProxyRequireHeader {
      * Encode in canonical form.
      * @return String
      */
-    public String encodeBody() {
-        return optionTag;
+    public StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(optionTag);
     }
 
     /**

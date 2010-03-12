@@ -447,13 +447,15 @@ public final class SIPResponse
     *@return The string except for the body.
     */
 
-    public String encodeMessage() {
-        String retval;
-        if (statusLine != null)
-            retval = statusLine.encode() + super.encodeSIPHeaders();
-        else
-            retval = super.encodeSIPHeaders();
-        return retval ;
+    public StringBuilder encodeMessage(StringBuilder retval) {
+//        String retval;
+        if (statusLine != null) {
+            statusLine.encode(retval);
+            super.encodeSIPHeaders(retval);
+        } else {
+            retval = super.encodeSIPHeaders(retval);
+        }
+        return retval;
     }
 
 
@@ -559,7 +561,7 @@ public final class SIPResponse
         CallID cid = (CallID) this.getCallId();
         From from = (From) this.getFrom();
         To to = (To) this.getTo();
-        StringBuffer retval = new StringBuffer(cid.getCallId());
+        StringBuilder retval = new StringBuilder(cid.getCallId());
         if (!isServer) {
             //retval.append(COLON).append(from.getUserAtHostPort());
             if (from.getTag() != null) {
@@ -589,7 +591,7 @@ public final class SIPResponse
     public String getDialogId(boolean isServer, String toTag) {
         CallID cid = (CallID) this.getCallId();
         From from = (From) this.getFrom();
-        StringBuffer retval = new StringBuffer(cid.getCallId());
+        StringBuilder retval = new StringBuilder(cid.getCallId());
         if (!isServer) {
             //retval.append(COLON).append(from.getUserAtHostPort());
             if (from.getTag() != null) {

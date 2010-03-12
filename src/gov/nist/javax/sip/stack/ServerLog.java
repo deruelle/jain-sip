@@ -341,7 +341,7 @@ public class ServerLog implements ServerLogger {
         if (cid != null)
             callId = cid.getCallId();
         String firstLine = message.getFirstLine().trim();
-        String inputText = (logContent ? message.encode() : message.encodeMessage());
+        String inputText = (logContent ? message.encode() : message.encodeMessage(new StringBuilder()).toString());
         String tid = message.getTransactionId();
         TimeStampHeader tsHdr = (TimeStampHeader) message.getHeader(TimeStampHeader.NAME);
         long tsval = tsHdr == null ? 0 : tsHdr.getTime();
@@ -366,7 +366,7 @@ public class ServerLog implements ServerLogger {
         if (cid != null)
             callId = cid.getCallId();
         String firstLine = message.getFirstLine().trim();
-        String encoded = (logContent ? message.encode() : message.encodeMessage());
+        String encoded = (logContent ? message.encode() : message.encodeMessage(new StringBuilder()).toString());
         String tid = message.getTransactionId();
         TimeStampHeader tshdr = (TimeStampHeader) message.getHeader(TimeStampHeader.NAME);
         long tsval = tshdr == null ? 0 : tshdr.getTime();

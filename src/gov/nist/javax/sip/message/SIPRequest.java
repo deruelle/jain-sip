@@ -477,15 +477,15 @@ public final class SIPRequest extends SIPMessage implements javax.sip.message.Re
     /**
      * Encode only the headers and not the content.
      */
-    public String encodeMessage() {
-        String retval;
+    public StringBuilder encodeMessage(StringBuilder retval) {    	       
         if (requestLine != null) {
             this.setRequestLineDefaults();
-            retval = requestLine.encode() + super.encodeSIPHeaders();
+            requestLine.encode(retval);
+            super.encodeSIPHeaders(retval);
         } else if (this.isNullRequest()) {
-            retval = "\r\n\r\n";
+            retval.append("\r\n\r\n");
         } else
-            retval = super.encodeSIPHeaders();
+            retval = super.encodeSIPHeaders(retval);
         return retval;
 
     }
@@ -576,7 +576,7 @@ public final class SIPRequest extends SIPMessage implements javax.sip.message.Re
      */
     public String getDialogId(boolean isServer) {
         CallID cid = (CallID) this.getCallId();
-        StringBuffer retval = new StringBuffer(cid.getCallId());
+        StringBuilder retval = new StringBuilder(cid.getCallId());
         From from = (From) this.getFrom();
         To to = (To) this.getTo();
         if (!isServer) {
@@ -612,7 +612,7 @@ public final class SIPRequest extends SIPMessage implements javax.sip.message.Re
     public String getDialogId(boolean isServer, String toTag) {
         From from = (From) this.getFrom();
         CallID cid = (CallID) this.getCallId();
-        StringBuffer retval = new StringBuffer(cid.getCallId());
+        StringBuilder retval = new StringBuilder(cid.getCallId());
         if (!isServer) {
             // retval.append(COLON).append(from.getUserAtHostPort());
             if (from.getTag() != null) {
@@ -1210,7 +1210,7 @@ public final class SIPRequest extends SIPMessage implements javax.sip.message.Re
         String requestUri = this.getRequestURI().toString();
 
         if (fromTag != null) {
-            return new StringBuffer().append(requestUri).append(":").append(fromTag).append(":").append(cseq).append(":")
+            return new StringBuilder().append(requestUri).append(":").append(fromTag).append(":").append(cseq).append(":")
                     .append(callId).toString();
         } else
             return null;

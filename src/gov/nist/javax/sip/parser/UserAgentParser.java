@@ -100,7 +100,7 @@ public class UserAgentParser extends HeaderParser {
                     String product = this.lexer.byteStringNoSlash();
                     if ( product == null ) throw createParseException("Expected product string");
 
-                    StringBuffer productSb = new StringBuffer(product);
+                    StringBuilder productSb = new StringBuilder(product);
                     // do we possibily have the optional product-version?
                     if (this.lexer.peekNextToken().getTokenType() == TokenTypes.SLASH) {
                         // yes

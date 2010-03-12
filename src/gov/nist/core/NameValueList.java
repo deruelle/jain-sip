@@ -89,10 +89,10 @@ public class NameValueList implements Serializable, Cloneable, Map<String,NameVa
      * @since v1.0
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         if (!this.isEmpty()) {
             Iterator<NameValue> iterator = this.iterator();
             if (iterator.hasNext()) {

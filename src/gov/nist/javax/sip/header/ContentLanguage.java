@@ -108,8 +108,8 @@ public class ContentLanguage
      * Canonical encoding of the  value of the header.
      * @return encoded body of header.
      */
-    public String encodeBody() {
-        return this.getLanguageTag();
+    public StringBuilder encodeBody(StringBuilder buffer) {
+        return buffer.append(getLanguageTag());
     }
 
     /** get the languageTag field.

@@ -58,8 +58,8 @@ public class Server extends SIPHeader implements ServerHeader {
      * Return canonical form.
      * @return String
      */
-    private String encodeProduct() {
-        StringBuffer tokens = new StringBuffer();
+    private StringBuilder encodeProduct(StringBuilder tokens) {
+//        StringBuilder tokens = new StringBuilder();
         ListIterator it = productTokens.listIterator();
 
         while (it.hasNext()) {
@@ -69,7 +69,7 @@ public class Server extends SIPHeader implements ServerHeader {
             else
                 break;
         }
-        return tokens.toString();
+        return tokens;
     }
 
     /** set the productToken field
@@ -90,8 +90,8 @@ public class Server extends SIPHeader implements ServerHeader {
     /** Encode only the body of this header.
     *@return encoded value of the header.
     */
-    public String encodeBody() {
-        return encodeProduct();
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return encodeProduct(retval);
     }
 
     /**

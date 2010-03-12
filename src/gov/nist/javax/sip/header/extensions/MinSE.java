@@ -47,11 +47,12 @@ public class MinSE
      * Return canonical form.
      * @return String
      */
-    public String encodeBody() {
-        String retval = Integer.toString(expires); // seems overkill - but Expires did this.
+    public StringBuilder encodeBody(StringBuilder retval) {
+        retval.append(Integer.toString(expires)); // seems overkill - but Expires did this.
 
         if (!parameters.isEmpty()) {
-            retval += SEMICOLON + parameters.encode();
+            retval.append(SEMICOLON);
+            parameters.encode(retval);
         }
         return retval;
     }

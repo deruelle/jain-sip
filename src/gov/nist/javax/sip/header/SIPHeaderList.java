@@ -148,10 +148,10 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
      *         (Contains string append of each encoded header).
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         if (hlist.isEmpty()) {
             buffer.append(headerName).append(':').append(Separators.NEWLINE);
         }
@@ -493,10 +493,10 @@ public abstract class SIPHeaderList<HDR extends SIPHeader> extends SIPHeader imp
      * is protected.
      */
     protected String encodeBody() {
-        return encodeBody(new StringBuffer()).toString();
+        return encodeBody(new StringBuilder()).toString();
     }
 
-    protected StringBuffer encodeBody(StringBuffer buffer) {
+    protected StringBuilder encodeBody(StringBuilder buffer) {
         ListIterator<HDR> iterator = this.listIterator();
         while (true) {
             SIPHeader sipHeader = (SIPHeader) iterator.next();

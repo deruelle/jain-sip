@@ -1134,7 +1134,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
             SIPDialog dialog) {
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger().logDebug(
-                    "PROCESSING INCOMING RESPONSE" + response.encodeMessage());
+                    "PROCESSING INCOMING RESPONSE" + response.encodeMessage(new StringBuilder()));
         }
         if (listeningPoint == null) {
             if (sipStack.isLoggingEnabled())
@@ -1288,7 +1288,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
         String method = sipResponse.getCSeq().getMethod();
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger().logDebug(
-                    "PROCESSING INCOMING RESPONSE: " + sipResponse.encodeMessage());
+                    "PROCESSING INCOMING RESPONSE: " + sipResponse.encodeMessage(new StringBuilder()));
         }
 
         if (sipStack.checkBranchId() && !Utils.getInstance().responseBelongsToUs(sipResponse)) {

@@ -63,8 +63,8 @@ public class SIPIfMatch extends SIPHeader implements SIPIfMatchHeader,ExtensionH
      * Encode into canonical form.
      * @return String
      */
-    public String encodeBody() {
-        return entityTag;
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return retval.append(entityTag);
     }
 
     /**

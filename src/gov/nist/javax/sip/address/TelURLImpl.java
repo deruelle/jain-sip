@@ -159,10 +159,10 @@ public class TelURLImpl
     }
 
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         buffer.append(this.scheme).append(':');
         telephoneNumber.encode(buffer);
         return buffer;

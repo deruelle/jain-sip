@@ -85,10 +85,10 @@ public final class CallIdentifier extends SIPObject {
      * @return String to set
      */
     public String encode() {
-        return encode(new StringBuffer()).toString();
+        return encode(new StringBuilder()).toString();
     }
 
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         buffer.append(localId);
         if (host != null) {
             buffer.append(AT).append(host);

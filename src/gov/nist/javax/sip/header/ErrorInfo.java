@@ -74,14 +74,16 @@ public final class ErrorInfo
      * Encode into canonical form.
      * @return String
      */
-    public String encodeBody() {
-        StringBuffer retval =
-            new StringBuffer(LESS_THAN).append(errorInfo.toString()).append(
-                GREATER_THAN);
+    public StringBuilder encodeBody(StringBuilder retval) {
+//        StringBuilder retval =
+            retval.append(LESS_THAN);
+            errorInfo.encode(retval);
+            retval.append(GREATER_THAN);
         if (!parameters.isEmpty()) {
-            retval.append(SEMICOLON).append(parameters.encode());
+            retval.append(SEMICOLON);
+            parameters.encode(retval);
         }
-        return retval.toString();
+        return retval;
     }
 
     /**

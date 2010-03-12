@@ -68,10 +68,10 @@ public abstract class SIPObject extends GenericObject {
      */
     public abstract String encode();
 
-    /** Encode the header into the given StringBuffer.
+    /** Encode the header into the given StringBuilder.
      * Default implemation calls encode().
      */
-    public StringBuffer encode(StringBuffer buffer) {
+    public StringBuilder encode(StringBuilder buffer) {
         return buffer.append(encode());
     }
 

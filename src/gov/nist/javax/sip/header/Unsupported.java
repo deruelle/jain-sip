@@ -69,8 +69,8 @@ public class Unsupported
      * Return a canonical value.
      * @return String.
      */
-    public String encodeBody() {
-        return optionTag;
+    public StringBuilder encodeBody(StringBuilder retval) {
+        return retval.append(optionTag);
     }
 
     /** get the option tag field

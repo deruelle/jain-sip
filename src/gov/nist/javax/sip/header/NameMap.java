@@ -24,11 +24,28 @@
 *
 */
 package gov.nist.javax.sip.header;
-import gov.nist.core.*;
-import gov.nist.javax.sip.header.ims.*;
+import gov.nist.core.PackageNames;
+import gov.nist.javax.sip.header.ims.PAccessNetworkInfo;
+import gov.nist.javax.sip.header.ims.PAccessNetworkInfoHeader;
+import gov.nist.javax.sip.header.ims.PAssertedIdentity;
+import gov.nist.javax.sip.header.ims.PAssertedIdentityHeader;
+import gov.nist.javax.sip.header.ims.PAssociatedURI;
+import gov.nist.javax.sip.header.ims.PAssociatedURIHeader;
+import gov.nist.javax.sip.header.ims.PCalledPartyID;
+import gov.nist.javax.sip.header.ims.PCalledPartyIDHeader;
+import gov.nist.javax.sip.header.ims.PChargingFunctionAddresses;
+import gov.nist.javax.sip.header.ims.PChargingFunctionAddressesHeader;
+import gov.nist.javax.sip.header.ims.PChargingVector;
+import gov.nist.javax.sip.header.ims.PChargingVectorHeader;
+import gov.nist.javax.sip.header.ims.PMediaAuthorization;
+import gov.nist.javax.sip.header.ims.PMediaAuthorizationHeader;
+import gov.nist.javax.sip.header.ims.PPreferredIdentity;
+import gov.nist.javax.sip.header.ims.PVisitedNetworkID;
+import gov.nist.javax.sip.header.ims.Path;
+import gov.nist.javax.sip.header.ims.Privacy;
+import gov.nist.javax.sip.header.ims.ServiceRoute;
 
 import java.util.HashMap;
-import java.util.Hashtable;
 import java.util.Map;
 
 /**

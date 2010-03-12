@@ -1870,6 +1870,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             sipStack.getStackLogger().logDebug("cleanup on timer : "
                     + getTransactionId());
         }
+    	if(dialog != null && getMethod().equals(Request.CANCEL)) {
+    		// used to deal with getting the dialog on cancel tx after the 200 OK to CANCEL has been sent
+    		dialogId = dialog.getDialogId();
+    	} 
     	dialog = null;
     	// we don't nullify the inviteTx for CANCEL since the app can get it from getCanceledInviteTransaction
     	if(inviteTransaction != null && !getMethod().equals(Request.CANCEL)) {

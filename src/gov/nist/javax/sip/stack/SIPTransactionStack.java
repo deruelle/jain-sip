@@ -1183,54 +1183,38 @@ public abstract class SIPTransactionStack implements
 	 * generate a 482 (Loop Detected) response and pass it to the server
 	 * transaction.
      */
-    public SIPServerTransaction findMergedTransaction(SIPRequest sipRequest) {
-        if (! sipRequest.getMethod().equals(Request.INVITE)) {
-            /*
+    public boolean findMergedTransaction(SIPRequest sipRequest) {
+		if (!sipRequest.getMethod().equals(Request.INVITE)) {
+			/*
 			 * Dont need to worry about request merging for Non-INVITE
 			 * transactions.
-             */
-            return null;
-        }
-        String mergeId = sipRequest.getMergeId();
+			 */
+			return false;
+		}
+		String mergeId = sipRequest.getMergeId();
 		if (mergeId != null) {
 			SIPServerTransaction mergedTransaction = (SIPServerTransaction) this.mergeTable
 					.get(mergeId);
 			if (mergedTransaction != null
 					&& !mergedTransaction
 							.isMessagePartOfTransaction(sipRequest)) {
-				return mergedTransaction;
+				return true;
+			}else {
+				/*
+				 * Check for loop detection for really late arriving
+				 * requests
+				 */
+				SIPDialog serverDialog = this.serverDialogMergeTestTable
+						.get(mergeId);
+				if (serverDialog != null && serverDialog.firstTransactionIsServerTransaction
+						&& serverDialog.getState() == DialogState.CONFIRMED) {
+					return true;
+				}
 			}
-		} else {
-			/*
-			 * Check for loop detection.
-			 */
-			SIPDialog serverDialog = this.serverDialogMergeTestTable
-					.get(mergeId);
-			if (serverDialog != null
-					&& !((SIPServerTransaction) serverDialog
-							.getFirstTransaction())
-							.isMessagePartOfTransaction(sipRequest)) {
-				return (SIPServerTransaction) serverDialog
-						.getFirstTransaction();
-			}
+		} 
 
-			/*
-			 * for (Dialog dialog: this.dialogTable.values() ) { SIPDialog
-			 * sipDialog = (SIPDialog) dialog ; if
-			 * (sipDialog.getFirstTransaction() != null &&
-			 * sipDialog.getFirstTransaction() instanceof ServerTransaction) {
-			 * SIPServerTransaction serverTransaction = ((SIPServerTransaction)
-			 * sipDialog.getFirstTransaction()); SIPRequest transactionRequest =
-			 * ((SIPServerTransaction)
-			 * sipDialog.getFirstTransaction()).getOriginalRequest(); if ( (!
-			 * serverTransaction.isMessagePartOfTransaction(sipRequest)) &&
-			 * sipRequest.getMergeId().equals(transactionRequest.getMergeId()))
-			 * { return (SIPServerTransaction) sipDialog.getFirstTransaction();
-			 * } } }
-			 */
-		}
-		return null;
-    }
+		return false;
+	}
 
     /**
 	 * Remove a pending Server transaction from the stack. This is called after

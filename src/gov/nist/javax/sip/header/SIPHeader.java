@@ -89,7 +89,7 @@ public abstract class SIPHeader
     * the headerName:
     */
     public String getHeaderValue() {
-      return encode();
+      return encodeBody(new StringBuilder()).toString();
     }
 
     /** Return false if this is not a header list

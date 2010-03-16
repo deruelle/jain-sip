@@ -105,10 +105,10 @@ import java.util.Map;
 /**
  * A map of which of the standard headers may appear as a list
  *
- * @version 1.2 $Revision: 1.14 $ $Date: 2009/07/17 18:57:53 $
+ * @version 1.2 $Revision: 1.15 $ $Date: 2010/03/15 17:01:23 $
  * @since 1.1
  */
-class ListMap {
+public class ListMap {
     // A table that indicates whether a header has a list representation or
     // not (to catch adding of the non-list form when a list exists.)
     // Entries in this table allow you to look up the list form of a header
@@ -206,7 +206,7 @@ class ListMap {
     /**
      * return true if this has an associated list object.
      */
-    static protected boolean hasList(SIPHeader sipHeader) {
+    static public boolean hasList(SIPHeader sipHeader) {
         if (sipHeader instanceof SIPHeaderList)
             return false;
         else {
@@ -218,7 +218,7 @@ class ListMap {
     /**
      * Return true if this has an associated list object.
      */
-    static protected boolean hasList(Class<?> sipHdrClass) {
+    static public boolean hasList(Class<?> sipHdrClass) {
         if (!initialized)
             initializeListMap();
         return headerListTable.get(sipHdrClass) != null;
@@ -227,7 +227,7 @@ class ListMap {
     /**
      * Get the associated list class.
      */
-    static protected Class<?> getListClass(Class<?> sipHdrClass) {
+    static public Class<?> getListClass(Class<?> sipHdrClass) {
         if (!initialized)
             initializeListMap();
         return (Class<?>) headerListTable.get(sipHdrClass);
@@ -237,7 +237,7 @@ class ListMap {
      * Return a list object for this header if it has an associated list object.
      */
     @SuppressWarnings("unchecked")
-    static protected SIPHeaderList<SIPHeader> getList(SIPHeader sipHeader) {
+    static public SIPHeaderList<SIPHeader> getList(SIPHeader sipHeader) {
         if (!initialized)
             initializeListMap();
         try {

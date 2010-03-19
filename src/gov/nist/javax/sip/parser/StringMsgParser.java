@@ -75,7 +75,7 @@ public class StringMsgParser implements MessageParser {
     protected boolean readBody;
     protected ParseExceptionListener parseExceptionListener;
     protected String rawStringMessage;
-    private boolean strict;
+    protected boolean strict;
 
     protected static boolean computeContentLengthFromMessage = false;
 
@@ -525,7 +525,7 @@ public class StringMsgParser implements MessageParser {
      * @exception ParseException
      *                if there was an error parsing the message.
      */
-    public SIPHeader parseSIPHeader(String header) throws ParseException {
+    public static SIPHeader parseSIPHeader(String header) throws ParseException {
         int start = 0;
         int end = header.length() - 1;
         try {

@@ -646,7 +646,7 @@ public class SIPResponse
     
     @Override
     public void cleanUp() {
-    	statusLine = null;
+//    	statusLine = null;
     	super.cleanUp();
     }
 }

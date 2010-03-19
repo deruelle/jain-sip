@@ -404,8 +404,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // Add to the fire list -- needs to be moved
                 // outside the synchronized block to prevent
                 // deadlock.
-                fireTimer();
-
+                fireTimer();                
+            }
+            if(originalRequest != null) {
+            	originalRequest.cleanUp();
             }
         }
 
@@ -573,7 +575,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     public boolean isMessagePartOfTransaction(SIPMessage messageToTest) {
 
         // List of Via headers in the message to test
-        ViaList viaHeaders;
+//        ViaList viaHeaders;
         // Topmost Via header in the list
         Via topViaHeader;
         // Branch code in the topmost Via header
@@ -591,10 +593,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         if ((method.equals(Request.INVITE) || !isTerminated())) {
 
             // Get the topmost Via header and its branch parameter
-            viaHeaders = messageToTest.getViaHeaders();
-            if (viaHeaders != null) {
+            topViaHeader = messageToTest.getTopmostVia();
+            if (topViaHeader != null) {
 
-                topViaHeader = (Via) viaHeaders.getFirst();
+//                topViaHeader = (Via) viaHeaders.getFirst();
                 messageBranch = topViaHeader.getBranch();
                 if (messageBranch != null) {
 
@@ -621,7 +623,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                         transactionMatches = this.getMethod().equals(Request.CANCEL)
                                 && getBranch().equalsIgnoreCase(messageBranch)
                                 && topViaHeader.getSentBy().equals(
-                                        ((Via) getOriginalRequest().getViaHeaders().getFirst())
+                                        getOriginalRequest().getTopmostVia()
                                                 .getSentBy());
 
                     } else {
@@ -630,7 +632,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     	if(originalRequest != null) {
                     		transactionMatches = getBranch().equalsIgnoreCase(messageBranch)
                                 && topViaHeader.getSentBy().equals(
-                                        ((Via) getOriginalRequest().getViaHeaders().getFirst())
+                                		getOriginalRequest().getTopmostVia()
                                                 .getSentBy());
                     	} else {
                     		transactionMatches = getBranch().equalsIgnoreCase(messageBranch)
@@ -677,8 +679,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                                     .getCSeq().getSeqNumber()
                             && ((!messageToTest.getCSeq().getMethod().equals(Request.CANCEL)) || getOriginalRequest()
                                     .getMethod().equals(messageToTest.getCSeq().getMethod()))
-                            && topViaHeader.equals(getOriginalRequest().getViaHeaders()
-                                    .getFirst())) {
+                            && topViaHeader.equals(getOriginalRequest().getTopmostVia())) {
 
                         transactionMatches = true;
                     }
@@ -1411,7 +1412,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             if (dialog != null) {
                 if (sipResponse.getStatusCode() / 100 == 2
                         && sipStack.isDialogCreated(sipResponse.getCSeq().getMethod())) {
-                    if (dialog.getLocalTag() == null && sipResponse.getTo().getTag() == null) {
+                    if (dialog.getLocalTag() == null && sipResponse.getToTag() == null) {
                         // Trying to send final response and user forgot to set
                         // to
                         // tag on the response -- be nice and assign the tag for
@@ -1439,7 +1440,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             // incoming request has a from tag.
             String fromTag = originalRequestFromTag;
             if(getRequest() != null) {
-            	fromTag = ((SIPRequest) this.getRequest()).getFrom().getTag();
+            	fromTag = ((SIPRequest) this.getRequest()).getFromTag();
             }
             if (fromTag != null && sipResponse.getFromTag() != null
                     && !sipResponse.getFromTag().equals(fromTag)) {
@@ -1840,8 +1841,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         cleanUpOnTimer();
         // it should be available in the processTxTerminatedEvent, so we can nullify it only here
     	if(originalRequest != null) {
-    		originalRequestSentBy = originalRequest.getTopmostVia().getSentBy();
-    		originalRequestFromTag = originalRequest.getFromTag();    		
+//    		originalRequestSentBy = originalRequest.getTopmostVia().getSentBy();
+//    		originalRequestFromTag = originalRequest.getFromTag();    		
     		originalRequest = null;    		
     	}   
     	if(inviteTransaction != null) {    		
@@ -1881,9 +1882,17 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     		inviteTransaction.releaseSem();
     		inviteTransaction = null;
     	}
-    	if(originalRequest !=null) {
+    	if(originalRequest != null) {
     		originalRequest.setTransaction(null);
     		originalRequest.setInviteTransaction(null);
+    		if(!originalRequest.getMethod().equalsIgnoreCase(Request.INVITE)) {
+    			if(originalRequestSentBy == null) {
+    				originalRequestSentBy = originalRequest.getTopmostVia().getSentBy();
+    			}
+    			if(originalRequestFromTag == null) {
+    				originalRequestFromTag = originalRequest.getFromTag();
+    			}    			
+    		}    
     	}
     	if(lastResponse != null) {
     		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());

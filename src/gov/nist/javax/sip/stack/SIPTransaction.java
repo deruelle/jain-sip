@@ -380,8 +380,7 @@ public abstract class SIPTransaction extends MessageChannel implements
         originalRequest.setTransaction(this);
 
         // If the message has an explicit branch value set,
-        newBranch = ((Via) newOriginalRequest.getViaHeaders().getFirst())
-                .getBranch();
+        newBranch = newOriginalRequest.getTopmostVia().getBranch();
         if (newBranch != null) {
             if (sipStack.isLoggingEnabled())
                 sipStack.getStackLogger().logDebug("Setting Branch id : " + newBranch);
@@ -908,7 +907,7 @@ public abstract class SIPTransaction extends MessageChannel implements
     public boolean doesCancelMatchTransaction(SIPRequest requestToTest) {
 
         // List of Via headers in the message to test
-        ViaList viaHeaders;
+//        ViaList viaHeaders;
         // Topmost Via header in the list
         Via topViaHeader;
         // Branch code in the topmost Via header
@@ -922,10 +921,10 @@ public abstract class SIPTransaction extends MessageChannel implements
                 || this.getOriginalRequest().getMethod().equals(Request.CANCEL))
             return false;
         // Get the topmost Via header and its branch parameter
-        viaHeaders = requestToTest.getViaHeaders();
-        if (viaHeaders != null) {
+        topViaHeader = requestToTest.getTopmostVia();
+        if (topViaHeader != null) {
 
-            topViaHeader = (Via) viaHeaders.getFirst();
+//            topViaHeader = (Via) viaHeaders.getFirst();
             messageBranch = topViaHeader.getBranch();
             if (messageBranch != null) {
 
@@ -949,8 +948,7 @@ public abstract class SIPTransaction extends MessageChannel implements
                 // this message,
                 if (getBranch().equalsIgnoreCase(messageBranch)
                         && topViaHeader.getSentBy().equals(
-                                ((Via) getOriginalRequest().getViaHeaders()
-                                        .getFirst()).getSentBy())) {
+                                getOriginalRequest().getTopmostVia().getSentBy())) {
                     transactionMatches = true;
                     if (sipStack.isLoggingEnabled())
                         sipStack.getStackLogger().logDebug("returning  true");
@@ -975,8 +973,7 @@ public abstract class SIPTransaction extends MessageChannel implements
                                 requestToTest.getCallId().getCallId())
                         && getOriginalRequest().getCSeq().getSeqNumber() == requestToTest
                                 .getCSeq().getSeqNumber()
-                        && topViaHeader.equals(getOriginalRequest()
-                                .getViaHeaders().getFirst())) {
+                        && topViaHeader.equals(getOriginalRequest().getTopmostVia())) {
 
                     transactionMatches = true;
                 }

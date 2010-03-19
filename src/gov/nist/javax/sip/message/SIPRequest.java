@@ -1231,4 +1231,9 @@ public class SIPRequest extends SIPMessage implements javax.sip.message.Request,
     public Object getInviteTransaction() {
         return inviteTransaction;
     }
+    
+    @Override
+    public void cleanUp() {
+    	super.cleanUp();
+    }
 }

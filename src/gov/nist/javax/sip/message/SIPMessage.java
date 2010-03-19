@@ -138,7 +138,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     /**
      * unparsed headers
      */
-    private LinkedList<String> unrecognizedHeaders;
+    protected LinkedList<String> unrecognizedHeaders;
 
     /**
      * List of parsed headers (in the order they were added)
@@ -171,7 +171,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     protected Object messageContentObject;
 
     // Table of headers indexed by name.
-    private Map<String, SIPHeader> nameTable;
+    protected Map<String, SIPHeader> headerTable;
 
     /**
      * The application data pointer. This is un-interpreted by the stack. This is provided as a
@@ -179,7 +179,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     protected Object applicationData;
 
-    private String forkId;
+    protected String forkId;
 
     /**
      * Return true if the header belongs only in a Request.
@@ -476,7 +476,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public Object clone() {
         SIPMessage retval = (SIPMessage) super.clone();
-        retval.nameTable = new ConcurrentHashMap<String, SIPHeader>();
+        retval.headerTable = new ConcurrentHashMap<String, SIPHeader>();
         retval.fromHeader = null;
         retval.toHeader = null;
         retval.cSeqHeader = null;
@@ -495,7 +495,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             retval.messageContentBytes = (byte[]) this.messageContentBytes.clone();
         if (this.messageContentObject != null)
             retval.messageContentObject = makeClone(messageContentObject);
-        retval.setUnrecognizedHeadersList(this.getUnrecognizedHeadersList());
+        retval.unrecognizedHeaders = this.unrecognizedHeaders;
         return retval;
     }
 
@@ -545,8 +545,9 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * headers are derived from SIPHeader class.
      */
     public SIPMessage() {
+    	this.unrecognizedHeaders = new LinkedList<String>();
         this.headers = new ConcurrentLinkedQueue<SIPHeader>();
-        nameTable = new ConcurrentHashMap<String, SIPHeader>();
+        headerTable = new ConcurrentHashMap<String, SIPHeader>();
         try {
             this.attachHeader(new ContentLength(0), false);
         } catch (Exception ex) {
@@ -658,8 +659,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
 
         String headerNameLowerCase = SIPHeaderNamesCache.toLowerCase(h.getName());
         if (replaceFlag) {
-            nameTable.remove(headerNameLowerCase);
-        } else if (nameTable.containsKey(headerNameLowerCase) && !(h instanceof SIPHeaderList)) {
+            headerTable.remove(headerNameLowerCase);
+        } else if (headerTable.containsKey(headerNameLowerCase) && !(h instanceof SIPHeaderList)) {
             if (h instanceof ContentLength) {
                 try {
                     ContentLength cl = (ContentLength) h;
@@ -684,19 +685,19 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             }
         }
 
-        if (!nameTable.containsKey(headerNameLowerCase)) {
-            nameTable.put(headerNameLowerCase, h);
+        if (!headerTable.containsKey(headerNameLowerCase)) {
+            headerTable.put(headerNameLowerCase, h);
             headers.add(h);
         } else {
             if (h instanceof SIPHeaderList) {
-                SIPHeaderList< ? > hdrlist = (SIPHeaderList< ? >) nameTable
+                SIPHeaderList< ? > hdrlist = (SIPHeaderList< ? >) headerTable
                         .get(headerNameLowerCase);
                 if (hdrlist != null)
                     hdrlist.concatenate((SIPHeaderList) h, top);
                 else
-                    nameTable.put(headerNameLowerCase, h);
+                    headerTable.put(headerNameLowerCase, h);
             } else {
-                nameTable.put(headerNameLowerCase, h);
+                headerTable.put(headerNameLowerCase, h);
             }
         }
 
@@ -727,7 +728,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public void removeHeader(String headerName, boolean top) {
 
         String headerNameLowerCase = SIPHeaderNamesCache.toLowerCase(headerName);
-        SIPHeader toRemove = (SIPHeader) nameTable.get(headerNameLowerCase);
+        SIPHeader toRemove = (SIPHeader) headerTable.get(headerNameLowerCase);
         // nothing to do then we are done.
         if (toRemove == null)
             return;
@@ -748,10 +749,10 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
 
                 // JvB: also remove it from the nameTable! Else NPE in
                 // DefaultRouter
-                nameTable.remove(headerNameLowerCase);
+                headerTable.remove(headerNameLowerCase);
             }
         } else {
-            this.nameTable.remove(headerNameLowerCase);
+            this.headerTable.remove(headerNameLowerCase);
             if (toRemove instanceof From) {
                 this.fromHeader = null;
             } else if (toRemove instanceof To) {
@@ -785,7 +786,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         if (headerName == null)
             throw new NullPointerException("null arg");
         String headerNameLowerCase = SIPHeaderNamesCache.toLowerCase(headerName);
-        SIPHeader removed = (SIPHeader) nameTable.remove(headerNameLowerCase);
+        SIPHeader removed = (SIPHeader) headerTable.remove(headerNameLowerCase);
         // nothing to do then we are done.
         if (removed == null)
             return;
@@ -831,10 +832,10 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      *         response have the same computed transaction identifier).
      */
     public String getTransactionId() {
-        Via topVia = null;
-        if (!this.getViaHeaders().isEmpty()) {
-            topVia = (Via) this.getViaHeaders().getFirst();
-        }
+        Via topVia = getTopmostVia();
+//        if (!this.getViaHeaders().isEmpty()) {
+//            topVia = (Via) this.getViaHeaders().getFirst();
+//        }
         // Have specified a branch Identifier so we can use it to identify
         // the transaction. BranchId is not case sensitive.
         // Branch Id prefix is not case sensitive.
@@ -929,7 +930,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     private Header getHeaderLowerCase(String lowerCaseHeaderName) {
         if (lowerCaseHeaderName == null)
             throw new NullPointerException("bad name");
-        SIPHeader sipHeader = (SIPHeader) nameTable.get(lowerCaseHeaderName);
+        SIPHeader sipHeader = (SIPHeader) headerTable.get(lowerCaseHeaderName);
         if (sipHeader instanceof SIPHeaderList)
             return (Header) ((SIPHeaderList) sipHeader).getFirst();
         else
@@ -1399,7 +1400,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public ListIterator<SIPHeader> getHeaders(String headerName) {
         if (headerName == null)
             throw new NullPointerException("null headerName");
-        SIPHeader sipHeader = (SIPHeader) nameTable.get(SIPHeaderNamesCache
+        SIPHeader sipHeader = (SIPHeader) headerTable.get(SIPHeaderNamesCache
                 .toLowerCase(headerName));
         // empty iterator
         if (sipHeader == null)
@@ -1420,15 +1421,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public String getHeaderAsFormattedString(String name) {
         String lowerCaseName = name.toLowerCase();
-        if (this.nameTable.containsKey(lowerCaseName)) {
-            return this.nameTable.get(lowerCaseName).toString();
+        if (this.headerTable.containsKey(lowerCaseName)) {
+            return this.headerTable.get(lowerCaseName).toString();
         } else {
             return this.getHeader(name).toString();
         }
     }
 
     protected SIPHeader getSIPHeaderListLowerCase(String lowerCaseHeaderName) {
-        return nameTable.get(lowerCaseHeaderName);
+        return headerTable.get(lowerCaseHeaderName);
     }
 
     /**
@@ -1439,7 +1440,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     @SuppressWarnings("unchecked")
     private List<SIPHeader> getHeaderList(String headerName) {
-        SIPHeader sipHeader = (SIPHeader) nameTable.get(SIPHeaderNamesCache
+        SIPHeader sipHeader = (SIPHeader) headerTable.get(SIPHeaderNamesCache
                 .toLowerCase(headerName));
         if (sipHeader == null)
             return null;
@@ -1459,7 +1460,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @return true if the header is present in the message
      */
     public boolean hasHeader(String headerName) {
-        return nameTable.containsKey(SIPHeaderNamesCache.toLowerCase(headerName));
+        return headerTable.containsKey(SIPHeaderNamesCache.toLowerCase(headerName));
     }
 
     /**
@@ -1613,15 +1614,15 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             return false;
         }
         SIPMessage otherMessage = (SIPMessage) other;
-        Collection<SIPHeader> values = this.nameTable.values();
+        Collection<SIPHeader> values = this.headerTable.values();
         Iterator<SIPHeader> it = values.iterator();
-        if (nameTable.size() != otherMessage.nameTable.size()) {
+        if (headerTable.size() != otherMessage.headerTable.size()) {
             return false;
         }
 
         while (it.hasNext()) {
             SIPHeader mine = (SIPHeader) it.next();
-            SIPHeader his = (SIPHeader) (otherMessage.nameTable.get(SIPHeaderNamesCache
+            SIPHeader his = (SIPHeader) (otherMessage.headerTable.get(SIPHeaderNamesCache
                     .toLowerCase(mine.getName())));
             if (his == null) {
                 return false;
@@ -1918,32 +1919,32 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public abstract String toString();
     
     public void cleanUp() {
-    	applicationData = null;
-    	callIdHeader = null;
-    	contentEncodingCharset = null;
-    	contentLengthHeader = null;
-    	cSeqHeader = null;
-    	forkId = null;
-    	fromHeader = null;
-    	if(headers != null) {
-    		headers.clear();
-    		headers = null;
-    	}
-    	matchExpression = null;
-    	maxForwardsHeader = null;
-    	messageContent = null;
-    	messageContentBytes = null;
-    	messageContentObject = null;
-    	if(nameTable != null) {
-    		nameTable.clear();
-    		nameTable = null;
-    	}
-    	stringRepresentation = null;
-    	toHeader = null;
-    	if(unrecognizedHeaders != null) {
-    		unrecognizedHeaders.clear();
-    		unrecognizedHeaders = null;
-    	}
+//    	applicationData = null;
+//    	callIdHeader = null;
+//    	contentEncodingCharset = null;
+//    	contentLengthHeader = null;
+//    	cSeqHeader = null;
+//    	forkId = null;
+//    	fromHeader = null;
+//    	if(headers != null) {
+//    		headers.clear();
+//    		headers = null;
+//    	}
+//    	matchExpression = null;
+//    	maxForwardsHeader = null;
+//    	messageContent = null;
+//    	messageContentBytes = null;
+//    	messageContentObject = null;
+//    	if(nameTable != null) {
+//    		nameTable.clear();
+//    		nameTable = null;
+//    	}
+//    	stringRepresentation = null;
+//    	toHeader = null;
+//    	if(unrecognizedHeaders != null) {
+//    		unrecognizedHeaders.clear();
+//    		unrecognizedHeaders = null;
+//    	}
     }
 
 	/**

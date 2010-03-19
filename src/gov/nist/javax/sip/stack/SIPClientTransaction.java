@@ -345,10 +345,10 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     public boolean isMessagePartOfTransaction(SIPMessage messageToTest) {
 
         // List of Via headers in the message to test
-        ViaList viaHeaders = messageToTest.getViaHeaders();
+        Via topMostViaHeader = messageToTest.getTopmostVia();
         // Flags whether the select message is part of this transaction
         boolean transactionMatches;
-        String messageBranch = ((Via) viaHeaders.getFirst()).getBranch();
+        String messageBranch = topMostViaHeader.getBranch();
         boolean rfc3261Compliant = getBranch() != null
                 && messageBranch != null
                 && getBranch().toLowerCase().startsWith(
@@ -360,17 +360,17 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         if (TransactionState.COMPLETED == this.getState()) {
             if (rfc3261Compliant) {
                 transactionMatches = getBranch().equalsIgnoreCase(
-                        ((Via) viaHeaders.getFirst()).getBranch())
+                		topMostViaHeader.getBranch())
                         && getMethod().equals(messageToTest.getCSeq().getMethod());
             } else {
                 transactionMatches = getBranch().equals(messageToTest.getTransactionId());
             }
         } else if (!isTerminated()) {
             if (rfc3261Compliant) {
-                if (viaHeaders != null) {
+                if (topMostViaHeader != null) {
                     // If the branch parameter is the
                     // same as this transaction and the method is the same,
-                    if (getBranch().equalsIgnoreCase(((Via) viaHeaders.getFirst()).getBranch())) {
+                    if (getBranch().equalsIgnoreCase(topMostViaHeader.getBranch())) {
                         transactionMatches = getOriginalRequest().getCSeq().getMethod().equals(
                                 messageToTest.getCSeq().getMethod());
 
@@ -407,7 +407,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
             transactionRequest = (SIPRequest) messageToSend;
 
             // Set the branch id for the top via header.
-            Via topVia = (Via) transactionRequest.getViaHeaders().getFirst();
+            Via topVia = (Via) transactionRequest.getTopmostVia();
             // Tack on a branch identifier to match responses.
             try {
                 topVia.setBranch(getBranch());
@@ -1587,7 +1587,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     	// we release the ref to the dialog asap and just keep the id of the dialog to look it up in the dialog table
     	if(defaultDialog != null) {
 	    	String dialogId = defaultDialog.getDialogId();
-	    	// we nullify the ref only if it can be find in the dialog table (not always true, check challenge unittest of the testsuite)
+	    	// we nullify the ref only if it can be find in the dialog table (not always true if the dialog is in null state, check challenge unittest of the testsuite)
 	    	if(dialogId != null && sipStack.getDialog(dialogId) != null) {
 	    		defaultDialogId = dialogId;
 	    		defaultDialog = null;	    		
@@ -1596,6 +1596,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     	if(originalRequest != null) {
 	    	originalRequest.setTransaction(null);
 	    	originalRequest.setInviteTransaction(null);
+	    	originalRequest.cleanUp();
     	}
     	// for subscribe Tx we need to keep the last response longer to be able to create notify from dialog
     	if(!getMethod().equalsIgnoreCase(Request.SUBSCRIBE)) {

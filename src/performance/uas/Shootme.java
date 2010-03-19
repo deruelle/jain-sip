@@ -1,6 +1,7 @@
 package performance.uas;
 
 import gov.nist.javax.sip.message.RequestExt;
+import gov.nist.javax.sip.parser.selective.SelectiveParserFactory;
 
 import java.util.Properties;
 import java.util.Timer;
@@ -170,7 +171,6 @@ public class Shootme implements SipListener {
             	serverTransactionId = ((SipProvider)requestEvent.getSource()).getNewServerTransaction(request);
             }
             serverTransactionId.sendResponse(response);
-
         } catch (Exception ex) {
             ex.printStackTrace();
             //System.exit(0);
@@ -207,7 +207,7 @@ public class Shootme implements SipListener {
         properties.setProperty("gov.nist.javax.sip.RECEIVE_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.SEND_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.CONGESTION_CONTROL_ENABLED", "false");
-//        properties.setProperty("gov.nist.javax.sip.MESSAGE_PARSER_FACTORY", LazyMessageParserFactory.class.getName());
+//        properties.setProperty("gov.nist.javax.sip.MESSAGE_PARSER_FACTORY", SelectiveParserFactory.class.getName());
         try {
             // Create SipStack object
             sipStack = sipFactory.createSipStack(properties);
@@ -251,7 +251,8 @@ public class Shootme implements SipListener {
 
     public void processTransactionTerminated(
             TransactionTerminatedEvent transactionTerminatedEvent) {
-
+    	Request request = transactionTerminatedEvent.getServerTransaction().getRequest();
+//    	System.out.println(request);
     }
 
     public void processDialogTerminated(

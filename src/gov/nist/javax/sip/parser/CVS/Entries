@@ -28,7 +28,7 @@
 /Lexer.java/1.21/Tue Jan 12 00:05:25 2010//
 /MaxForwardsParser.java/1.7/Fri Jul 17 18:58:00 2009//
 /MessageParser.java/1.2/Mon Mar 15 17:08:55 2010//
-/MessageParserFactory.java/1.2/Mon Mar 15 17:08:56 2010//
+/MessageParserFactory.java/1.2/Fri Mar 19 17:09:51 2010//
 /MimeVersionParser.java/1.8/Fri Jul 17 18:58:01 2009//
 /MinExpiresParser.java/1.8/Fri Jul 17 18:58:01 2009//
 /OrganizationParser.java/1.8/Fri Jul 17 18:58:01 2009//
@@ -37,7 +37,7 @@
 /Parser.java/1.10/Fri Jul 17 18:58:01 2009//
 /ParserFactory.java/1.17/Tue Jan 12 00:05:25 2010//
 /Pipeline.java/1.13/Mon Mar  1 11:44:45 2010//
-/PipelinedMsgParser.java/1.27/Mon Mar  1 11:44:45 2010//
+/PipelinedMsgParser.java/1.28/Mon Mar  1 11:44:45 2010//
 /PriorityParser.java/1.8/Fri Jul 17 18:58:02 2009//
 /ProxyAuthenticateParser.java/1.7/Fri Jul 17 18:58:02 2009//
 /ProxyAuthorizationParser.java/1.7/Fri Jul 17 18:58:02 2009//

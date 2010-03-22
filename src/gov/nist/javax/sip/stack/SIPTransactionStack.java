@@ -99,7 +99,7 @@ import javax.sip.message.Response;
  *
  * @author M. Ranganathan <br/>
  *
- * @version 1.2 $Revision: 1.151 $ $Date: 2010/03/15 19:35:01 $
+ * @version 1.2 $Revision: 1.152 $ $Date: 2010/03/19 17:29:45 $
  */
 public abstract class SIPTransactionStack implements
 		SIPTransactionEventListener, SIPDialogEventListener {
@@ -2813,4 +2813,32 @@ public abstract class SIPTransactionStack implements
     return reinviteExecutor;
   }
 	
+	/**
+	 * @param messageParserFactory the messageParserFactory to set
+	 */
+	public void setMessageParserFactory(MessageParserFactory messageParserFactory) {
+		this.messageParserFactory = messageParserFactory;
+	}
+
+	/**
+	 * @return the messageParserFactory
+	 */
+	public MessageParserFactory getMessageParserFactory() {
+		return messageParserFactory;
+	}
+
+	/**
+	 * @param messageProcessorFactory the messageProcessorFactory to set
+	 */
+	public void setMessageProcessorFactory(MessageProcessorFactory messageProcessorFactory) {
+		this.messageProcessorFactory = messageProcessorFactory;
+	}
+
+	/**
+	 * @return the messageProcessorFactory
+	 */
+	public MessageProcessorFactory getMessageProcessorFactory() {
+		return messageProcessorFactory;
+	}
+
 }

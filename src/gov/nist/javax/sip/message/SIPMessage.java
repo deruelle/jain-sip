@@ -907,16 +907,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      */
     public Iterator<SIPHeader> getHeaders() {
         return headers.iterator();
-    }
-    
-    /**
-     * Return an iterator for the list of headers in this message.
-     * 
-     * @return an Iterator for the headers of this message.
-     */
-    public Collection<SIPHeader> getHeadersAsCollection() {
-        return headers;
-    }
+    }        
 
     /**
      * Get the first header of the given name.
@@ -927,7 +918,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         return getHeaderLowerCase(SIPHeaderNamesCache.toLowerCase(headerName));
     }
 
-    private Header getHeaderLowerCase(String lowerCaseHeaderName) {
+    protected Header getHeaderLowerCase(String lowerCaseHeaderName) {
         if (lowerCaseHeaderName == null)
             throw new NullPointerException("bad name");
         SIPHeader sipHeader = (SIPHeader) headerTable.get(lowerCaseHeaderName);
@@ -1428,7 +1419,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
         }
     }
 
-    protected SIPHeader getSIPHeaderListLowerCase(String lowerCaseHeaderName) {
+    public SIPHeader getSIPHeaderListLowerCase(String lowerCaseHeaderName) {
         return headerTable.get(lowerCaseHeaderName);
     }
 

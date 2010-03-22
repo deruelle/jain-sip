@@ -57,7 +57,7 @@ import java.text.ParseException;
  * accessed from the SIPMessage using the getContent and getContentBytes methods
  * provided by the SIPMessage class.
  *
- * @version 1.2 $Revision: 1.27 $ $Date: 2010/03/15 17:08:57 $
+ * @version 1.2 $Revision: 1.28 $ $Date: 2010/03/19 17:29:46 $
  *
  * @author M. Ranganathan
  *
@@ -285,7 +285,7 @@ public final class PipelinedMsgParser implements Runnable {
                 // Stop the timer that will kill the read.
                 this.rawInputStream.stopTimer();
                 inputBuffer.append(line2);
-                MessageParser smp = sipStack.messageParserFactory.createMessageParser(sipStack);
+                MessageParser smp = sipStack.getMessageParserFactory().createMessageParser(sipStack);
                 smp.setParseExceptionListener(sipMessageListener);
                 smp.setReadBody(false);
                 SIPMessage sipMessage = null;
@@ -385,6 +385,14 @@ public final class PipelinedMsgParser implements Runnable {
 }
 /*
  * $Log: PipelinedMsgParser.java,v $
+ * Revision 1.28  2010/03/19 17:29:46  deruelle_jean
+ * Adding getters and setters for the new factories
+ *
+ * Issue number:
+ * Obtained from:
+ * Submitted by:  Jean Deruelle
+ * Reviewed by:
+ *
  * Revision 1.27  2010/03/15 17:08:57  deruelle_jean
  * Adding javadoc
  *

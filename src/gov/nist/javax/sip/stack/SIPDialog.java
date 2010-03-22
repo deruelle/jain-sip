@@ -44,9 +44,11 @@ import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.ContactList;
 import gov.nist.javax.sip.header.ContentLength;
 import gov.nist.javax.sip.header.ContentType;
+import gov.nist.javax.sip.header.ErrorInfo;
 import gov.nist.javax.sip.header.From;
 import gov.nist.javax.sip.header.HeaderFactoryImpl;
 import gov.nist.javax.sip.header.MaxForwards;
+import gov.nist.javax.sip.header.ProxyAuthenticate;
 import gov.nist.javax.sip.header.RAck;
 import gov.nist.javax.sip.header.RSeq;
 import gov.nist.javax.sip.header.Reason;
@@ -55,13 +57,19 @@ import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.header.RecordRouteList;
 import gov.nist.javax.sip.header.Require;
 import gov.nist.javax.sip.header.RequireList;
+import gov.nist.javax.sip.header.RetryAfter;
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.RouteList;
+import gov.nist.javax.sip.header.SIPETag;
 import gov.nist.javax.sip.header.SIPHeader;
+import gov.nist.javax.sip.header.Server;
 import gov.nist.javax.sip.header.TimeStamp;
 import gov.nist.javax.sip.header.To;
+import gov.nist.javax.sip.header.Unsupported;
 import gov.nist.javax.sip.header.Via;
 import gov.nist.javax.sip.header.ViaList;
+import gov.nist.javax.sip.header.WWWAuthenticate;
+import gov.nist.javax.sip.header.Warning;
 import gov.nist.javax.sip.header.extensions.SessionExpires;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
 import gov.nist.javax.sip.message.SIPDuplicateHeaderException;
@@ -83,6 +91,7 @@ import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
@@ -119,6 +128,7 @@ import javax.sip.header.RouteHeader;
 import javax.sip.header.ServerHeader;
 import javax.sip.header.SupportedHeader;
 import javax.sip.header.TimeStampHeader;
+import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -169,7 +179,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
     // Last response (JvB: either sent or received).
 //    private SIPResponse lastResponse;
-    protected Collection<String> lastResponseHeaders;
+//    protected Collection<String> lastResponseHeaders;
     protected String lastResponseDialogId;
     protected Via lastResponseTopMostVia;
     protected Integer lastResponseStatusCode;
@@ -297,7 +307,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     protected int firstTransactionPort = 5060;   
     protected Contact contactHeader;
 	protected String contactHeaderStringified;
-
+	
     // //////////////////////////////////////////////////////
     // Inner classes
     // //////////////////////////////////////////////////////
@@ -646,10 +656,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 //        lastAckReceivedCSeqNumber = null;
         lastResponseDialogId = null;
 //        lastResponse = null;
-        if(lastResponseHeaders != null) { 
-        	lastResponseHeaders.clear();
-            lastResponseHeaders = null;
-        }
+//        if(lastResponseHeaders != null) { 
+//        	lastResponseHeaders.clear();
+//            lastResponseHeaders = null;
+//        }
         lastResponseMethod = null;
         lastResponseTopMostVia = null;
 //        lastTransactionMethod = null;
@@ -2244,40 +2254,43 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         newRequest.setHeader(cseq);
         newRequest.setHeader(from);
         newRequest.setHeader(to);
-        Iterator<String> headerIterator = lastResponseHeaders.iterator();
-        while (headerIterator.hasNext()) {
-            String nextHeaderString = (String) headerIterator.next();
-            SIPHeader nextHeader = null;
-            try {
-            	HeaderParser headerParser = ParserFactory.createParser(nextHeaderString.trim() + "\n");
-                nextHeader = headerParser.parse();
-            } catch (ParseException ex) {
-                throw new IllegalArgumentException("error reparsing the following header " + nextHeaderString, ex);
-            }
-
-//            // Some headers do not belong in a Request ....
-//            if (SIPMessage.isResponseHeader(nextHeader)
-//                || nextHeader instanceof ViaList
-//                || nextHeader instanceof CSeq
-//                || nextHeader instanceof ContentType
-//                || nextHeader instanceof ContentLength
-//                || nextHeader instanceof RecordRouteList
-//                || nextHeader instanceof RequireList
-//                || nextHeader instanceof ContactList    // JvB: added
-//                || nextHeader instanceof ContentLength
-//                || nextHeader instanceof ServerHeader
-//                || nextHeader instanceof ReasonHeader
-//                || nextHeader instanceof SessionExpires
-//                || nextHeader instanceof ReasonList) {
-//                continue;
-//            }           
-            try {
-                newRequest.attachHeader(nextHeader, false);
-            } catch (SIPDuplicateHeaderException e) {
-                //Should not happen!
-                sipStack.getStackLogger().logError("Unexpected exception occured while creating a subsequent request", e);
-            }
-        }
+        newRequest.setHeader(getCallId());
+        
+        // This is not needed, hurt performance, lazy parsing and the subsequent requests can be created without it
+//        Iterator<String> headerIterator = lastResponseHeaders.iterator();
+//        while (headerIterator.hasNext()) {
+//            String nextHeaderString = (String) headerIterator.next();
+//            SIPHeader nextHeader = null;
+//            try {
+//            	HeaderParser headerParser = ParserFactory.createParser(nextHeaderString.trim() + "\n");
+//                nextHeader = headerParser.parse();
+//            } catch (ParseException ex) {
+//                throw new IllegalArgumentException("error reparsing the following header " + nextHeaderString, ex);
+//            }
+//
+////            // Some headers do not belong in a Request ....
+////            if (SIPMessage.isResponseHeader(nextHeader)
+////                || nextHeader instanceof ViaList
+////                || nextHeader instanceof CSeq
+////                || nextHeader instanceof ContentType
+////                || nextHeader instanceof ContentLength
+////                || nextHeader instanceof RecordRouteList
+////                || nextHeader instanceof RequireList
+////                || nextHeader instanceof ContactList    // JvB: added
+////                || nextHeader instanceof ContentLength
+////                || nextHeader instanceof ServerHeader
+////                || nextHeader instanceof ReasonHeader
+////                || nextHeader instanceof SessionExpires
+////                || nextHeader instanceof ReasonList) {
+////                continue;
+////            }           
+//            try {
+//                newRequest.attachHeader(nextHeader, false);
+//            } catch (SIPDuplicateHeaderException e) {
+//                //Should not happen!
+//                sipStack.getStackLogger().logError("Unexpected exception occured while creating a subsequent request", e);
+//            }
+//        }
 
         try {
           // JvB: all requests need a Max-Forwards
@@ -2891,33 +2904,36 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         if(transaction != null) {
         	this.lastResponseDialogId = sipResponse.getDialogId(transaction.isServerTransaction());
         }
-        if(lastResponseHeaders != null) {
-        	lastResponseHeaders.clear();        
-        }
-        this.lastResponseHeaders = new CopyOnWriteArrayList<String>();
-        Iterator<SIPHeader> headerIterator = sipResponse.getHeaders();
-        while (headerIterator.hasNext()) {
-            SIPHeader nextHeader = headerIterator.next();
-            // Some headers do not belong in a Request ....
-            if (SIPMessage.isResponseHeader(nextHeader)
-                || nextHeader instanceof ViaList
-                || nextHeader instanceof CSeq
-                || nextHeader instanceof ContentType
-                || nextHeader instanceof ContentLength
-                || nextHeader instanceof RecordRouteList
-                || nextHeader instanceof RequireList
-                || nextHeader instanceof ContactList    // JvB: added
-                || nextHeader instanceof ContentLength
-                || nextHeader instanceof ServerHeader
-                || nextHeader instanceof ReasonHeader
-                || nextHeader instanceof SessionExpires
-                || nextHeader instanceof ReasonList
-                || nextHeader instanceof From
-                || nextHeader instanceof To) {
-                continue;
-            }            
-            lastResponseHeaders.add(nextHeader.toString());
-        }
+        // This is not needed, hurt performance, lazy parsing and the subsequent requests can be created without it
+//        if(lastResponseHeaders != null) {
+//        	lastResponseHeaders.clear();        
+//        }
+//        this.lastResponseHeaders = new CopyOnWriteArrayList<String>();
+//        
+//        Iterator<SIPHeader> headerIterator = sipResponse.getHeaders();
+//        while (headerIterator.hasNext()) {
+//            SIPHeader nextHeader = headerIterator.next();
+//            // Some headers do not belong in a Request ....
+//            if (SIPMessage.isResponseHeader(nextHeader)
+//                || nextHeader instanceof ViaList
+//                || nextHeader instanceof CSeq
+//                || nextHeader instanceof ContentType
+//                || nextHeader instanceof ContentLength
+//                || nextHeader instanceof RecordRouteList
+//                || nextHeader instanceof RequireList
+//                || nextHeader instanceof ContactList    // JvB: added
+//                || nextHeader instanceof ContentLength
+//                || nextHeader instanceof ServerHeader
+//                || nextHeader instanceof ReasonHeader
+//                || nextHeader instanceof SessionExpires
+//                || nextHeader instanceof ReasonList
+//                || nextHeader instanceof From
+//                || nextHeader instanceof To) {
+//                continue;
+//            }            
+//            lastResponseHeaders.add(nextHeader.toString());
+//        }               
+        
         this.setAssigned();
         // Adjust state of the Dialog state machine.
         if (sipStack.isLoggingEnabled()) {

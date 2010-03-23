@@ -1112,6 +1112,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 		super.dialogTimeoutFactor = Integer.parseInt(configurationProperties.getProperty("gov.nist.javax.sip.DIALOG_TIMEOUT_FACTOR","64"));
 		
 		String messageParserFactoryName = configurationProperties.getProperty("gov.nist.javax.sip.MESSAGE_PARSER_FACTORY",StringMsgParserFactory.class.getName());
+//		String messageParserFactoryName = configurationProperties.getProperty("gov.nist.javax.sip.MESSAGE_PARSER_FACTORY",SelectiveParserFactory.class.getName());
 		try {
 			super.messageParserFactory = (MessageParserFactory) Class.forName(messageParserFactoryName).newInstance();
 		} catch (Exception e) {

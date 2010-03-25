@@ -149,7 +149,7 @@ import javax.sip.message.Response;
  * that has a To tag). The SIP Protocol stores enough state in the message structure to extract a
  * dialog identifier that can be used to retrieve this structure from the SipStack.
  * 
- * @version 1.2 $Revision: 1.168 $ $Date: 2010/03/08 14:28:20 $
+ * @version 1.2 $Revision: 1.170 $ $Date: 2010/03/25 06:06:30 $
  * 
  * @author M. Ranganathan
  * 
@@ -308,6 +308,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     protected Contact contactHeader;
 	protected String contactHeaderStringified;
 	
+	private boolean pendingRouteUpdateOn202Response;
     // //////////////////////////////////////////////////////
     // Inner classes
     // //////////////////////////////////////////////////////
@@ -926,7 +927,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                                 "NON LR route in Route set detected for dialog : " + this);
                         	sipStack.getStackLogger().logStackTrace();
                     	}	
-                    }
+                    } else {
+                    	sipStack.getStackLogger().logDebug("route = " + sipUri);
+                    } 
                 }
             }
         }
@@ -978,15 +981,16 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                         this.setRemoteTarget((ContactHeader) contactList.getFirst());
                     }
                 }
-                return;
+                if (! this.pendingRouteUpdateOn202Response ) return;
             }
 
             // Update route list on response if I am a client dialog.
-            if (!isServer()) {
+            if (!isServer() || this.pendingRouteUpdateOn202Response) {
 
                 // only update the route set if the dialog is not in the confirmed state.
-                if (this.getState() != DialogState.CONFIRMED
-                        && this.getState() != DialogState.TERMINATED) {
+                if ((this.getState() != DialogState.CONFIRMED
+                        && this.getState() != DialogState.TERMINATED) || 
+                        this.pendingRouteUpdateOn202Response ) {
                     RecordRouteList rrlist = sipResponse.getRecordRouteHeaders();
                     // Add the route set from the incoming response in reverse
                     // order for record route headers.
@@ -3003,16 +3007,38 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                     // state. To tag is MANDATORY for the response.
 
                     // Only do this if method equals initial request!
-
+                	sipStack.getStackLogger().logDebug("pendingRouteUpdateOn202Response : " + this.pendingRouteUpdateOn202Response);
                     if (lastResponseMethod.equals(getMethod())
                             && (sipResponse.getToTag() != null || sipStack.rfc2543Supported)
-                            && this.getState() != DialogState.CONFIRMED) {
-                        setRemoteTag(sipResponse.getToTag());
-                        this.setDialogId(sipResponse.getDialogId(false));
-                        sipStack.putDialog(this);
-                        this.addRoute(sipResponse);
-
-                        setState(SIPDialog.CONFIRMED_STATE);
+                            && (this.getState() != DialogState.CONFIRMED || 
+                            		(this.getState() == DialogState.CONFIRMED 
+                            		&& lastResponseMethod.equals(Request.SUBSCRIBE)
+                            	    && this.pendingRouteUpdateOn202Response
+                            		&& sipResponse.getStatusCode() == Response.ACCEPTED)))  {
+                        if (this.getState() != DialogState.CONFIRMED) {
+							setRemoteTag(sipResponse.getToTag());
+							this.setDialogId(sipResponse.getDialogId(false));
+							sipStack.putDialog(this);
+							this.addRoute(sipResponse);
+							this.setState(CONFIRMED_STATE);
+						} 
+                        
+                        /*
+                         * Note: Subscribe NOTIFY processing. The route set is computed
+                         * only after we get the 202 response but the NOTIFY may come in before
+                         * we get the 202 response. So we need to update the route set after
+                         * we see the 202 despite the fact that the dialog is in the CONFIRMED
+                         * state. We do this only on the dialog forming SUBSCRIBE an not a 
+                         * resubscribe.
+                         */
+                        
+                        if ( lastResponseMethod.equals(Request.SUBSCRIBE)
+                            		&& sipResponse.getStatusCode() == Response.ACCEPTED 
+                            		&& this.pendingRouteUpdateOn202Response) {    
+                        			setRemoteTag(sipResponse.getToTag());
+                            		this.addRoute(sipResponse);
+                            		this.pendingRouteUpdateOn202Response = false;
+                        }
                     }
 
                     // Capture the OK response for later use in createAck
@@ -3707,6 +3733,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 	
 	public String getMergeId( ) {
 		return this.firstTransactionMergeId;
+	}
+
+	public void setPendingRouteUpdateOn202Response() {
+		this.pendingRouteUpdateOn202Response = true;
+		
 	}
 	
     

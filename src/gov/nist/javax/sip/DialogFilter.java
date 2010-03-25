@@ -52,6 +52,7 @@ import java.io.IOException;
 
 import javax.sip.ClientTransaction;
 import javax.sip.DialogState;
+import javax.sip.ObjectInUseException;
 import javax.sip.RequestEvent;
 import javax.sip.ServerTransaction;
 import javax.sip.SipException;
@@ -77,7 +78,7 @@ import javax.sip.message.Response;
  * implement a JAIN-SIP interface). This is part of the glue that ties together the NIST-SIP stack
  * and event model with the JAIN-SIP stack. This is strictly an implementation class.
  * 
- * @version 1.2 $Revision: 1.72 $ $Date: 2010/03/20 03:37:05 $
+ * @version 1.2 $Revision: 1.74 $ $Date: 2010/03/25 00:21:14 $
  * 
  * @author M. Ranganathan
  */
@@ -901,7 +902,14 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                 if (dialog.getRemoteSeqNumber() > sipRequest.getCSeq().getSeqNumber()
                         && sipProvider.isDialogErrorsAutomaticallyHandled() ) {
                     this.sendServerInternalErrorResponse(sipRequest, transaction);
-
+                } else {
+                	try {
+						transaction.terminate();
+					} catch (ObjectInUseException e) {
+						if ( sipStack.isLoggingEnabled() ) {
+							sipStack.getStackLogger().logError("Unexpected exception",e);
+						}
+					}
                 }
                 return;
             }
@@ -1038,6 +1046,9 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                     }
                     if (subscriptionDialog != null) {
                         transaction.setDialog(subscriptionDialog, dialogId);
+                        if ( subscriptionDialog.getState() != DialogState.CONFIRMED ) {
+                        	subscriptionDialog.setPendingRouteUpdateOn202Response();
+                        }
                         subscriptionDialog.setState(DialogState.CONFIRMED.getValue());
                         sipStack.putDialog(subscriptionDialog);
                         pendingSubscribeClientTx.setDialog(subscriptionDialog, dialogId);

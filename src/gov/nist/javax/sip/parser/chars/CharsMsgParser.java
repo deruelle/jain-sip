@@ -256,7 +256,7 @@ public class CharsMsgParser implements MessageParser {
         return retval;
     }
 
-    protected static SIPMessage processFirstLine(char[] firstLine, ParseExceptionListener parseExceptionListener, byte[] msgBuffer) throws ParseException {
+    protected SIPMessage processFirstLine(char[] firstLine, ParseExceptionListener parseExceptionListener, byte[] msgBuffer) throws ParseException {
         SIPMessage message;
         
         char[] retval = new char[firstLine.length + 1];
@@ -294,7 +294,7 @@ public class CharsMsgParser implements MessageParser {
         return message;
     }
 
-    protected static void processHeader(char[] header, SIPMessage message, ParseExceptionListener parseExceptionListener, byte[] msgBuffer) throws ParseException {
+    protected void processHeader(char[] header, SIPMessage message, ParseExceptionListener parseExceptionListener, byte[] msgBuffer) throws ParseException {
         if (header == null || header.length == 0)
             return;
 

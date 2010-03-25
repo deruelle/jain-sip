@@ -22,8 +22,8 @@
 package gov.nist.javax.sip.message.selective;
 
 import gov.nist.javax.sip.header.SIPHeader;
-import gov.nist.javax.sip.parser.HeaderParser;
-import gov.nist.javax.sip.parser.ParserFactory;
+import gov.nist.javax.sip.parser.chars.HeaderParser;
+import gov.nist.javax.sip.parser.chars.ParserFactory;
 import gov.nist.javax.sip.parser.selective.SelectiveMessage;
 
 import java.text.ParseException;
@@ -48,7 +48,7 @@ public class SelectiveMessageDelegate implements SelectiveMessage {
 		} else {
 			headersNotParsed.put(headerName.toLowerCase(), header + "\n");
 		}
-	}
+	}	
 		
 	public Iterator<String> getHeaderValuesNotParsed() {
 		return headersNotParsed.values().iterator();
@@ -71,7 +71,7 @@ public class SelectiveMessageDelegate implements SelectiveMessage {
 		if(header != null) {
 			HeaderParser headerParser = null;
 	        try {
-	            headerParser = ParserFactory.createParser(header);
+	            headerParser = ParserFactory.createParser(header.toCharArray());
 	            return headerParser.parse();
 	        } catch (ParseException ex) {
 	            throw new IllegalArgumentException("Following header couldn't be parsed " + header + " for header name " + headerName, ex);

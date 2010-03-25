@@ -1167,13 +1167,12 @@ public abstract class SIPTransactionStack implements
      * @return -- the pending transaction or null if no such transaction exists.
      */
 	public SIPServerTransaction findPendingTransaction(
-			SIPRequest requestReceived) {
+			String transactionId) {
         if (this.stackLogger.isLoggingEnabled()) {
             this.stackLogger.logDebug("looking for pending tx for :"
-                    + requestReceived.getTransactionId());
+                    + transactionId);
         }
-		return (SIPServerTransaction) pendingTransactions.get(requestReceived
-				.getTransactionId());
+		return (SIPServerTransaction) pendingTransactions.get(transactionId);
 
     }
 
@@ -1298,18 +1297,15 @@ public abstract class SIPTransactionStack implements
      */
 	public ServerRequestInterface newSIPServerRequest(
 			SIPRequest requestReceived, MessageChannel requestMessageChannel) {
-        // Iterator through all server transactions
-        Iterator<SIPServerTransaction> transactionIterator;
         // Next transaction in the set
         SIPServerTransaction nextTransaction;
-        // Transaction to handle this request
-        SIPServerTransaction currentTransaction;
-
-        String key = requestReceived.getTransactionId();
+        
+        final String key = requestReceived.getTransactionId();
 
         requestReceived.setMessageChannel(requestMessageChannel);
 
-		currentTransaction = (SIPServerTransaction) serverTransactionTable
+        // Transaction to handle this request
+        SIPServerTransaction currentTransaction = (SIPServerTransaction) serverTransactionTable
 				.get(key);
 
         // Got to do this for bacasswards compatibility.
@@ -1317,11 +1313,11 @@ public abstract class SIPTransactionStack implements
 				|| !currentTransaction
 						.isMessagePartOfTransaction(requestReceived)) {
 
-            // Loop through all server transactions
-            transactionIterator = serverTransactionTable.values().iterator();
+            // Loop through all server transactions            
             currentTransaction = null;
 			if (!key.toLowerCase().startsWith(
 					SIPConstants.BRANCH_MAGIC_COOKIE_LOWER_CASE)) {
+		        Iterator<SIPServerTransaction> transactionIterator = serverTransactionTable.values().iterator();
 				while (transactionIterator.hasNext()
 						&& currentTransaction == null) {
 
@@ -1340,7 +1336,7 @@ public abstract class SIPTransactionStack implements
 
             // If no transaction exists to handle this message
             if (currentTransaction == null) {
-                currentTransaction = findPendingTransaction(requestReceived);
+                currentTransaction = findPendingTransaction(key);
                 if (currentTransaction != null) {
                     // Associate the tx with the received request.
                     requestReceived.setTransaction(currentTransaction);

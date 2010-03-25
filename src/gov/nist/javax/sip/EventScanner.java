@@ -193,7 +193,7 @@ class EventScanner implements Runnable {
                                     "transaction already exists! " + tx);
                         return;
                     }
-                } else if (sipStack.findPendingTransaction(sipRequest) != null) {
+                } else if (sipStack.findPendingTransaction(sipRequest.getTransactionId()) != null) {
                     if (sipStack.isLoggingEnabled())
                         sipStack.getStackLogger().logDebug(
                                 "transaction already exists!!");

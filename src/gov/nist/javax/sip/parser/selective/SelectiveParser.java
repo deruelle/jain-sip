@@ -31,11 +31,13 @@ import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.message.selective.SelectiveSIPRequest;
 import gov.nist.javax.sip.message.selective.SelectiveSIPResponse;
 import gov.nist.javax.sip.parser.Lexer;
+import gov.nist.javax.sip.parser.ParseExceptionListener;
 import gov.nist.javax.sip.parser.RequestLineParser;
 import gov.nist.javax.sip.parser.StatusLineParser;
 import gov.nist.javax.sip.parser.StringMsgParser;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 
+import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
 import java.util.HashSet;
 import java.util.Properties;
@@ -107,12 +109,12 @@ public class SelectiveParser extends StringMsgParser {
 
 	
 	@Override
-	public SIPMessage parseSIPMessage(byte[] msgBuffer) throws ParseException {	
-		return super.parseSIPMessage(msgBuffer);
+	public SIPMessage parseSIPMessage(byte[] msgBuffer, boolean readBody, boolean strict, ParseExceptionListener parseExceptionListener) throws ParseException {	
+		return super.parseSIPMessage(msgBuffer, readBody, strict, parseExceptionListener);
 	}
 	
 	@Override
-	protected void processHeader(String header, SIPMessage message)
+	protected void processHeader(String header, SIPMessage message, ParseExceptionListener parseExceptionListener, byte[] msgBuffer)
 			throws ParseException {
 		String headerName = Lexer.getHeaderName(header);        
         if (headerName == null)
@@ -120,19 +122,19 @@ public class SelectiveParser extends StringMsgParser {
         
 		// logic to process headers only if they are present in the list of headers to parse from a given stack property
 		if(headersToParse.contains(headerName.toLowerCase())) {
-			super.processHeader(header, message);
+			super.processHeader(header, message, parseExceptionListener, msgBuffer);
 		} else {
 			((SelectiveMessage) message).addHeaderNotParsed(headerName, header);
 		}
 	}
 	
 	@Override
-	protected SIPMessage processFirstLine(String firstLine)
+	protected SIPMessage processFirstLine(String firstLine, ParseExceptionListener parseExceptionListener, byte[] msgBuffer)
 			throws ParseException {
-		return reprocessFirstLine(firstLine, null);		
+		return reprocessFirstLine(firstLine, null, parseExceptionListener, msgBuffer);		
 	}
 	
-	protected SIPMessage reprocessFirstLine(String firstLine, SIPMessage sipMessage) throws ParseException {
+	protected SIPMessage reprocessFirstLine(String firstLine, SIPMessage sipMessage, ParseExceptionListener parseExceptionListener, byte[] msgBuffer) throws ParseException {
 		SIPMessage message = sipMessage;
         if (!firstLine.startsWith(SIPConstants.SIP_VERSION_STRING)) {
         	if(message == null) {
@@ -143,10 +145,14 @@ public class SelectiveParser extends StringMsgParser {
                         .parse();
                 ((SIPRequest) message).setRequestLine(requestLine);
             } catch (ParseException ex) {
-                if (this.parseExceptionListener != null)
-                    this.parseExceptionListener.handleException(ex, message,
-                            RequestLine.class, firstLine, rawStringMessage);
-                else
+                if (parseExceptionListener != null)
+					try {
+						parseExceptionListener.handleException(ex, message,
+						        RequestLine.class, firstLine, new String(msgBuffer, "UTF-8"));
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
+				else
                     throw ex;
 
             }
@@ -158,9 +164,13 @@ public class SelectiveParser extends StringMsgParser {
                 StatusLine sl = new StatusLineParser(firstLine + "\n").parse();
                 ((SIPResponse) message).setStatusLine(sl);
             } catch (ParseException ex) {
-                if (this.parseExceptionListener != null) {
-                    this.parseExceptionListener.handleException(ex, message,
-                            StatusLine.class, firstLine, rawStringMessage);
+                if (parseExceptionListener != null) {
+                    try {
+						parseExceptionListener.handleException(ex, message,
+						        StatusLine.class, firstLine, new String(msgBuffer, "UTF-8"));
+					} catch (UnsupportedEncodingException e) {
+						e.printStackTrace();
+					}
                 } else
                     throw ex;
 
@@ -168,103 +178,4 @@ public class SelectiveParser extends StringMsgParser {
         }
         return message;
 	}
-
-	public void reparseSIPMessage(String msgString, SIPMessage sipMessage) throws ParseException {
-        if (msgString == null || msgString.length() == 0)
-            return ;
-
-        rawStringMessage = msgString;
-
-        int i = 0;
-
-        // Squeeze out any leading control character.
-        try {
-            while (msgString.charAt(i) < 0x20)
-                i++;
-        }
-        catch (ArrayIndexOutOfBoundsException e) {
-            // Array contains only control char, return null.
-            return;
-        } catch (StringIndexOutOfBoundsException ex) {
-            return;
-        }
-
-        // Iterate thru the request/status line and headers.
-        String currentLine = null;
-        String currentHeader = null;
-        boolean isFirstLine = true;
-        
-        do
-        {
-            int lineStart = i;
-
-            // Find the length of the line.
-            try {
-                char c = msgString.charAt(i);
-                while (c != '\r' && c != '\n')
-                    c = msgString.charAt(++i);
-            }
-            catch (ArrayIndexOutOfBoundsException e) {
-                // End of the message.
-                break;
-            } catch ( StringIndexOutOfBoundsException ex) {
-                break;
-            }
-
-            // Make it a String.
-            currentLine = msgString.substring(lineStart, i);
-            currentLine = trimEndOfLine(currentLine);
-
-            if (currentLine.length() == 0) {
-                // Last header line, process the previous buffered header.
-                if (currentHeader != null) {
-                    processHeader(currentHeader, sipMessage);
-                }
-            }
-            else {
-                if (isFirstLine) {
-                    reprocessFirstLine(currentLine, sipMessage);
-                } else {
-                    char firstChar = currentLine.charAt(0);
-                    if (firstChar == '\t' || firstChar == ' ') {
-                        if (currentHeader == null)
-                            throw new ParseException("Bad header continuation.", 0);
-
-                        // This is a continuation, append it to the previous line.
-                        currentHeader += currentLine.substring(1);
-                    }
-                    else {
-                        if (currentHeader != null) {
-                            processHeader(currentHeader, sipMessage);
-                        }
-                        currentHeader = currentLine;
-                    }
-                }
-            }
-
-            if (msgString.charAt(i) == '\r' && msgString.length() > i+1 && msgString.charAt(i+1) == '\n')
-                i++;
-
-            i++;
-
-            isFirstLine = false;
-        }
-        while (currentLine.length() > 0);
-
-        sipMessage.setSize(i);
-
-        // Check for content legth header
-        if (readBody && sipMessage.getContentLength() != null ) {
-            if ( sipMessage.getContentLength().getContentLength() != 0) {
-                String body = msgString.substring(i);
-                sipMessage.setMessageContent(body,this.strict,computeContentLengthFromMessage,sipMessage.getContentLength().getContentLength());
-             } else if (!computeContentLengthFromMessage && sipMessage.getContentLength().getContentLength() == 0 && !msgString.endsWith("\r\n\r\n") ){
-                 if ( strict ) {
-                     throw new ParseException("Extraneous characters at the end of the message ",i);
-                 }
-             } 
-
-        }
-    }
-
 }

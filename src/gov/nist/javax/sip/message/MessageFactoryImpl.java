@@ -697,7 +697,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
         }
 
         StringMsgParser smp = new StringMsgParser();
-        smp.setStrict(this.strict);
+//        smp.setStrict(this.strict);
 
         /*
          * This allows you to catch parse exceptions and create invalid messages
@@ -729,10 +729,11 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
 
         };
 
+        ParseExceptionListener exHandler = null;
         if (this.testing)
-            smp.setParseExceptionListener(parseExceptionListener);
+            exHandler = parseExceptionListener;
 
-        SIPMessage sipMessage = smp.parseSIPMessage(requestString);
+        SIPMessage sipMessage = smp.parseSIPMessage(requestString.getBytes(), true, this.strict, exHandler);
 
         if (!(sipMessage instanceof SIPRequest))
             throw new ParseException(requestString, 0);
@@ -755,7 +756,7 @@ public class MessageFactoryImpl implements MessageFactory, MessageFactoryExt {
 
         StringMsgParser smp = new StringMsgParser();
 
-        SIPMessage sipMessage = smp.parseSIPMessage(responseString);
+        SIPMessage sipMessage = smp.parseSIPMessage(responseString.getBytes(), true, false, null);
 
         if (!(sipMessage instanceof SIPResponse))
             throw new ParseException(responseString, 0);

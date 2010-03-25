@@ -178,7 +178,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
     // force the listener to see transaction
 
-    private int rseqNumber;
+    private int rseqNumber = -1;
 
     // private LinkedList pendingRequests;
 
@@ -531,9 +531,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         if (sipStack.maxListenerResponseTime != -1) {
             sipStack.getTimer().schedule(new ListenerExecutionMaxTimer(),
                     sipStack.maxListenerResponseTime * 1000);
-        }
-
-        this.rseqNumber = (int) (Math.random() * 1000);
+        }        
         // Only one outstanding request for a given server tx.
 
         if (sipStack.isLoggingEnabled()) {
@@ -1669,6 +1667,9 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         }
 
         try {
+        	if(rseqNumber < 0) {
+        		this.rseqNumber = (int) (Math.random() * 1000);
+        	}
             this.rseqNumber++;
             rseq.setSeqNumber(this.rseqNumber);
 

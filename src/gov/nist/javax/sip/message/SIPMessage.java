@@ -1290,7 +1290,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * 
      * @param content Message body as a string.
      */
-    public void setMessageContent(String content, boolean strict, boolean computeContentLength, int givenLength)
+    public void setMessageContent(byte[] content, boolean strict, boolean computeContentLength, int givenLength)
             throws ParseException {
         // Note that that this could be a double byte character
         // set - bug report by Masafumi Watanabe
@@ -1303,8 +1303,8 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
             }
         }
 
-        messageContent = content;
-        messageContentBytes = null;
+        messageContent = null;
+        messageContentBytes = content;
         messageContentObject = null;
     }
 

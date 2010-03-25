@@ -172,6 +172,9 @@ public class UDPMessageChannel extends MessageChannel implements
         super.messageProcessor = messageProcessor;
         this.sipStack = stack;
 
+        // Create a new string message parser to parse the list of messages.
+        myParser = sipStack.getMessageParserFactory().createMessageParser(sipStack);                
+
         Thread mythread = new Thread(this);
 
         this.myAddress = messageProcessor.getIpAddress().getHostAddress();
@@ -201,6 +204,9 @@ public class UDPMessageChannel extends MessageChannel implements
         super.messageProcessor = messageProcessor;
         this.sipStack = stack;
 
+        // Create a new string message parser to parse the list of messages.
+        myParser = sipStack.getMessageParserFactory().createMessageParser(sipStack);                
+        
         this.myAddress = messageProcessor.getIpAddress().getHostAddress();
         this.myPort = messageProcessor.getPort();
         Thread mythread = new Thread(this);
@@ -229,6 +235,9 @@ public class UDPMessageChannel extends MessageChannel implements
         this.myAddress = messageProcessor.getIpAddress().getHostAddress();
         this.myPort = messageProcessor.getPort();
         this.sipStack = sipStack;
+        // Create a new string message parser to parse the list of messages.
+        myParser = sipStack.getMessageParserFactory().createMessageParser(sipStack);                
+
         if (sipStack.isLoggingEnabled()) {
             this.sipStack.getStackLogger().logDebug("Creating message channel "
                     + targetAddr.getHostAddress() + "/" + port);
@@ -243,11 +252,6 @@ public class UDPMessageChannel extends MessageChannel implements
         ThreadAuditor.ThreadHandle threadHandle = null;
 
         while (true) {
-            // Create a new string message parser to parse the list of messages.
-            if (myParser == null) {
-                myParser = sipStack.getMessageParserFactory().createMessageParser(sipStack);
-                myParser.setParseExceptionListener(this);
-            }
             // messages that we write out to him.
             DatagramPacket packet = null;
 
@@ -334,10 +338,10 @@ public class UDPMessageChannel extends MessageChannel implements
         SIPMessage sipMessage = null;
         try {
             this.receptionTime = System.currentTimeMillis();
-            sipMessage = myParser.parseSIPMessage(msgBytes);
-            myParser = null;
+            sipMessage = myParser.parseSIPMessage(msgBytes, true, false, this);
+//            myParser = null;
         } catch (ParseException ex) {
-            myParser = null; // let go of the parser reference.
+//            myParser = null; // let go of the parser reference.
             if (sipStack.isLoggingEnabled()) {
                 this.sipStack.getStackLogger().logDebug("Rejecting message !  "
                         + new String(msgBytes));
@@ -482,7 +486,7 @@ public class UDPMessageChannel extends MessageChannel implements
                         + this.myPort, false, receptionTime);
 
             }
-            ServerRequestInterface sipServerRequest = sipStack
+            final ServerRequestInterface sipServerRequest = sipStack
                     .newSIPServerRequest(sipRequest, this);
             // Drop it if there is no request returned
             if (sipServerRequest == null) {

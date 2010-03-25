@@ -353,17 +353,19 @@ public abstract class SIPTransaction extends MessageChannel implements
         // Branch value of topmost Via header
         String newBranch;
 
+        final String newTransactionId = newOriginalRequest.getTransactionId();
         if (this.originalRequest != null
                 && (!this.originalRequest.getTransactionId().equals(
-                        newOriginalRequest.getTransactionId()))) {
+                        newTransactionId))) {
             sipStack.removeTransactionHash(this);
         }
         // This will be cleared later.
 
         this.originalRequest = newOriginalRequest;
         this.originalRequestCSeqNumber = newOriginalRequest.getCSeq().getSeqNumber();
-        this.originalRequestBranch = newOriginalRequest.getTopmostVia().getBranch();
-        this.originalRequestHasPort = newOriginalRequest.getTopmostVia().hasPort();
+        final Via topmostVia = newOriginalRequest.getTopmostVia();
+        this.originalRequestBranch = topmostVia.getBranch();
+        this.originalRequestHasPort = topmostVia.hasPort();
         // just cache the control information so the
         // original request can be released later.
         this.method = newOriginalRequest.getMethod();
@@ -375,12 +377,12 @@ public abstract class SIPTransaction extends MessageChannel implements
 //        this.callId = (CallID) newOriginalRequest.getCallId();
 //        this.cSeq = newOriginalRequest.getCSeq().getSeqNumber();
 //        this.event = (Event) newOriginalRequest.getHeader("Event");
-        this.transactionId = newOriginalRequest.getTransactionId();
+        this.transactionId = newTransactionId;
 
         originalRequest.setTransaction(this);
 
         // If the message has an explicit branch value set,
-        newBranch = newOriginalRequest.getTopmostVia().getBranch();
+        newBranch = topmostVia.getBranch();
         if (newBranch != null) {
             if (sipStack.isLoggingEnabled())
                 sipStack.getStackLogger().logDebug("Setting Branch id : " + newBranch);
@@ -393,7 +395,7 @@ public abstract class SIPTransaction extends MessageChannel implements
             if (sipStack.isLoggingEnabled())
                 sipStack.getStackLogger().logDebug("Branch id is null - compute TID!"
                         + newOriginalRequest.encode());
-            setBranch(newOriginalRequest.getTransactionId());
+            setBranch(newTransactionId);
         }
     }
 

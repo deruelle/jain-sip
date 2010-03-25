@@ -58,6 +58,7 @@ import javax.sip.TimeoutEvent;
 import javax.sip.TransactionState;
 import javax.sip.address.Hop;
 import javax.sip.header.ContactHeader;
+import javax.sip.header.ContentTypeHeader;
 import javax.sip.header.ExpiresHeader;
 import javax.sip.header.RSeqHeader;
 import javax.sip.message.Request;
@@ -165,7 +166,7 @@ import javax.sip.message.Response;
  *
  *
  *
- *
+ *sendResponse
  *
  * </pre>
  *
@@ -176,6 +177,8 @@ import javax.sip.message.Response;
 public class SIPServerTransaction extends SIPTransaction implements ServerRequestInterface,
         javax.sip.ServerTransaction, ServerTransactionExt {
 
+	public static final String CONTENT_TYPE_APPLICATION = "application";
+	public static final String CONTENT_SUBTYPE_SDP = "sdp";
     // force the listener to see transaction
 
     private int rseqNumber = -1;
@@ -574,16 +577,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
         // List of Via headers in the message to test
 //        ViaList viaHeaders;
-        // Topmost Via header in the list
-        Via topViaHeader;
-        // Branch code in the topmost Via header
-        String messageBranch;
+       
         // Flags whether the select message is part of this transaction
-        boolean transactionMatches;
-
-        transactionMatches = false;
-
-        String method = messageToTest.getCSeq().getMethod();
+        boolean transactionMatches = false;
+        final String method = messageToTest.getCSeq().getMethod();
         // Invite Server transactions linger in the terminated state in the
         // transaction
         // table and are matched to compensate for
@@ -591,11 +588,12 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         if ((method.equals(Request.INVITE) || !isTerminated())) {
 
             // Get the topmost Via header and its branch parameter
-            topViaHeader = messageToTest.getTopmostVia();
+        	final Via topViaHeader = messageToTest.getTopmostVia();
             if (topViaHeader != null) {
 
 //                topViaHeader = (Via) viaHeaders.getFirst();
-                messageBranch = topViaHeader.getBranch();
+            	 // Branch code in the topmost Via header
+                String messageBranch = topViaHeader.getBranch();
                 if (messageBranch != null) {
 
                     // If the branch parameter exists but
@@ -905,13 +903,9 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     public void sendMessage(SIPMessage messageToSend) throws IOException {
         try {
             // Message typecast as a response
-            SIPResponse transactionResponse;
+            final SIPResponse  transactionResponse = (SIPResponse) messageToSend;
             // Status code of the response being sent to the client
-            int statusCode;
-
-            // Get the status code from the response
-            transactionResponse = (SIPResponse) messageToSend;
-            statusCode = transactionResponse.getStatusCode();
+            final int statusCode = transactionResponse.getStatusCode();
 
             try {
                 // Provided we have set the banch id for this we set the BID for
@@ -1324,7 +1318,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         }
 
         // check for meaningful response.
-        if (!sipResponse.getCSeq().getMethod().equals(this.getMethod())) {
+        final String responseMethod = sipResponse.getCSeq().getMethod();
+        if (!responseMethod.equals(this.getMethod())) {
             throw new SipException(
                     "CSeq method does not match Request method of request that created the tx.");
         }
@@ -1334,7 +1329,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
          * period of time in the response MAY be shorter but MUST NOT be longer than specified in
          * the request.
          */
-        if (this.getMethod().equals(Request.SUBSCRIBE) && response.getStatusCode() / 100 == 2) {
+        final int statusCode = response.getStatusCode();
+        if (this.getMethod().equals(Request.SUBSCRIBE) && statusCode / 100 == 2) {
 
             if (response.getHeader(ExpiresHeader.NAME) == null) {
                 throw new SipException("Expires header is mandatory in 2xx response of SUBSCRIBE");
@@ -1355,8 +1351,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         }
 
         // Check for mandatory header.
-        if (sipResponse.getStatusCode() == 200
-                && sipResponse.getCSeq().getMethod().equals(Request.INVITE)
+        if (statusCode == 200
+                && responseMethod.equals(Request.INVITE)
                 && sipResponse.getHeader(ContactHeader.NAME) == null)
             throw new SipException("Contact Header is mandatory for the OK to the INVITE");
 
@@ -1373,15 +1369,16 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
              * responses contained a session description. In that case, it MUST NOT send a final
              * response until those provisional responses are acknowledged.
              */
+        	final ContentTypeHeader contentTypeHeader = ((SIPResponse)response).getContentTypeHeader();
             if (this.pendingReliableResponse != null
                     && this.getDialog() != null 
                     && this.getState() != TransactionState.TERMINATED
-                    && ((SIPResponse)response).getContentTypeHeader() != null 
-                    && response.getStatusCode() / 100 == 2
-                    && ((SIPResponse)response).getContentTypeHeader().getContentType()
-                            .equalsIgnoreCase("application")
-                    && ((SIPResponse)response).getContentTypeHeader().getContentSubType()
-                            .equalsIgnoreCase("sdp")) {
+                    && statusCode / 100 == 2
+                    && contentTypeHeader != null                     
+                    && contentTypeHeader.getContentType()
+                            .equalsIgnoreCase(CONTENT_TYPE_APPLICATION)
+                    && contentTypeHeader.getContentSubType()
+                            .equalsIgnoreCase(CONTENT_SUBTYPE_SDP)) {
                 if (!interlockProvisionalResponses ) {
                     throw new SipException("cannot send response -- unacked povisional");
                 } else {            
@@ -1408,8 +1405,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             // Dialog checks. These make sure that the response
             // being sent makes sense.
             if (dialog != null) {
-                if (sipResponse.getStatusCode() / 100 == 2
-                        && sipStack.isDialogCreated(sipResponse.getCSeq().getMethod())) {
+                if (statusCode / 100 == 2
+                        && sipStack.isDialogCreated(responseMethod)) {
                     if (dialog.getLocalTag() == null && sipResponse.getToTag() == null) {
                         // Trying to send final response and user forgot to set
                         // to
@@ -1454,7 +1451,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
             // See if the dialog needs to be inserted into the dialog table
             // or if the state of the dialog needs to be changed.
-            if (dialog != null && response.getStatusCode() != 100) {
+            if (dialog != null && statusCode != 100) {
                 dialog.setResponseTags(sipResponse);
                 DialogState oldState = dialog.getState();
                 dialog.setLastResponse(this, (SIPResponse) response);

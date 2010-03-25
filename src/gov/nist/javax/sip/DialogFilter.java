@@ -28,6 +28,7 @@
  ******************************************************************************/
 package gov.nist.javax.sip;
 
+import gov.nist.core.HostPort;
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.Contact;
@@ -52,6 +53,7 @@ import java.io.IOException;
 
 import javax.sip.ClientTransaction;
 import javax.sip.DialogState;
+import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
 import javax.sip.RequestEvent;
 import javax.sip.ServerTransaction;
@@ -287,7 +289,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                 sipStack.getStackLogger().logDebug(
                         "transaction state = " + transaction.getState());
         }
-        String dialogId = sipRequest.getDialogId(true);
+        final String dialogId = sipRequest.getDialogId(true);
         SIPDialog dialog = sipStack.getDialog(dialogId);
         /*
          * Check if we got this request on the contact address of the dialog If not the dialog
@@ -295,7 +297,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
          * assigned to the dialog. Forgive the sins of B2BUA's that like to record route ACK's
          */
         if (dialog != null && sipProvider != dialog.getSipProvider()) {
-            Contact contact = dialog.getMyContactHeader();
+            final Contact contact = dialog.getMyContactHeader();
             if (contact != null) {
                 SipUri contactUri = (SipUri) (contact.getAddress().getURI());
                 String ipAddress = contactUri.getHost();
@@ -360,19 +362,20 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
         // Route header. If the request is being processed by an
         // endpoint, then the stack strips off the route header.
         if (sipRequest.getHeader(Route.NAME) != null && transaction.getDialog() != null) {
-            RouteList routes = sipRequest.getRouteHeaders();
-            Route route = (Route) routes.getFirst();
-            SipUri uri = (SipUri) route.getAddress().getURI();
+            final RouteList routes = sipRequest.getRouteHeaders();
+            final Route route = (Route) routes.getFirst();
+            final SipUri uri = (SipUri) route.getAddress().getURI();
+            final HostPort hostPort = uri.getHostPort();
             int port;
-            if (uri.getHostPort().hasPort()) {
-                port = uri.getHostPort().getPort();
+            if (hostPort.hasPort()) {
+                port = hostPort.getPort();
             } else {
-                if (listeningPoint.getTransport().equalsIgnoreCase("TLS"))
+                if (listeningPoint.getTransport().equalsIgnoreCase(ListeningPoint.TLS))
                     port = 5061;
                 else
                     port = 5060;
-            }
-            String host = uri.getHost();
+            }            
+            String host = hostPort.getHost().encode();
             if ((host.equals(listeningPoint.getIPAddress()) || host
                     .equalsIgnoreCase(listeningPoint.getSentBy()))
                     && port == listeningPoint.getPort()) {
@@ -382,8 +385,8 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                     routes.removeFirst();
             }
         }
-
-        if (sipRequest.getMethod().equals(Request.REFER) && dialog != null
+        final String sipRequestMethod = sipRequest.getMethod();
+        if (sipRequestMethod.equals(Request.REFER) && dialog != null
                 && sipProvider.isDialogErrorsAutomaticallyHandled()) {
             /*
              * An agent responding to a REFER method MUST return a 400 (Bad Request) if the
@@ -403,17 +406,16 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
              */
             SIPTransaction lastTransaction = ((SIPDialog) dialog).getLastTransaction();
             if (lastTransaction != null  && sipProvider.isDialogErrorsAutomaticallyHandled()) {
-                SIPRequest lastRequest = (SIPRequest) lastTransaction.getRequest();
+                final SIPRequest lastRequest = (SIPRequest) lastTransaction.getRequest();
+                final String lastRequestMethod = lastRequest.getMethod();
                 if (lastTransaction instanceof SIPServerTransaction) {
                     if (lastTransaction.getState() == TransactionState.PROCEEDING
-                            && lastRequest.getMethod().equals(Request.INVITE)) {
+                            && lastRequestMethod.equals(Request.INVITE)) {
                         this.sendRequestPendingResponse(sipRequest, transaction);
                         return;
                     }
-                } else if (lastTransaction != null && lastTransaction instanceof SIPClientTransaction) {
-                    long cseqno = lastRequest.getCSeqHeader().getSeqNumber();
-                    String method = lastRequest.getMethod();
-                    if (method.equals(Request.INVITE) && lastTransaction.getState() != TransactionState.TERMINATED &&
+                } else if (lastTransaction != null && lastTransaction instanceof SIPClientTransaction) {                    
+                    if (lastRequestMethod.equals(Request.INVITE) && lastTransaction.getState() != TransactionState.TERMINATED &&
                     		lastTransaction.getState() != TransactionState.COMPLETED ) {
                         this.sendRequestPendingResponse(sipRequest, transaction);
                         return;
@@ -421,7 +423,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                 }
             }
 
-        } else if (sipRequest.getMethod().equals(Request.UPDATE)) {
+        } else if (sipRequestMethod.equals(Request.UPDATE)) {
             /*
              * Got an UPDATE method and the user dialog does not exist and the user wants to be a
              * User agent.
@@ -431,7 +433,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                 this.sendCallOrTransactionDoesNotExistResponse(sipRequest, transaction);
                 return;
             }
-        } else if (sipRequest.getMethod().equals(Request.ACK)) {
+        } else if (sipRequestMethod.equals(Request.ACK)) {
 
             if (transaction != null && transaction.isInviteTransaction()) {
                 // This is an ack for a 3xx-6xx response. Just let the tx laer
@@ -560,7 +562,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                     }
                 }
             }
-        } else if (sipRequest.getMethod().equals(Request.PRACK)) {
+        } else if (sipRequestMethod.equals(Request.PRACK)) {
 
             /*
              * RFC 3262: A matching PRACK is defined as one within the same dialog as the
@@ -624,7 +626,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                             "Processing PRACK without a DIALOG -- this must be a proxy element");
             }
 
-        } else if (sipRequest.getMethod().equals(Request.BYE)) {
+        } else if (sipRequestMethod.equals(Request.BYE)) {
             // Check for correct sequence numbering of the BYE
             if (dialog != null && !dialog.isRequestConsumable(sipRequest)) {
                 if (sipStack.isLoggingEnabled())
@@ -698,7 +700,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                                 + transaction.isTransactionMapped());
             }
 
-        } else if (sipRequest.getMethod().equals(Request.CANCEL)) {
+        } else if (sipRequestMethod.equals(Request.CANCEL)) {
 
             SIPServerTransaction st = (SIPServerTransaction) sipStack.findCancelTransaction(
                     sipRequest, true);
@@ -786,7 +788,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                     InternalErrorHandler.handleException(ex);
                 }
             }
-        } else if (sipRequest.getMethod().equals(Request.INVITE)) {
+        } else if (sipRequestMethod.equals(Request.INVITE)) {
             SIPTransaction lastTransaction = dialog == null ? null : dialog
                     .getInviteTransaction();
 
@@ -873,10 +875,10 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
                     "CHECK FOR OUT OF SEQ MESSAGE " + dialog + " transaction " + transaction);
         }
 
-        if (dialog != null && transaction != null && !sipRequest.getMethod().equals(Request.BYE)
-                && !sipRequest.getMethod().equals(Request.CANCEL)
-                && !sipRequest.getMethod().equals(Request.ACK)
-                && !sipRequest.getMethod().equals(Request.PRACK)) {
+        if (dialog != null && transaction != null && !sipRequestMethod.equals(Request.BYE)
+                && !sipRequestMethod.equals(Request.CANCEL)
+                && !sipRequestMethod.equals(Request.ACK)
+                && !sipRequestMethod.equals(Request.PRACK)) {
 
             if (!dialog.isRequestConsumable(sipRequest)) {
 
@@ -954,7 +956,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
          * are ignored.
          */
 
-        if (dialog == null && sipRequest.getMethod().equals(Request.NOTIFY)) {
+        if (dialog == null && sipRequestMethod.equals(Request.NOTIFY)) {
 
             SIPClientTransaction pendingSubscribeClientTx = sipStack.findSubscribeTransaction(
                     sipRequest, listeningPoint);

@@ -37,7 +37,7 @@ public class ScheduledExecutorTimer implements SipTimer {
 	ScheduledThreadPoolExecutor threadPoolExecutor;
 	
 	public ScheduledExecutorTimer() {
-		threadPoolExecutor = new ScheduledThreadPoolExecutor(4);
+		threadPoolExecutor = new ScheduledThreadPoolExecutor(1);
 		threadPoolExecutor.prestartAllCoreThreads();
 	}
 	
@@ -84,6 +84,7 @@ public class ScheduledExecutorTimer implements SipTimer {
 		if(sipTimerTask != null) {
 			task.cleanUpBeforeCancel();
 			threadPoolExecutor.remove((Runnable)sipTimerTask);
+			task.setSipTimerTask(null);
 			return ((ScheduledFuture<?>) sipTimerTask).cancel(false);
 		} else {
 			return false;

@@ -52,7 +52,10 @@ public class DefaultTimer extends Timer implements SipTimer {
 		
 		@Override
 		public boolean cancel() {
-			task.cleanUpBeforeCancel();
+			if(task != null) {
+				task.cleanUpBeforeCancel();
+				task = null;
+			}
 			return super.cancel();
 		}
 	}
@@ -71,7 +74,6 @@ public class DefaultTimer extends Timer implements SipTimer {
 	
 	@Override
 	public boolean cancel(SIPStackTimerTask task) {
-		task.cleanUpBeforeCancel();
 		return ((TimerTask)task.getSipTimerTask()).cancel();
 	}
 

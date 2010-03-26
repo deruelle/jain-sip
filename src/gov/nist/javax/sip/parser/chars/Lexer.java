@@ -132,7 +132,7 @@ public class Lexer extends LexerCore {
         	int begin = indexOf(line, ':');
             headerName = null;
             if (begin >= 1)
-                headerName = new String(line, 0, begin).trim();
+                headerName = String.valueOf(line, 0, begin).trim();
         } catch (IndexOutOfBoundsException e) {
             return null;
         }
@@ -166,7 +166,7 @@ public class Lexer extends LexerCore {
         String headerValue = null;
         try {
         	int begin = indexOf(line, ':');
-            headerValue = new String(line, begin + 1, line.length - begin - 1);
+            headerValue = String.valueOf(line, begin + 1, line.length - begin - 1);
         } catch (IndexOutOfBoundsException e) {
             return null;
         }

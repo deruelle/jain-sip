@@ -51,7 +51,7 @@ public abstract class SIPHeader
      * @param hname String to set
      */
     protected SIPHeader(String hname) {
-        headerName = hname;
+        headerName = hname.intern();
     }
 
     /** Default constructor

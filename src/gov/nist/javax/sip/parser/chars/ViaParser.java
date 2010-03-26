@@ -25,8 +25,13 @@
 */
 package gov.nist.javax.sip.parser.chars;
 
-import gov.nist.javax.sip.header.*;
-import gov.nist.core.*;
+import gov.nist.core.HostPort;
+import gov.nist.core.NameValue;
+import gov.nist.javax.sip.header.Protocol;
+import gov.nist.javax.sip.header.SIPHeader;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.ViaList;
+
 import java.text.ParseException;
 
 /**

@@ -179,7 +179,7 @@ public class LexerCore extends StringTokenizer {
             if (startsId()) {
                 char[] id = ttoken();
                 tok.tokenValue = id;
-                String idUppercase = new String(id).toUpperCase().intern();
+                String idUppercase = String.valueOf(id).toUpperCase().intern();
                 if (currentLexer.containsKey(idUppercase)) {
                     Integer type = (Integer) currentLexer.get(idUppercase);
                     tok.tokenType = type.intValue();
@@ -227,7 +227,7 @@ public class LexerCore extends StringTokenizer {
                 this.currentMatch.tokenType = SAFE;
             } else {
             	char[] nexttok = getNextId();
-                Integer cur = (Integer) currentLexer.get(new String(nexttok).toUpperCase().intern());
+                Integer cur = (Integer) currentLexer.get(String.valueOf(nexttok).toUpperCase().intern());
 
                 if (cur == null || cur.intValue() != tok)
                     throw new ParseException(
@@ -762,6 +762,12 @@ public class LexerCore extends StringTokenizer {
      */
     public String getBuffer() {
         return String.valueOf(buffer);
+    }
+    
+    public char[] getSubBuffer(int start, int end) {
+    	char[] retval = new char[end - start];
+    	System.arraycopy(buffer, start, retval, 0, end - start);
+        return retval;
     }
 
     /** Create a parse exception.

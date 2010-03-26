@@ -29,8 +29,8 @@ import javax.sip.InvalidArgumentException;
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.PAssertedService;
 import gov.nist.javax.sip.header.ims.ParameterNamesIms;
-import gov.nist.javax.sip.parser.HeaderParser;
-import gov.nist.javax.sip.parser.Lexer;
+import gov.nist.javax.sip.parser.chars.HeaderParser;
+import gov.nist.javax.sip.parser.chars.Lexer;
 import gov.nist.javax.sip.parser.TokenTypes;
 
 /**
@@ -48,7 +48,7 @@ public class PAssertedServiceParser extends HeaderParser implements TokenTypes{
         super(lexer);
     }
 
-    public PAssertedServiceParser(String pas)
+    public PAssertedServiceParser(char[] pas)
     {
         super(pas);
     }

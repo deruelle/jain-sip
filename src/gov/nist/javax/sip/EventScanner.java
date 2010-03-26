@@ -266,7 +266,7 @@ class EventScanner implements Runnable {
                     // if the user configured to get notification on ACK
                     // termination
                     eventWrapper.transaction
-                            .setState(TransactionState.TERMINATED);
+                            .setState(TransactionState._TERMINATED);
                 }
             }
 

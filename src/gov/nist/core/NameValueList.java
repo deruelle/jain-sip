@@ -65,12 +65,12 @@ public class NameValueList implements Serializable, Cloneable, Map<String,NameVa
      * default constructor.
      */
     public NameValueList() {
-        this.separator = ";";
+        this.separator = Separators.SEMICOLON;
 //        this.hmap = new LinkedHashMap<String,NameValue>(0);
     }
 
     public NameValueList(boolean sync) {
-        this.separator = ";";
+        this.separator = Separators.SEMICOLON;
         this.sync = sync;
 //        if (sync)
 //            this.hmap = new ConcurrentHashMap<String,NameValue>(0);

@@ -25,8 +25,9 @@
 */
 package gov.nist.javax.sip.parser.chars;
 
-import gov.nist.core.Token;
-import gov.nist.javax.sip.header.*;
+import gov.nist.javax.sip.header.SIPHeader;
+import gov.nist.javax.sip.header.UserAgent;
+
 import java.text.ParseException;
 
 /**

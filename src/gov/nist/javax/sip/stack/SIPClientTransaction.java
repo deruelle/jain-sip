@@ -428,9 +428,9 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                     // Send directly to the underlying
                     // transport and close this transaction
                     if (isReliable()) {
-                        this.setState(TransactionState.TERMINATED);
+                        this.setState(TransactionState._TERMINATED);
                     } else {
-                        this.setState(TransactionState.COMPLETED);
+                        this.setState(TransactionState._COMPLETED);
                     }
                     cleanUpOnTimer();
                     // BUGBUG -- This suppresses sending the ACK uncomment this
@@ -455,13 +455,13 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                     // Set state first to avoid race condition..
 
                     if (transactionRequest.getMethod().equals(Request.INVITE)) {
-                        this.setState(TransactionState.CALLING);
+                        this.setState(TransactionState._CALLING);
                     } else if (transactionRequest.getMethod().equals(Request.ACK)) {
                         // Acks are never retransmitted.
-                        this.setState(TransactionState.TERMINATED);
+                        this.setState(TransactionState._TERMINATED);
                         cleanUpOnTimer();
                     } else {
-                        this.setState(TransactionState.TRYING);
+                        this.setState(TransactionState._TRYING);
                     }
                     if (!isReliable()) {
                         enableRetransmissionTimer();
@@ -479,7 +479,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
 
             } catch (IOException e) {
 
-                this.setState(TransactionState.TERMINATED);
+                this.setState(TransactionState._TERMINATED);
                 throw e;
 
             }
@@ -540,7 +540,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         } catch (IOException ex) {
             if (sipStack.isLoggingEnabled())
                 sipStack.getStackLogger().logException(ex);
-            this.setState(TransactionState.TERMINATED);
+            this.setState(TransactionState._TERMINATED);
             raiseErrorEvent(SIPTransactionErrorEvent.TRANSPORT_ERROR);
         }
     }
@@ -610,7 +610,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         int statusCode = transactionResponse.getStatusCode();
         if (TransactionState.TRYING == this.getState()) {
             if (statusCode / 100 == 1) {
-                this.setState(TransactionState.PROCEEDING);
+                this.setState(TransactionState._PROCEEDING);
                 enableRetransmissionTimer(MAXIMUM_RETRANSMISSION_TICK_COUNT);
                 enableTimeoutTimer(TIMER_F);
                 // According to RFC, the TU has to be informed on
@@ -628,10 +628,10 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                     this.semRelease();
                 }
                 if (!isReliable()) {
-                    this.setState(TransactionState.COMPLETED);
+                    this.setState(TransactionState._COMPLETED);
                     enableTimeoutTimer(TIMER_K);
                 } else {
-                    this.setState(TransactionState.TERMINATED);
+                    this.setState(TransactionState._TERMINATED);
                 }
                 cleanUpOnTimer();
             }
@@ -651,11 +651,11 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 disableRetransmissionTimer();
                 disableTimeoutTimer();
                 if (!isReliable()) {
-                    this.setState(TransactionState.COMPLETED);
+                    this.setState(TransactionState._COMPLETED);
                     enableTimeoutTimer(TIMER_K);
                     cleanUpOnTimer();
                 } else {
-                    this.setState(TransactionState.TERMINATED);
+                    this.setState(TransactionState._TERMINATED);
                 }
                 cleanUpOnTimer();
             }
@@ -766,7 +766,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 // of the INVITE after app sends ACK
                 disableRetransmissionTimer();
                 disableTimeoutTimer();
-                this.setState(TransactionState.TERMINATED);
+                this.setState(TransactionState._TERMINATED);
 
                 // 200 responses are always seen by TU.
                 if (respondTo != null)
@@ -778,7 +778,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
             } else if (statusCode / 100 == 1) {
                 disableRetransmissionTimer();
                 disableTimeoutTimer();
-                this.setState(TransactionState.PROCEEDING);
+                this.setState(TransactionState._PROCEEDING);
 
                 if (respondTo != null)
                     respondTo.processResponse(transactionResponse, this, dialog);
@@ -816,11 +816,11 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 }
 
                 if (!isReliable()) {
-                    this.setState(TransactionState.COMPLETED);
+                    this.setState(TransactionState._COMPLETED);
                     enableTimeoutTimer(TIMER_D);
                 } else {
                     // Proceed immediately to the TERMINATED state.
-                    this.setState(TransactionState.TERMINATED);
+                    this.setState(TransactionState._TERMINATED);
                 }
                 cleanUpOnTimer();
             }
@@ -832,7 +832,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                     this.semRelease();
                 }
             } else if (statusCode / 100 == 2) {
-                this.setState(TransactionState.TERMINATED);
+                this.setState(TransactionState._TERMINATED);
                 if (respondTo != null) {
                     respondTo.processResponse(transactionResponse, this, dialog);
                 } else {
@@ -852,10 +852,10 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 }
                 // JvB: update state before passing to app
                 if (!isReliable()) {
-                    this.setState(TransactionState.COMPLETED);
+                    this.setState(TransactionState._COMPLETED);
                     this.enableTimeoutTimer(TIMER_D);
                 } else {
-                    this.setState(TransactionState.TERMINATED);
+                    this.setState(TransactionState._TERMINATED);
                 }
                 cleanUpOnTimer();
 
@@ -975,7 +975,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
             this.sendMessage(sipRequest);
 
         } catch (IOException ex) {
-            this.setState(TransactionState.TERMINATED);
+            this.setState(TransactionState._TERMINATED);
             throw new SipException(
                     ex.getMessage() == null ? "IO Error sending request" : ex.getMessage(),
                     ex);
@@ -1094,13 +1094,13 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                      * using transaction.terminate() by itself (i.e. this is not the job of the
                      * stack at this point but we do it to be nice.
                      */
-                    inviteTx.setState(TransactionState.TERMINATED);
+                    inviteTx.setState(TransactionState._TERMINATED);
 
                 }
             }
 
         } else {
-            this.setState(TransactionState.TERMINATED);
+            this.setState(TransactionState._TERMINATED);
         }
 
     }
@@ -1291,18 +1291,18 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
      * connection for outgoing requests in this time period) and calls the superclass to set
      * state.
      */
-    public void setState(TransactionState newState) {
+    public void setState(int newState) {
         // Set this timer for connection caching
         // of incoming connections.
-        if (newState == TransactionState.TERMINATED && this.isReliable()
+        if (newState == TransactionState._TERMINATED && this.isReliable()
                 && (!getSIPStack().cacheClientConnections)) {
             // Set a time after which the connection
             // is closed.
             this.collectionTime = TIMER_J;
 
         }
-        if (super.getState() != TransactionState.COMPLETED
-                && (newState == TransactionState.COMPLETED || newState == TransactionState.TERMINATED)) {
+        if (super.getInternalState() != TransactionState._COMPLETED
+                && (newState == TransactionState._COMPLETED || newState == TransactionState._TERMINATED)) {
             sipStack.decrementActiveClientTransactionCount();
         }
         super.setState(newState);
@@ -1327,7 +1327,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
      * @see javax.sip.Transaction#terminate()
      */
     public void terminate() throws ObjectInUseException {
-        this.setState(TransactionState.TERMINATED);
+        this.setState(TransactionState._TERMINATED);
 
     }
 

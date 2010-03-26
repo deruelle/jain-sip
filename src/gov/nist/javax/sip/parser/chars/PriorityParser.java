@@ -82,7 +82,7 @@ public class PriorityParser extends HeaderParser {
             */
             // This is in violation of the RFC but
             // let us be generous in what we accept.
-            priority.setPriority(new String(this.lexer.ttokenSafe()));
+            priority.setPriority(String.valueOf(this.lexer.ttokenSafe()));
 
             this.lexer.SPorHT();
             this.lexer.match('\n');

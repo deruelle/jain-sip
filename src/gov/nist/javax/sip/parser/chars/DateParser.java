@@ -65,7 +65,7 @@ public class DateParser extends HeaderParser {
             lexer.match(' ');
             time(cal);
             lexer.match(' ');
-            String tzone = new String(this.lexer.ttoken()).toLowerCase();
+            String tzone = String.valueOf(this.lexer.ttoken()).toLowerCase();
             if (!"gmt".equals(tzone))
                 throw createParseException("Bad Time Zone " + tzone);
             this.lexer.match('\n');

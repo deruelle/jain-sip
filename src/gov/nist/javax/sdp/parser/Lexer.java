@@ -36,7 +36,7 @@ public class Lexer extends LexerCore {
     }
 
     public static String getFieldName(String line) {
-        int i = line.indexOf("=");
+        int i = line.indexOf(Separators.EQUALS);
         if (i == -1)
             return null;
         else

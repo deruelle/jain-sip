@@ -31,8 +31,8 @@ import javax.sip.InvalidArgumentException;
 import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.ims.PPreferredService;
 import gov.nist.javax.sip.header.ims.ParameterNamesIms;
-import gov.nist.javax.sip.parser.HeaderParser;
-import gov.nist.javax.sip.parser.Lexer;
+import gov.nist.javax.sip.parser.chars.HeaderParser;
+import gov.nist.javax.sip.parser.chars.Lexer;
 import gov.nist.javax.sip.parser.TokenTypes;
 /**
  *
@@ -49,7 +49,7 @@ public class PPreferredServiceParser extends HeaderParser implements TokenTypes{
         super(lexer);
     }
 
-    public PPreferredServiceParser(String pps)
+    public PPreferredServiceParser(char[] pps)
     {
         super(pps);
     }

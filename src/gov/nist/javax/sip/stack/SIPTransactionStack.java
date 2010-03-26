@@ -1812,7 +1812,7 @@ public abstract class SIPTransactionStack implements
 
         if (transactionErrorEvent.getErrorID() == SIPTransactionErrorEvent.TRANSPORT_ERROR) {
             // Kill scanning of this transaction.
-            transaction.setState(SIPTransaction.TERMINATED_STATE);
+            transaction.setState(TransactionState._TERMINATED);
             if (transaction instanceof SIPServerTransaction) {
                 // let the reaper get him
                 ((SIPServerTransaction) transaction).collectionTime = 0;
@@ -2632,7 +2632,9 @@ public abstract class SIPTransactionStack implements
     /**
      * @return the timer
      */
-    public Timer getTimer() {
+    public Timer getTimer() throws IllegalStateException {
+    	if(timer == null)
+    		throw new IllegalStateException("Stack has been stopped, no further tasks can be sceduled.");
         return timer;
     }
 

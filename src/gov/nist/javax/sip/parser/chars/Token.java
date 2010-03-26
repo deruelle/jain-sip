@@ -38,7 +38,7 @@ public class Token {
     protected char[] tokenValue;
     protected int tokenType;
     public String getTokenValue() {
-        return new String(this.tokenValue);
+        return String.valueOf(this.tokenValue);
     }
     public int getTokenType() {
         return this.tokenType;

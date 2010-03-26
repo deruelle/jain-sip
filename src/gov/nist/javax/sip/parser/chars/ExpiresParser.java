@@ -69,7 +69,7 @@ public class ExpiresParser extends HeaderParser {
             lexer.SPorHT();
             lexer.match(':');
             lexer.SPorHT();
-            String nextId = new String(lexer.getNextId());
+            String nextId = String.valueOf(lexer.getNextId());
             lexer.match('\n');
             try {
                 int delta = Integer.parseInt(nextId);

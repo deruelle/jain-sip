@@ -213,7 +213,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
     protected transient DialogTimerTask timerTask;
 
-    protected transient Long nextSeqno;
+	protected transient long nextSeqno;
 
     private transient int retransmissionTicksLeft;
 
@@ -667,7 +667,6 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         localParty = null;
         remoteParty = null;
         method = null;
-        nextSeqno = null;
         if(originalRequestRecordRouteHeaders != null) {
         	originalRequestRecordRouteHeaders.clear();
         	originalRequestRecordRouteHeaders = null;
@@ -1292,7 +1291,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * 
      */
     public synchronized void requestConsumed() {
-        this.nextSeqno = Long.valueOf(this.getRemoteSeqNumber() + 1);
+        this.nextSeqno = this.getRemoteSeqNumber() + 1;
 
         if (sipStack.isLoggingEnabled()) {
             this.sipStack.getStackLogger().logDebug(
@@ -3735,10 +3734,15 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 		return this.firstTransactionMergeId;
 	}
 
-	public void setPendingRouteUpdateOn202Response() {
+	public void setPendingRouteUpdateOn202Response(SIPRequest sipRequest) {
 		this.pendingRouteUpdateOn202Response = true;
+		String toTag = sipRequest.getToHeader().getTag();
+		if ( toTag != null ) {
+			this.setRemoteTag(toTag);
+		}
 		
 	}
+	
 	
     
 	

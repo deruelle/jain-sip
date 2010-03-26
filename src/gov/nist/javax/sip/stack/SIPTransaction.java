@@ -225,7 +225,7 @@ public abstract class SIPTransaction extends MessageChannel implements
 //    private long cSeq;
 
     // Current transaction state
-    private TransactionState currentState;
+    private int currentState = -1;
 
     // Number of ticks the retransmission timer was set to last
     private transient int retransmissionTimerLastTickCount;
@@ -278,9 +278,9 @@ public abstract class SIPTransaction extends MessageChannel implements
      */
     class LingerTimer extends SIPStackTimerTask {
 
-        public LingerTimer() {
-            SIPTransaction sipTransaction = SIPTransaction.this;
+        public LingerTimer() {            
             if (sipStack.isLoggingEnabled()) {
+            	SIPTransaction sipTransaction = SIPTransaction.this;
                 sipStack.getStackLogger().logDebug("LingerTimer : "
                         + sipTransaction.getTransactionId());
             }
@@ -328,7 +328,7 @@ public abstract class SIPTransaction extends MessageChannel implements
                                     + encapsulatedChannel.useCount );
         }
 
-        this.currentState = null;
+        this.currentState = -1;
 
         disableRetransmissionTimer();
         disableTimeoutTimer();
@@ -502,18 +502,18 @@ public abstract class SIPTransaction extends MessageChannel implements
      * @param newState
      *            New state of this transaction.
      */
-    public void setState(TransactionState newState) {
+    public void setState(int newState) {
         // PATCH submitted by sribeyron
-        if (currentState == TransactionState.COMPLETED) {
-            if (newState != TransactionState.TERMINATED
-                    && newState != TransactionState.CONFIRMED)
-                newState = TransactionState.COMPLETED;
+        if (currentState == TransactionState._COMPLETED) {
+            if (newState != TransactionState._TERMINATED
+                    && newState != TransactionState._CONFIRMED)
+                newState = TransactionState._COMPLETED;
         }
-        if (currentState == TransactionState.CONFIRMED) {
-            if (newState != TransactionState.TERMINATED)
-                newState = TransactionState.CONFIRMED;
+        if (currentState == TransactionState._CONFIRMED) {
+            if (newState != TransactionState._TERMINATED)
+                newState = TransactionState._CONFIRMED;
         }
-        if (currentState != TransactionState.TERMINATED)
+        if (currentState != TransactionState._TERMINATED)
             currentState = newState;
         else
             newState = currentState;
@@ -531,8 +531,20 @@ public abstract class SIPTransaction extends MessageChannel implements
      *
      * @return Current state of this transaction.
      */
-    public TransactionState getState() {
+    public int getInternalState() {
         return this.currentState;
+    }
+    
+    /**
+     * Gets the current state of this transaction.
+     *
+     * @return Current state of this transaction.
+     */
+    public TransactionState getState() {
+    	if(currentState < 0) {
+    		return null;
+    	}
+        return TransactionState.getObject(this.currentState);
     }
 
     /**
@@ -797,7 +809,7 @@ public abstract class SIPTransaction extends MessageChannel implements
             eventListeners.clear();
 
             // Errors always terminate a transaction
-            this.setState(TransactionState.TERMINATED);
+            this.setState(TransactionState._TERMINATED);
 
             if (this instanceof SIPServerTransaction && this.isByeTransaction()
                     && this.getDialog() != null)
@@ -1095,7 +1107,7 @@ public abstract class SIPTransaction extends MessageChannel implements
      *
      */
     public void raiseIOExceptionEvent() {
-        setState(TransactionState.TERMINATED);
+        setState(TransactionState._TERMINATED);
         String host = getPeerAddress();
         int port = getPeerPort();
         String transport = getTransport();

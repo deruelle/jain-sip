@@ -83,7 +83,7 @@ public class ContentLength
     /**
      * contentLength field.
      */
-    protected Integer contentLength;
+    protected int contentLength = -1;
 
     /**
      * Default constructor.
@@ -97,7 +97,7 @@ public class ContentLength
      */
     public ContentLength(int length) {
         super(NAME);
-        this.contentLength = Integer.valueOf(length);
+        this.contentLength = length;
     }
 
     /**
@@ -105,7 +105,7 @@ public class ContentLength
      * @return int
      */
     public int getContentLength() {
-        return contentLength.intValue();
+        return contentLength;
     }
 
     /**
@@ -130,10 +130,10 @@ public class ContentLength
     }
 
     protected StringBuilder encodeBody(StringBuilder buffer) {
-        if (contentLength == null)
+        if (contentLength < 0)
             buffer.append("0");
         else
-            buffer.append(contentLength.toString());
+            buffer.append(contentLength);
         return buffer;
     }
 

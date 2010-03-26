@@ -63,7 +63,7 @@ public class CSeqParser extends HeaderParser {
             String number = this.lexer.number();
             c.setSeqNumber(Long.parseLong(number));
             this.lexer.SPorHT();
-            String m = SIPRequest.getCannonicalName( method() );
+            String m = SIPRequest.getCannonicalName( method() ).intern();
             
             
             

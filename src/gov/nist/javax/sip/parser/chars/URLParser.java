@@ -32,6 +32,7 @@ import gov.nist.javax.sip.address.GenericURI;
 import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.address.TelURLImpl;
 import gov.nist.javax.sip.address.TelephoneNumber;
+
 import java.text.ParseException;
 
 /**
@@ -145,7 +146,7 @@ public class URLParser extends Parser {
             } else
                 break;
         }
-        return lexer.getBuffer().substring(startIdx, lexer.getPtr());
+        return String.valueOf(lexer.getSubBuffer(startIdx, lexer.getPtr()));
     }
 
     private NameValue uriParam() throws ParseException {
@@ -240,7 +241,7 @@ public class URLParser extends Parser {
             char next = lexer.lookAhead(0);
             if (isMark(next)) {
                 lexer.consume(1);
-                return new String( new char[]{next} );
+                return String.valueOf( new char[]{next} );
             } else
                 throw createParseException("mark");
         } finally {
@@ -766,7 +767,7 @@ public class URLParser extends Parser {
                 } else
                     break;
             }
-            return lexer.getBuffer().substring(startIdx, lexer.getPtr());
+            return String.valueOf(lexer.getSubBuffer(startIdx, lexer.getPtr()));
         } finally {
             if (debug)
                 dbg_leave("user");
@@ -796,7 +797,7 @@ public class URLParser extends Parser {
                 break;
 
         }
-        return lexer.getBuffer().substring(startIdx, lexer.getPtr());
+        return String.valueOf(lexer.getSubBuffer(startIdx, lexer.getPtr()));
     }
 
     /**

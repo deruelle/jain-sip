@@ -29,6 +29,7 @@
 package gov.nist.javax.sip.message;
 
 import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.Separators;
 import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.Utils;
 import gov.nist.javax.sip.header.AlertInfo;
@@ -518,7 +519,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
                 String fieldName = f.getName();
                 if (f.get(this) != null && SIPHeader.class.isAssignableFrom(fieldType)
                         && fieldName.compareTo("headers") != 0) {
-                    sprint(fieldName + "=");
+                    sprint(fieldName + Separators.EQUALS);
                     sprint(((SIPHeader) f.get(this)).debugDump());
                 }
             }
@@ -1411,7 +1412,7 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
      * @return the header as a formatted string
      */
     public String getHeaderAsFormattedString(String name) {
-        String lowerCaseName = name.toLowerCase();
+        String lowerCaseName = SIPHeaderNamesCache.toLowerCase(name);
         if (this.headerTable.containsKey(lowerCaseName)) {
             return this.headerTable.get(lowerCaseName).toString();
         } else {

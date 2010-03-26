@@ -26,6 +26,7 @@
 			<jvmarg value="-XX:+CMSIncrementalMode"/>
 			<arg value="-Dcom.sun.management.jmxremote"/>
 			<arg value="-Dcom.sun.management.jmxremote.local.only=false"/>
+			<arg value="-agentlib:yjpagent"/>
 		</java>
 	</target>
 	

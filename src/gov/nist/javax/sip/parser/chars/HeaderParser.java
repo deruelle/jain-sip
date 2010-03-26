@@ -52,7 +52,7 @@ public class HeaderParser extends Parser {
     protected int wkday() throws ParseException {
         dbg_enter("wkday");
         try {
-            String id = new String(lexer.ttoken()).toLowerCase().intern();
+            String id = String.valueOf(lexer.ttoken()).toLowerCase().intern();
 
             if (TokenNames.MON.equalsIgnoreCase(id))
                 return Calendar.MONDAY;
@@ -89,7 +89,7 @@ public class HeaderParser extends Parser {
                 throw createParseException("Bad day ");
             retval.set(Calendar.DAY_OF_MONTH, day);
             lexer.match(' ');
-            String month = new String(lexer.ttoken()).toLowerCase().intern();
+            String month = String.valueOf(lexer.ttoken()).toLowerCase().intern();
             if (month.equals("jan")) {
                 retval.set(Calendar.MONTH, Calendar.JANUARY);
             } else if (month.equals("feb")) {

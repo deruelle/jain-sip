@@ -25,6 +25,8 @@
 */
 package gov.nist.javax.sip.parser.chars;
 
+import gov.nist.core.Separators;
+
 import java.util.*;
 import java.text.ParseException;
 
@@ -192,7 +194,7 @@ public class StringTokenizer {
             return null;
         String fieldName = null;
         try {
-            int begin = line.indexOf("=");
+            int begin = line.indexOf(Separators.EQUALS);
             fieldName = line.substring(0, begin);
         } catch (IndexOutOfBoundsException e) {
             return null;

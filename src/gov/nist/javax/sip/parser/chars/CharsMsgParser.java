@@ -50,6 +50,7 @@ import gov.nist.javax.sip.parser.ParseExceptionListener;
 import java.nio.ByteBuffer;
 import java.nio.charset.Charset;
 import java.text.ParseException;
+import java.util.Arrays;
 
 /**
  * Parse SIP message and parts of SIP messages such as URI's etc from memory and
@@ -81,6 +82,7 @@ public class CharsMsgParser implements MessageParser {
 
     protected static boolean computeContentLengthFromMessage = false;
     protected static final Charset charset = Charset.forName("UTF-8");
+    protected static final char[] SIP_VERSION_CHAR = SIPConstants.SIP_VERSION_STRING.toCharArray();
     /**
      * @since v0.9
      */
@@ -263,7 +265,10 @@ public class CharsMsgParser implements MessageParser {
         System.arraycopy(firstLine, 0, retval, 0, firstLine.length);
         retval[firstLine.length] = '\n';
         
-        if (!new String(firstLine).startsWith(SIPConstants.SIP_VERSION_STRING)) {
+        char[] sipVersionCompare = new char[7];
+        System.arraycopy(firstLine, 0, sipVersionCompare, 0, 7);        
+        
+        if (!Arrays.equals(sipVersionCompare, SIP_VERSION_CHAR)) {
             message = new SIPRequest();
             try {
                 RequestLine requestLine = new RequestLineParser(retval)
@@ -272,7 +277,7 @@ public class CharsMsgParser implements MessageParser {
             } catch (ParseException ex) {
                 if (parseExceptionListener != null)
                     parseExceptionListener.handleException(ex, message,
-                            RequestLine.class, new String(firstLine), new String(msgBuffer));
+                            RequestLine.class, String.valueOf(firstLine), String.valueOf(msgBuffer));
                 else
                     throw ex;
 
@@ -285,7 +290,7 @@ public class CharsMsgParser implements MessageParser {
             } catch (ParseException ex) {
                 if (parseExceptionListener != null) {
                     parseExceptionListener.handleException(ex, message,
-                            StatusLine.class, new String(firstLine), new String(msgBuffer));
+                            StatusLine.class, String.valueOf(firstLine), String.valueOf(msgBuffer));
                 } else
                     throw ex;
 
@@ -303,7 +308,7 @@ public class CharsMsgParser implements MessageParser {
             headerParser = ParserFactory.createParser(header);
         } catch (ParseException ex) {
             parseExceptionListener.handleException(ex, message, null,
-            		new String(header), new String(msgBuffer));
+            		String.valueOf(header), String.valueOf(msgBuffer));
             return;
         }
 
@@ -319,7 +324,7 @@ public class CharsMsgParser implements MessageParser {
 
                 }
                 parseExceptionListener.handleException(ex, message,
-                        headerClass, new String(header), new String(msgBuffer));
+                        headerClass, String.valueOf(header), String.valueOf(msgBuffer));
 
             }
         }

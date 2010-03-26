@@ -44,21 +44,15 @@ import java.util.Set;
 public class DuplicateNameValueList implements Serializable, Cloneable {
 
     private MultiValueMapImpl<NameValue> nameValueMap = new MultiValueMapImpl<NameValue>();
-    private String separator;
 
     private static final long serialVersionUID = -5611332957903796952L;
 
     public DuplicateNameValueList()
 
     {
-        this.separator = ";";
     }
 
     // ------------------
-
-    public void setSeparator(String separator) {
-        this.separator = separator;
-    }
 
     /**
      * Encode the list in semicolon separated form.
@@ -83,7 +77,7 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
                         buffer.append(obj.toString());
                     }
                     if (iterator.hasNext())
-                        buffer.append(separator);
+                        buffer.append(Separators.SEMICOLON);
                     else
                         break;
                 }
@@ -186,8 +180,7 @@ public class DuplicateNameValueList implements Serializable, Cloneable {
     }
 
     public Object clone() {
-        DuplicateNameValueList retval = new DuplicateNameValueList();
-        retval.setSeparator(this.separator);
+        DuplicateNameValueList retval = new DuplicateNameValueList();        
         Iterator<NameValue> it = this.nameValueMap.values().iterator();
         while (it.hasNext()) {
             retval.set((NameValue) ((NameValue) it.next()).clone());

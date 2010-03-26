@@ -42,45 +42,27 @@ import gov.nist.javax.sip.header.Authorization;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.Contact;
 import gov.nist.javax.sip.header.ContactList;
-import gov.nist.javax.sip.header.ContentLength;
-import gov.nist.javax.sip.header.ContentType;
-import gov.nist.javax.sip.header.ErrorInfo;
 import gov.nist.javax.sip.header.From;
-import gov.nist.javax.sip.header.HeaderFactoryImpl;
 import gov.nist.javax.sip.header.MaxForwards;
-import gov.nist.javax.sip.header.ProxyAuthenticate;
 import gov.nist.javax.sip.header.RAck;
 import gov.nist.javax.sip.header.RSeq;
 import gov.nist.javax.sip.header.Reason;
-import gov.nist.javax.sip.header.ReasonList;
 import gov.nist.javax.sip.header.RecordRoute;
 import gov.nist.javax.sip.header.RecordRouteList;
 import gov.nist.javax.sip.header.Require;
-import gov.nist.javax.sip.header.RequireList;
-import gov.nist.javax.sip.header.RetryAfter;
 import gov.nist.javax.sip.header.Route;
 import gov.nist.javax.sip.header.RouteList;
-import gov.nist.javax.sip.header.SIPETag;
 import gov.nist.javax.sip.header.SIPHeader;
-import gov.nist.javax.sip.header.Server;
 import gov.nist.javax.sip.header.TimeStamp;
 import gov.nist.javax.sip.header.To;
-import gov.nist.javax.sip.header.Unsupported;
 import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.header.ViaList;
-import gov.nist.javax.sip.header.WWWAuthenticate;
-import gov.nist.javax.sip.header.Warning;
-import gov.nist.javax.sip.header.extensions.SessionExpires;
 import gov.nist.javax.sip.message.MessageFactoryImpl;
-import gov.nist.javax.sip.message.SIPDuplicateHeaderException;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.AddressParser;
 import gov.nist.javax.sip.parser.CallIDParser;
 import gov.nist.javax.sip.parser.ContactParser;
-import gov.nist.javax.sip.parser.HeaderParser;
-import gov.nist.javax.sip.parser.ParserFactory;
 import gov.nist.javax.sip.parser.RecordRouteParser;
 
 import java.io.IOException;
@@ -90,14 +72,11 @@ import java.io.StringWriter;
 import java.net.InetAddress;
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Set;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
@@ -125,10 +104,8 @@ import javax.sip.header.RSeqHeader;
 import javax.sip.header.ReasonHeader;
 import javax.sip.header.RequireHeader;
 import javax.sip.header.RouteHeader;
-import javax.sip.header.ServerHeader;
 import javax.sip.header.SupportedHeader;
 import javax.sip.header.TimeStampHeader;
-import javax.sip.header.ViaHeader;
 import javax.sip.message.Request;
 import javax.sip.message.Response;
 
@@ -485,21 +462,18 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             // Stop running this timer if the dialog is in the
             // confirmed state or ack seen if retransmit filter on.
             if (dialog.isAckSeen() || dialog.dialogState == TERMINATED_STATE) {
-//                this.transaction = null;
-//                lastAckSent = null;
-//                cleanUpOnAck();
-                this.cancel();
+                getStack().getTimer().cancel(this);
 
             }
 
         }
         
         @Override
-        public boolean cancel() {
+        public void cleanUpBeforeCancel() {
         	transaction = null;
         	lastAckSent = null;
         	cleanUpOnAck();
-        	return super.cancel();        	
+        	super.cleanUpBeforeCancel();
         }
 
     }
@@ -1152,7 +1126,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             throw new SipException("Could not create message channel", ex);
         }
         if (this.dialogDeleteTask != null) {
-            this.dialogDeleteTask.cancel();
+        	this.getStack().getTimer().cancel(dialogDeleteTask);
             this.dialogDeleteTask = null;
         }
       
@@ -1207,14 +1181,14 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             	acquireTimerTaskSem();
             	try {
 	                if (this.timerTask != null) {                	                	
-	                	this.timerTask.cancel();
+	                	this.getStack().getTimer().cancel(timerTask);
 		                this.timerTask = null;                	
 	                }
             	} finally {
             		releaseTimerTaskSem();
             	}
                 if (this.dialogDeleteTask != null) {
-                    this.dialogDeleteTask.cancel();
+                	this.getStack().getTimer().cancel(dialogDeleteTask);                    
                     this.dialogDeleteTask = null;
                 }
                 lastAckReceivedCSeqNumber = Long.valueOf(cseqNumber);
@@ -2637,8 +2611,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         try {
         	acquireTimerTaskSem();
         	try {
-	            if (this.timerTask != null) {            	
-	            	this.timerTask.cancel();
+	            if (this.timerTask != null) {
+	            	this.getStack().getTimer().cancel(timerTask);	            	
 		            this.timerTask = null;
 	            }   
         	} finally {
@@ -3532,8 +3506,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             }
             acquireTimerTaskSem();
             try {
-            	if (this.timerTask != null) {            	
-	                this.timerTask.cancel();
+            	if (this.timerTask != null) {
+            		this.getStack().getTimer().cancel(timerTask);	                
 	                this.timerTask = null;
             	} 
             } finally {

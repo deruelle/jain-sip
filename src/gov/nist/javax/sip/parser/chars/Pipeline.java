@@ -27,6 +27,7 @@ package gov.nist.javax.sip.parser.chars;
 
 import gov.nist.core.InternalErrorHandler;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.timers.SipTimer;
 
 import java.io.*;
 import java.util.*;
@@ -47,13 +48,13 @@ public class Pipeline extends InputStream {
 
     private boolean isClosed;
 
-    private Timer timer;
+    private SipTimer timer;
 
     private InputStream pipe;
 
     private int readTimeout;
 
-    private TimerTask myTimerTask;
+    private SIPStackTimerTask myTimerTask;
 
     class MyTimer extends SIPStackTimerTask {
         Pipeline pipeline;
@@ -75,11 +76,11 @@ public class Pipeline extends InputStream {
             }
         }
 
-        public boolean cancel() {
-            boolean retval = super.cancel();
-            this.isCancelled = true;
-            return retval;
-        }
+        @Override
+        public void cleanUpBeforeCancel() {
+        	this.isCancelled = true;
+        	super.cleanUpBeforeCancel();
+        }             
 
     }
 
@@ -115,10 +116,11 @@ public class Pipeline extends InputStream {
         if (this.readTimeout == -1)
             return;
         if (this.myTimerTask != null)
+        	this.timer.cancel(myTimerTask);
             this.myTimerTask.cancel();
     }
 
-    public Pipeline(InputStream pipe, int readTimeout, Timer timer) {
+    public Pipeline(InputStream pipe, int readTimeout, SipTimer timer) {
         // pipe is the Socket stream
         // this is recorded here to implement a timeout.
         this.timer = timer;

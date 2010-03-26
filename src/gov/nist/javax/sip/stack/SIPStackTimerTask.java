@@ -21,6 +21,16 @@ import java.util.TimerTask;
 public abstract class SIPStackTimerTask extends TimerTask {
     // / Implements code to be run when the SIPStackTimerTask is executed.
     protected abstract void runTask();
+    
+    public void cleanUpBeforeCancel() {
+    	
+    }
+    
+    @Override
+    public boolean cancel() {
+    	cleanUpBeforeCancel();
+    	return super.cancel();
+    }
 
     // / The run() method is final to ensure that all subclasses inherit the
     // exception handling.

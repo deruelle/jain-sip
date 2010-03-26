@@ -21,44 +21,64 @@
  */
 package gov.nist.javax.sip.stack.timers;
 
-import java.util.Properties;
-import java.util.Timer;
-
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
+
+import java.util.Properties;
+import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.ScheduledThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
 /**
  * @author jean.deruelle@gmail.com
  *
  */
-public class DefaultTimer extends Timer implements SipTimer {
+public class ScheduledExecutorTimer implements SipTimer {
 
-	@Override
-	public boolean schedule(SIPStackTimerTask task, long delay) {
-		super.schedule(task, delay);
-		return true;
-	}
-
-	@Override
-	public boolean schedule(SIPStackTimerTask task, long delay, long period) {
-		super.schedule(task, delay, period);
-		return true;
+	ScheduledThreadPoolExecutor threadPoolExecutor;
+	
+	public ScheduledExecutorTimer() {
+		threadPoolExecutor = new ScheduledThreadPoolExecutor(4);
+		threadPoolExecutor.prestartAllCoreThreads();
 	}
 	
-	@Override
-	public boolean cancel(SIPStackTimerTask task) {
-		return task.cancel();
-	}
-
-	@Override
-	public void setConfigurationProperties(Properties configurationProperties) {
-		// don't need the properties so nothing to see here
-	}
-
+	/* (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#stop()
+	 */
 	@Override
 	public void stop() {
-		cancel();		
+		threadPoolExecutor.shutdown();
 	}
 
+	/* (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
+	 */
+	@Override
+	public boolean schedule(SIPStackTimerTask task, long delay) {
+		ScheduledFuture<?> future = threadPoolExecutor.schedule(task, delay, TimeUnit.MILLISECONDS);
+		return true;
+	}
 
+	/* (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
+	 */
+	@Override
+	public boolean schedule(SIPStackTimerTask task, long delay, long period) {
+		ScheduledFuture<?> future = threadPoolExecutor.scheduleWithFixedDelay(task, delay, period, TimeUnit.MILLISECONDS);		
+		return true;
+	}
+
+	/* (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#setConfigurationProperties(java.util.Properties)
+	 */
+	@Override
+	public void setConfigurationProperties(Properties configurationProperties) {
+		// could be used to set the number of thread for the executor
+
+	}
+
+	@Override
+	public boolean cancel(SIPStackTimerTask task) {
+		return threadPoolExecutor.remove(task);
+	}
 
 }

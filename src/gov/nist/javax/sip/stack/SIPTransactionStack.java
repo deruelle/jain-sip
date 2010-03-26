@@ -1848,7 +1848,7 @@ public abstract class SIPTransactionStack implements
     public void stopStack() {
         // Prevent NPE on two concurrent stops
         if (this.timer != null)
-            this.timer.cancel();
+            this.timer.stop();
 
         // JvB: set it to null, SIPDialog tries to schedule things after stop
         timer = null;

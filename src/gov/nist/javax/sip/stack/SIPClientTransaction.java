@@ -230,7 +230,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 sipStack.removeTransaction(clientTransaction);
 
                 try {
-                    this.cancel();
+                	sipStack.getTimer().cancel(this);
 
                 } catch (IllegalStateException ex) {
                     if (!sipStack.isAlive())

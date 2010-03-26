@@ -410,6 +410,9 @@ import javax.sip.message.Request;
  * This factory allows pluggable implementations of the MessageProcessor that will take care of incoming messages.
  * By example one could plug a NIO Processor through this factory.</li>
  * 
+ * <li><b>gov.nist.javax.sip.TIMER_CLASS_NAME =  name of the class implementing gov.nist.javax.sip.stack.timers.SipTimer</b> interface
+ * This allows pluggable implementations of the Timer that will take care of scheduling the various SIP Timers.
+ * By example one could plug a regular timer, a scheduled thread pool executor.</li>
  * 
  * <li><b>gov.nist.javax.sip.DELIVER_RETRANSMITTED_ACK_TO_LISTENER=boolean</b> A testing property
  * that allows application to see the ACK for retransmitted 200 OK requests. <b>Note that this is for test

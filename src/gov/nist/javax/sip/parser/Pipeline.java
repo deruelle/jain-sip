@@ -79,12 +79,12 @@ public class Pipeline extends InputStream {
             }
         }
 
-        public boolean cancel() {
-            boolean retval = super.cancel();
-            this.isCancelled = true;
-            return retval;
+        @Override
+        public void cleanUpBeforeCancel() {
+        	this.isCancelled = true;
+        	super.cleanUpBeforeCancel();
         }
-
+        
     }
 
     class Buffer {
@@ -119,7 +119,7 @@ public class Pipeline extends InputStream {
         if (this.readTimeout == -1)
             return;
         if (this.myTimerTask != null)
-            this.myTimerTask.cancel();
+        	this.timer.cancel(myTimerTask);            
     }
 
     public Pipeline(InputStream pipe, int readTimeout, SipTimer timer) {

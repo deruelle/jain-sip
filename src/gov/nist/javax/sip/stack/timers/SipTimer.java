@@ -35,7 +35,9 @@ public interface SipTimer {
 	
 	boolean schedule(SIPStackTimerTask task, long delay, long period);
 	
-	void cancel();
+	void stop();
+	
+	boolean cancel(SIPStackTimerTask task);
 		
 	void setConfigurationProperties(Properties configurationProperties);
 }

@@ -281,7 +281,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             // If the transaction has terminated,
             if (serverTransaction.isTerminated()) {
 
-                this.cancel();
+            	sipStack.getTimer().cancel(this);                
 
             } else {
                 ticksLeft--;
@@ -293,7 +293,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     // determines when the server
                     // transaction abandons retransmitting the response
                     if (this.ticksLeft >= SIPTransaction.TIMER_H) {
-                        this.cancel();
+                    	sipStack.getTimer().cancel(this);
                         setState(TransactionState._TERMINATED);
                         fireTimeoutTimer();
                     }
@@ -387,7 +387,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // Note that the transaction record is actually removed in
                 // the connection linger timer.
                 try {
-                    this.cancel();
+               		sipStack.getTimer().cancel(this);
                 } catch (IllegalStateException ex) {
                     if (!sipStack.isAlive())
                         return;
@@ -1397,7 +1397,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // Sending the final response cancels the
                 // pending response task.
                 if (this.pendingReliableResponse != null && sipResponse.isFinalResponse()) {
-                    this.provisionalResponseTask.cancel();
+                	sipStack.getTimer().cancel(provisionalResponseTask);                   
                     this.provisionalResponseTask = null;
                 } 
             }
@@ -1610,7 +1610,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         if (dialogId != null)
             sipDialog.setAssigned();
         if (this.retransmissionAlertEnabled && this.retransmissionAlertTimerTask != null) {
-            this.retransmissionAlertTimerTask.cancel();
+        	sipStack.getTimer().cancel(retransmissionAlertTimerTask);            
             if (this.retransmissionAlertTimerTask.dialogId != null) {
                 sipStack.retransmissionAlertTransactions
                         .remove(this.retransmissionAlertTimerTask.dialogId);
@@ -1630,7 +1630,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     public void terminate() throws ObjectInUseException {
         this.setState(TransactionState._TERMINATED);
         if (this.retransmissionAlertTimerTask != null) {
-            this.retransmissionAlertTimerTask.cancel();
+        	sipStack.getTimer().cancel(retransmissionAlertTimerTask);
             if (retransmissionAlertTimerTask.dialogId != null) {
                 this.sipStack.retransmissionAlertTransactions
                         .remove(retransmissionAlertTimerTask.dialogId);
@@ -1707,7 +1707,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         if (this.pendingReliableResponse == null)
             return false;
        	if(provisionalResponseTask != null) {
-           	this.provisionalResponseTask.cancel();
+       		sipStack.getTimer().cancel(provisionalResponseTask);
            	this.provisionalResponseTask = null;
        	} 
         
@@ -1745,7 +1745,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
      */
     public void disableRetransmissionAlerts() {
         if (this.retransmissionAlertTimerTask != null && this.retransmissionAlertEnabled) {
-            this.retransmissionAlertTimerTask.cancel();
+       		sipStack.getTimer().cancel(retransmissionAlertTimerTask);
             this.retransmissionAlertEnabled = false;
 
             String dialogId = this.retransmissionAlertTimerTask.dialogId;

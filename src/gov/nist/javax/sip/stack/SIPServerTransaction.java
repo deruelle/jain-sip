@@ -399,7 +399,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // the client side of the tx to use the same connection to
                 // send an ACK and prevents a race condition for creation
                 // of new server tx
-                TimerTask myTimer = new LingerTimer();
+                SIPStackTimerTask myTimer = new LingerTimer();
 
                 sipStack.getTimer().schedule(myTimer,
                     SIPTransactionStack.CONNECTION_LINGER_TIME * 1000);
@@ -1550,7 +1550,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         	if (sipStack.getTimer() != null) {
                 // The timer is set to null when the Stack is
                 // shutting down.
-                TimerTask myTimer = new TransactionTimer();
+                SIPStackTimerTask myTimer = new TransactionTimer();
                 sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
                 myTimer = null;
             }

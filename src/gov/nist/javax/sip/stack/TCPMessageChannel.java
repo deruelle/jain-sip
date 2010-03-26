@@ -28,14 +28,29 @@
  ******************************************************************************/
 package gov.nist.javax.sip.stack;
 
-import gov.nist.javax.sip.header.*;
-import gov.nist.javax.sip.message.*;
-import gov.nist.javax.sip.parser.*;
-import gov.nist.core.*;
-import java.net.*;
-import java.io.*;
+import gov.nist.core.InternalErrorHandler;
+import gov.nist.core.ServerLogger;
+import gov.nist.javax.sip.header.CSeq;
+import gov.nist.javax.sip.header.CallID;
+import gov.nist.javax.sip.header.From;
+import gov.nist.javax.sip.header.RequestLine;
+import gov.nist.javax.sip.header.StatusLine;
+import gov.nist.javax.sip.header.To;
+import gov.nist.javax.sip.header.Via;
+import gov.nist.javax.sip.header.ViaList;
+import gov.nist.javax.sip.message.SIPMessage;
+import gov.nist.javax.sip.message.SIPRequest;
+import gov.nist.javax.sip.message.SIPResponse;
+import gov.nist.javax.sip.parser.Pipeline;
+import gov.nist.javax.sip.parser.PipelinedMsgParser;
+import gov.nist.javax.sip.parser.SIPMessageListener;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.InetAddress;
+import java.net.Socket;
 import java.text.ParseException;
-import java.util.TimerTask;
 
 import javax.sip.address.Hop;
 
@@ -315,7 +330,7 @@ public class TCPMessageChannel extends MessageChannel implements SIPMessageListe
                 /*
                  * Delay the close of the socket for some time in case it is being used.
                  */
-                sipStack.getTimer().schedule(new TimerTask() {
+                sipStack.getTimer().schedule(new SIPStackTimerTask () {
                     @Override
                     public boolean cancel() {
                         try {
@@ -327,8 +342,7 @@ public class TCPMessageChannel extends MessageChannel implements SIPMessageListe
                         return true;
                     }
 
-                    @Override
-                    public void run() {
+                    public void runTask() {
                         try {
                             mySock.close();
                         } catch (IOException ex) {

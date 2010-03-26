@@ -247,7 +247,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                     if (newUseCount <= 0) {
                         // Let the connection linger for a while and then close
                         // it.
-                        TimerTask myTimer = new LingerTimer();
+                    	SIPStackTimerTask myTimer = new LingerTimer();
                         sipStack.getTimer().schedule(myTimer,
                                 SIPTransactionStack.CONNECTION_LINGER_TIME * 1000);
                     }
@@ -1313,7 +1313,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
      */
     protected  void startTransactionTimer() {
         if (this.transactionTimerStarted.compareAndSet(false, true)) {
-	        TimerTask myTimer = new TransactionTimer();
+        	SIPStackTimerTask myTimer = new TransactionTimer();
 	        if ( sipStack.getTimer() != null ) {
 	            sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
 	        }

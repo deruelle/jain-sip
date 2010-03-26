@@ -139,7 +139,7 @@ public class UDPMessageChannel extends MessageChannel implements
      */
     private static Hashtable<String,PingBackTimerTask> pingBackRecord = new Hashtable<String,PingBackTimerTask>();
     
-    class PingBackTimerTask extends TimerTask {
+    class PingBackTimerTask extends SIPStackTimerTask  {
         String ipAddress;
         int port;
         
@@ -147,8 +147,7 @@ public class UDPMessageChannel extends MessageChannel implements
             this.ipAddress = ipAddress;
             this.port = port;
         }
-        @Override
-        public void run() {
+        public void runTask() {
            pingBackRecord.remove(ipAddress + ":" + port);
         }
         @Override

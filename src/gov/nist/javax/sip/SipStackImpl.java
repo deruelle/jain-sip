@@ -37,14 +37,14 @@ import gov.nist.javax.sip.clientauthutils.SecureAccountManager;
 import gov.nist.javax.sip.parser.MessageParserFactory;
 import gov.nist.javax.sip.parser.StringMsgParser;
 import gov.nist.javax.sip.parser.StringMsgParserFactory;
-import gov.nist.javax.sip.parser.chars.CharsMsgParserFactory;
-import gov.nist.javax.sip.parser.selective.SelectiveParserFactory;
 import gov.nist.javax.sip.stack.DefaultMessageLogFactory;
 import gov.nist.javax.sip.stack.DefaultRouter;
 import gov.nist.javax.sip.stack.MessageProcessor;
 import gov.nist.javax.sip.stack.MessageProcessorFactory;
 import gov.nist.javax.sip.stack.OIOMessageProcessorFactory;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
+import gov.nist.javax.sip.stack.timers.DefaultTimer;
+import gov.nist.javax.sip.stack.timers.SipTimer;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -1130,6 +1130,20 @@ public class SipStackImpl extends SIPTransactionStack implements
 			getStackLogger()
 				.logError(
 						"Bad configuration value for gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", e);			
+		}
+		
+		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",DefaultTimer.class.getName());
+		try {
+			setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
+			getTimer().setConfigurationProperties(configurationProperties);
+			if (getThreadAuditor().isEnabled()) {
+	            // Start monitoring the timer thread
+	            getTimer().schedule(new PingTimer(null), 0);
+	        }
+		} catch (Exception e) {
+			getStackLogger()
+				.logError(
+						"Bad configuration value for gov.nist.javax.sip.TIMER_CLASS_NAME", e);			
 		}
 	}
 

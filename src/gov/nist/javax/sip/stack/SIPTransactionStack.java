@@ -48,6 +48,8 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.MessageParserFactory;
+import gov.nist.javax.sip.stack.timers.DefaultTimer;
+import gov.nist.javax.sip.stack.timers.SipTimer;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -134,7 +136,7 @@ public abstract class SIPTransactionStack implements
 
     // Global timer. Use this for all timer tasks.
 
-    private Timer timer;
+    private SipTimer timer;
 
     // List of pending server transactions
     private ConcurrentHashMap<String, SIPServerTransaction> pendingTransactions;
@@ -411,7 +413,7 @@ public abstract class SIPTransactionStack implements
 	
     // / Timer to regularly ping the thread auditor (on behalf of the timer
     // thread)
-    class PingTimer extends SIPStackTimerTask {
+    protected class PingTimer extends SIPStackTimerTask {
         // / Timer thread handle
         ThreadAuditor.ThreadHandle threadHandle;
 
@@ -515,16 +517,11 @@ public abstract class SIPTransactionStack implements
 
         // Start the timer event thread.
 
-        this.timer = new Timer();
+//        this.timer = new DefaultTimer();
         this.pendingTransactions = new ConcurrentHashMap<String, SIPServerTransaction>();
         
         
-        this.forkedClientTransactionTable = new ConcurrentHashMap<String,SIPClientTransaction>();
-
-        if (getThreadAuditor().isEnabled()) {
-            // Start monitoring the timer thread
-            timer.schedule(new PingTimer(null), 0);
-        }
+        this.forkedClientTransactionTable = new ConcurrentHashMap<String,SIPClientTransaction>();        
     }
 
     /**
@@ -552,7 +549,7 @@ public abstract class SIPTransactionStack implements
         this.terminatedServerTransactionsPendingAck = new ConcurrentHashMap<String,SIPServerTransaction>();
         this.forkedClientTransactionTable = new ConcurrentHashMap<String,SIPClientTransaction>();
 
-        this.timer = new Timer();
+//        this.timer = new DefaultTimer();
 
         this.activeClientTransactionCount = new AtomicInteger(0);
 
@@ -2625,16 +2622,16 @@ public abstract class SIPTransactionStack implements
 	 * @param timer
 	 *            the timer to set
      */
-    public void setTimer(Timer timer) {
+    public void setTimer(SipTimer timer) {
         this.timer = timer;
     }
 
     /**
      * @return the timer
      */
-    public Timer getTimer() throws IllegalStateException {
+    public SipTimer getTimer() throws IllegalStateException {
     	if(timer == null)
-    		throw new IllegalStateException("Stack has been stopped, no further tasks can be sceduled.");
+    		throw new IllegalStateException("Stack has been stopped, no further tasks can be scheduled.");
         return timer;
     }
 

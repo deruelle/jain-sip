@@ -100,7 +100,10 @@ public class ScheduledExecutorTimer implements SipTimer {
 		
 		public void run() {
 			 try {
-				 task.runTask();
+				 // task can be null if it has been cancelled
+				 if(task != null) {
+					 task.runTask();
+				 }
 	        } catch (Throwable e) {
 	            System.out.println("SIP stack timer task failed due to exception:");
 	            e.printStackTrace();

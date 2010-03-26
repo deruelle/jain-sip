@@ -2630,8 +2630,8 @@ public abstract class SIPTransactionStack implements
      * @return the timer
      */
     public SipTimer getTimer() throws IllegalStateException {
-    	if(timer == null)
-    		throw new IllegalStateException("Stack has been stopped, no further tasks can be scheduled.");
+//    	if(timer == null)
+//    		throw new IllegalStateException("Stack has been stopped, no further tasks can be scheduled.");
         return timer;
     }
 

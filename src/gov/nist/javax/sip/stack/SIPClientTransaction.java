@@ -212,7 +212,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
 
         }
 
-        protected void runTask() {
+        public void runTask() {
             SIPClientTransaction clientTransaction;
             SIPTransactionStack sipStack;
             clientTransaction = SIPClientTransaction.this;

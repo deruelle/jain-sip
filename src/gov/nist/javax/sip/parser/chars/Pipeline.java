@@ -65,7 +65,7 @@ public class Pipeline extends InputStream {
             this.pipeline = pipeline;
         }
 
-        protected void runTask() {
+        public void runTask() {
             if (this.isCancelled)
                 return;
 
@@ -117,7 +117,6 @@ public class Pipeline extends InputStream {
             return;
         if (this.myTimerTask != null)
         	this.timer.cancel(myTimerTask);
-            this.myTimerTask.cancel();
     }
 
     public Pipeline(InputStream pipe, int readTimeout, SipTimer timer) {

@@ -3,6 +3,7 @@ package performance.uas;
 import gov.nist.javax.sip.message.RequestExt;
 import gov.nist.javax.sip.parser.chars.CharsMsgParserFactory;
 import gov.nist.javax.sip.parser.selective.SelectiveParserFactory;
+import gov.nist.javax.sip.stack.timers.ScheduledExecutorTimer;
 
 import java.util.Properties;
 import java.util.Timer;
@@ -209,6 +210,7 @@ public class Shootme implements SipListener {
         properties.setProperty("gov.nist.javax.sip.SEND_UDP_BUFFER_SIZE", "65536");
         properties.setProperty("gov.nist.javax.sip.CONGESTION_CONTROL_ENABLED", "false");
         properties.setProperty("gov.nist.javax.sip.MESSAGE_PARSER_FACTORY", CharsMsgParserFactory.class.getName());
+//        properties.setProperty("gov.nist.javax.sip.TIMER_CLASS_NAME", ScheduledExecutorTimer.class.getName());
         try {
             // Create SipStack object
             sipStack = sipFactory.createSipStack(properties);

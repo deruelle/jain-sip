@@ -54,7 +54,8 @@ public class ScheduledExecutorTimer implements SipTimer {
 	 */
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {
-		ScheduledFuture<?> future = threadPoolExecutor.schedule(task, delay, TimeUnit.MILLISECONDS);
+		ScheduledFuture<?> future = threadPoolExecutor.schedule(new ScheduledSipTimerTask(task), delay, TimeUnit.MILLISECONDS);
+		task.setSipTimerTask((Runnable)future);
 		return true;
 	}
 
@@ -63,7 +64,8 @@ public class ScheduledExecutorTimer implements SipTimer {
 	 */
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay, long period) {
-		ScheduledFuture<?> future = threadPoolExecutor.scheduleWithFixedDelay(task, delay, period, TimeUnit.MILLISECONDS);		
+		ScheduledFuture<?> future = threadPoolExecutor.scheduleWithFixedDelay(new ScheduledSipTimerTask(task), delay, period, TimeUnit.MILLISECONDS);
+		task.setSipTimerTask((Runnable)future);
 		return true;
 	}
 
@@ -78,7 +80,31 @@ public class ScheduledExecutorTimer implements SipTimer {
 
 	@Override
 	public boolean cancel(SIPStackTimerTask task) {
-		return threadPoolExecutor.remove(task);
+		Runnable sipTimerTask = (Runnable) task.getSipTimerTask();
+		if(sipTimerTask != null) {
+			task.cleanUpBeforeCancel();
+			threadPoolExecutor.remove((Runnable)sipTimerTask);
+			return ((ScheduledFuture<?>) sipTimerTask).cancel(false);
+		} else {
+			return false;
+		}
 	}
 
+	private class ScheduledSipTimerTask implements Runnable {
+		private SIPStackTimerTask task;
+
+		public ScheduledSipTimerTask(SIPStackTimerTask task) {
+			this.task= task;			
+		}
+		
+		public void run() {
+			 try {
+				 task.runTask();
+	        } catch (Throwable e) {
+	            System.out.println("SIP stack timer task failed due to exception:");
+	            e.printStackTrace();
+	        }
+		}				
+	}
+	
 }

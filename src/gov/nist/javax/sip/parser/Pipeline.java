@@ -68,7 +68,7 @@ public class Pipeline extends InputStream {
             this.pipeline = pipeline;
         }
 
-        protected void runTask() {
+        public void runTask() {
             if (this.isCancelled)
                 return;
 

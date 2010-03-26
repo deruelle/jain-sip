@@ -30,7 +30,6 @@ import gov.nist.javax.sip.SIPConstants;
 import gov.nist.javax.sip.SipProviderImpl;
 import gov.nist.javax.sip.address.AddressFactoryImpl;
 import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.header.ViaList;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -263,7 +262,7 @@ public abstract class SIPTransaction extends MessageChannel implements
 
 //    protected String fromTag;
 
-    private boolean terminatedEventDelivered;
+    private boolean terminatedEventDelivered;        
 
     public String getBranchId() {
         return this.branch;
@@ -287,7 +286,7 @@ public abstract class SIPTransaction extends MessageChannel implements
 
         }
 
-        protected void runTask() {
+        public void runTask() {
             cleanUp();
         }
     }

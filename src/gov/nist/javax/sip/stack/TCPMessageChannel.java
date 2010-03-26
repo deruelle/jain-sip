@@ -331,17 +331,15 @@ public class TCPMessageChannel extends MessageChannel implements SIPMessageListe
                  * Delay the close of the socket for some time in case it is being used.
                  */
                 sipStack.getTimer().schedule(new SIPStackTimerTask () {
-                    @Override
-                    public boolean cancel() {
-                        try {
+                	@Override
+                	public void cleanUpBeforeCancel() {
+                		try {
                             mySock.close();
-                            super.cancel();
                         } catch (IOException ex) {
 
                         }
-                        return true;
-                    }
-
+                	}
+                    
                     public void runTask() {
                         try {
                             mySock.close();

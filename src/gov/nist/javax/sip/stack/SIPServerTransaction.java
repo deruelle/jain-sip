@@ -35,7 +35,6 @@ import gov.nist.javax.sip.header.Expires;
 import gov.nist.javax.sip.header.ParameterNames;
 import gov.nist.javax.sip.header.RSeq;
 import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.header.ViaList;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -43,14 +42,12 @@ import gov.nist.javax.sip.message.SIPResponse;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.text.ParseException;
-import java.util.TimerTask;
 import java.util.concurrent.Semaphore;
 import java.util.concurrent.TimeUnit;
 
 import javax.sip.Dialog;
 import javax.sip.DialogState;
 import javax.sip.DialogTerminatedEvent;
-import javax.sip.ListeningPoint;
 import javax.sip.ObjectInUseException;
 import javax.sip.SipException;
 import javax.sip.Timeout;
@@ -206,7 +203,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
     private SIPClientTransaction pendingSubscribeTransaction;
 
-    private SIPServerTransaction inviteTransaction;
+    private SIPServerTransaction inviteTransaction;        
    
     // Experimental.
     private static boolean interlockProvisionalResponses = true;
@@ -242,7 +239,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             this.ticksLeft = this.ticks;
         }
 
-        protected void runTask() {
+        public void runTask() {
             SIPServerTransaction serverTransaction = SIPServerTransaction.this;
             ticksLeft--;
             if (ticksLeft == -1) {
@@ -265,7 +262,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             this.ticksLeft = this.ticks;
         }
 
-        protected void runTask() {
+        public void runTask() {
             SIPServerTransaction serverTransaction = SIPServerTransaction.this;
             /*
              * The reliable provisional response is passed to the transaction layer periodically
@@ -318,7 +315,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         ListenerExecutionMaxTimer() {
         }
 
-        protected void runTask() {
+        public void runTask() {
             try {
                 if (serverTransaction.getState() == null) {
                     serverTransaction.terminate();
@@ -346,7 +343,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
         }
 
-        protected void runTask() {
+        public void runTask() {
             SIPServerTransaction serverTransaction = SIPServerTransaction.this;
 
             int realState = serverTransaction.getRealState();
@@ -379,7 +376,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
         }
 
-        protected void runTask() {
+        public void runTask() {
             // If the transaction has terminated,
             if (isTerminated()) {
                 // Keep the transaction hanging around in the transaction table

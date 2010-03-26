@@ -383,7 +383,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
 	class LingerTimer extends SIPStackTimerTask implements Serializable {
 
-        protected void runTask() {
+        public void runTask() {
             SIPDialog dialog = SIPDialog.this;                       
             sipStack.removeDialog(dialog);
             cleanUp();
@@ -403,7 +403,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 //            this.cseqNumber = transaction.getLastResponseCSeqNumber();
         }
 
-        protected void runTask() {
+        public void runTask() {
             // If I ACK has not been seen on Dialog,
             // resend last response.
             SIPDialog dialog = SIPDialog.this;
@@ -485,7 +485,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 
     class DialogDeleteTask extends SIPStackTimerTask implements Serializable {
 
-        protected void runTask() {
+        public void runTask() {
             delete();
         }
 
@@ -503,7 +503,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             this.seqno = seqno;
         }
 
-        protected void runTask() {
+        public void runTask() {
             if (SIPDialog.this.highestSequenceNumberAcknowledged < seqno) {  
                 /*
                  * Did not send ACK so we need to delete the dialog.

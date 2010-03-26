@@ -422,7 +422,7 @@ public abstract class SIPTransactionStack implements
             threadHandle = a_oThreadHandle;
         }
 
-        protected void runTask() {
+        public void runTask() {
             // Check if we still have a timer (it may be null after shutdown)
             if (getTimer() != null) {
                 // Register the timer task if we haven't done so
@@ -454,7 +454,7 @@ public abstract class SIPTransactionStack implements
         }
 
         @Override
-        protected void runTask() {
+        public void runTask() {
 			forkedClientTransactionTable.remove(((SIPRequest) clientTransaction
 					.getRequest()).getForkId());
         }

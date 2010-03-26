@@ -21,10 +21,11 @@
  */
 package gov.nist.javax.sip.stack.timers;
 
+import gov.nist.javax.sip.stack.SIPStackTimerTask;
+
 import java.util.Properties;
 import java.util.Timer;
-
-import gov.nist.javax.sip.stack.SIPStackTimerTask;
+import java.util.TimerTask;
 
 /**
  * @author jean.deruelle@gmail.com
@@ -32,21 +33,46 @@ import gov.nist.javax.sip.stack.SIPStackTimerTask;
  */
 public class DefaultTimer extends Timer implements SipTimer {
 
+	private class DefaultTimerTask extends TimerTask {
+		private SIPStackTimerTask task;
+
+		public DefaultTimerTask(SIPStackTimerTask task) {
+			this.task= task;
+			task.setSipTimerTask((Runnable)this);
+		}
+		
+		public void run() {
+			 try {
+				 task.runTask();
+	        } catch (Throwable e) {
+	            System.out.println("SIP stack timer task failed due to exception:");
+	            e.printStackTrace();
+	        }
+		}
+		
+		@Override
+		public boolean cancel() {
+			task.cleanUpBeforeCancel();
+			return super.cancel();
+		}
+	}
+	
 	@Override
-	public boolean schedule(SIPStackTimerTask task, long delay) {
-		super.schedule(task, delay);
+	public boolean schedule(SIPStackTimerTask task, long delay) {		
+		super.schedule(new DefaultTimerTask(task), delay);
 		return true;
 	}
 
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay, long period) {
-		super.schedule(task, delay, period);
+		super.schedule(new DefaultTimerTask(task), delay, period);
 		return true;
 	}
 	
 	@Override
 	public boolean cancel(SIPStackTimerTask task) {
-		return task.cancel();
+		task.cleanUpBeforeCancel();
+		return ((TimerTask)task.getSipTimerTask()).cancel();
 	}
 
 	@Override

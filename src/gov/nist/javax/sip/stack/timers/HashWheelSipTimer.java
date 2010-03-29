@@ -58,7 +58,7 @@ public class HashWheelSipTimer implements SipTimer {
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {
 		Timeout timeout = hashWheelTimer.newTimeout(new HashWheelTimerTask(task), delay, TimeUnit.MILLISECONDS);
-		task.setSipTimerTask((Runnable)timeout);
+		task.setSipTimerTask(timeout);
 		return true;
 	}
 
@@ -73,12 +73,12 @@ public class HashWheelSipTimer implements SipTimer {
 
 	@Override
 	public boolean cancel(SIPStackTimerTask task) {
-		boolean cancelled = false;
+		boolean cancelled = true;
 		Timeout sipTimerTask = (Timeout) task.getSipTimerTask();
 		if(sipTimerTask != null) {
 			task.cleanUpBeforeCancel();			
 			task.setSipTimerTask(null);
-			cancelled = ((ScheduledFuture<?>) sipTimerTask).cancel(false);
+			sipTimerTask.cancel();
 		} 
 		return cancelled;
 	}
@@ -87,8 +87,7 @@ public class HashWheelSipTimer implements SipTimer {
 		private SIPStackTimerTask task;
 
 		public HashWheelTimerTask(SIPStackTimerTask task) {
-			this.task= task;
-			task.setSipTimerTask((Runnable)this);
+			this.task= task;			
 		}		
 
 		@Override

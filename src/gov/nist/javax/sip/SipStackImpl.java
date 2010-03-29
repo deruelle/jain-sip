@@ -44,7 +44,6 @@ import gov.nist.javax.sip.stack.MessageProcessorFactory;
 import gov.nist.javax.sip.stack.OIOMessageProcessorFactory;
 import gov.nist.javax.sip.stack.SIPTransactionStack;
 import gov.nist.javax.sip.stack.timers.DefaultSipTimer;
-import gov.nist.javax.sip.stack.timers.HashWheelSipTimer;
 import gov.nist.javax.sip.stack.timers.SipTimer;
 
 import java.io.BufferedReader;
@@ -1136,7 +1135,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 						"Bad configuration value for gov.nist.javax.sip.MESSAGE_PROCESSOR_FACTORY", e);			
 		}
 		
-		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",HashWheelSipTimer.class.getName());
+		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",DefaultSipTimer.class.getName());
 		try {
 			setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
 			getTimer().start(configurationProperties);

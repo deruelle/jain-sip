@@ -464,6 +464,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             if (dialog.isAckSeen() || dialog.dialogState == TERMINATED_STATE) {
                 getStack().getTimer().cancel(this);
 
+            } else {
+	            sipStack.getTimer().schedule(this, (long) SIPTransactionStack.BASE_TIMER_INTERVAL);
             }
 
         }
@@ -2593,8 +2595,9 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 	            this.timerTask.transaction = transaction;
 	        } else {
 	            this.timerTask = new DialogTimerTask(transaction);
-	            sipStack.getTimer().schedule(timerTask, SIPTransactionStack.BASE_TIMER_INTERVAL,
-	                    SIPTransactionStack.BASE_TIMER_INTERVAL);
+	            sipStack.getTimer().schedule(timerTask, SIPTransactionStack.BASE_TIMER_INTERVAL);
+//	            sipStack.getTimer().schedule(timerTask, SIPTransactionStack.BASE_TIMER_INTERVAL,
+//	                    SIPTransactionStack.BASE_TIMER_INTERVAL);
 	        }
 		} finally {
 			releaseTimerTaskSem();

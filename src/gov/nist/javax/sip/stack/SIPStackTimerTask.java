@@ -18,7 +18,8 @@ package gov.nist.javax.sip.stack;
  *
  */
 public abstract class SIPStackTimerTask {
-	Runnable timerTask = null; 
+	// the underlying timer task that was scheduled in the Stack SIP timer
+	Object timerTask = null; 
     // / Implements code to be run when the SIPStackTimerTask is executed.
     public abstract void runTask();
     
@@ -26,11 +27,11 @@ public abstract class SIPStackTimerTask {
     	
     }
     
-	public void setSipTimerTask(Runnable runnable) {
-		timerTask = runnable;
+	public void setSipTimerTask(Object timer) {
+		timerTask = timer;
 	}
 
-	public Runnable getSipTimerTask() {
+	public Object getSipTimerTask() {
 		return timerTask;
 	}
     // / The run() method is final to ensure that all subclasses inherit the

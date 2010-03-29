@@ -25,20 +25,23 @@ import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
 import java.util.Properties;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
+import org.jboss.netty.util.HashedWheelTimer;
+import org.jboss.netty.util.Timeout;
+import org.jboss.netty.util.TimerTask;
+
 /**
+ * Implementation of the SIP Timer based on Netty(http://www.jboss.org/netty)'s HashedWheelTimer 
+ * 
  * @author jean.deruelle@gmail.com
  *
  */
-public class ScheduledExecutorTimer implements SipTimer {
-
-	ScheduledThreadPoolExecutor threadPoolExecutor;
+public class HashWheelSipTimer implements SipTimer {
+	HashedWheelTimer hashWheelTimer;
 	
-	public ScheduledExecutorTimer() {
-		threadPoolExecutor = new ScheduledThreadPoolExecutor(1);
-		threadPoolExecutor.prestartAllCoreThreads();
+	public HashWheelSipTimer() {
+		hashWheelTimer = new HashedWheelTimer(50, TimeUnit.MILLISECONDS, 1280);
 	}
 	
 	/* (non-Javadoc)
@@ -46,7 +49,7 @@ public class ScheduledExecutorTimer implements SipTimer {
 	 */
 	@Override
 	public void stop() {
-		threadPoolExecutor.shutdown();
+		hashWheelTimer.stop();
 	}
 
 	/* (non-Javadoc)
@@ -54,52 +57,43 @@ public class ScheduledExecutorTimer implements SipTimer {
 	 */
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {
-		ScheduledFuture<?> future = threadPoolExecutor.schedule(new ScheduledSipTimerTask(task), delay, TimeUnit.MILLISECONDS);
-		task.setSipTimerTask((Runnable)future);
+		Timeout timeout = hashWheelTimer.newTimeout(new HashWheelTimerTask(task), delay, TimeUnit.MILLISECONDS);
+		task.setSipTimerTask((Runnable)timeout);
 		return true;
 	}
 
 	/* (non-Javadoc)
-	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(java.util.Properties)
 	 */
 	@Override
-	public boolean schedule(SIPStackTimerTask task, long delay, long period) {
-		ScheduledFuture<?> future = threadPoolExecutor.scheduleWithFixedDelay(new ScheduledSipTimerTask(task), delay, period, TimeUnit.MILLISECONDS);
-		task.setSipTimerTask((Runnable)future);
-		return true;
-	}
-
-	/* (non-Javadoc)
-	 * @see gov.nist.javax.sip.stack.timers.SipTimer#setConfigurationProperties(java.util.Properties)
-	 */
-	@Override
-	public void setConfigurationProperties(Properties configurationProperties) {
+	public void start(Properties configurationProperties) {
 		// could be used to set the number of thread for the executor
-
+		hashWheelTimer.start();
 	}
 
 	@Override
 	public boolean cancel(SIPStackTimerTask task) {
-		Runnable sipTimerTask = (Runnable) task.getSipTimerTask();
+		boolean cancelled = false;
+		Timeout sipTimerTask = (Timeout) task.getSipTimerTask();
 		if(sipTimerTask != null) {
-			task.cleanUpBeforeCancel();
-			threadPoolExecutor.remove((Runnable)sipTimerTask);
+			task.cleanUpBeforeCancel();			
 			task.setSipTimerTask(null);
-			return ((ScheduledFuture<?>) sipTimerTask).cancel(false);
-		} else {
-			return false;
-		}
+			cancelled = ((ScheduledFuture<?>) sipTimerTask).cancel(false);
+		} 
+		return cancelled;
 	}
 
-	private class ScheduledSipTimerTask implements Runnable {
+	private class HashWheelTimerTask implements TimerTask {
 		private SIPStackTimerTask task;
 
-		public ScheduledSipTimerTask(SIPStackTimerTask task) {
-			this.task= task;			
-		}
-		
-		public void run() {
-			 try {
+		public HashWheelTimerTask(SIPStackTimerTask task) {
+			this.task= task;
+			task.setSipTimerTask((Runnable)this);
+		}		
+
+		@Override
+		public void run(Timeout timeout) throws Exception {
+			try {				
 				 // task can be null if it has been cancelled
 				 if(task != null) {
 					 task.runTask();
@@ -108,7 +102,7 @@ public class ScheduledExecutorTimer implements SipTimer {
 	            System.out.println("SIP stack timer task failed due to exception:");
 	            e.printStackTrace();
 	        }
-		}				
+		}
 	}
-	
+
 }

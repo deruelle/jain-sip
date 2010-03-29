@@ -48,7 +48,7 @@ import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
 import gov.nist.javax.sip.parser.MessageParserFactory;
-import gov.nist.javax.sip.stack.timers.DefaultTimer;
+import gov.nist.javax.sip.stack.timers.DefaultSipTimer;
 import gov.nist.javax.sip.stack.timers.SipTimer;
 
 import java.io.IOException;

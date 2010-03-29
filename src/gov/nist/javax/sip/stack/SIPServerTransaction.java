@@ -245,7 +245,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             if (ticksLeft == -1) {
                 serverTransaction.fireRetransmissionTimer();
                 this.ticksLeft = 2 * ticks;
-            }
+            } 
+            sipStack.getTimer().schedule(this, (long) SIPTransactionStack.BASE_TIMER_INTERVAL);
 
         }
 
@@ -293,7 +294,11 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                     	sipStack.getTimer().cancel(this);
                         setState(TransactionState._TERMINATED);
                         fireTimeoutTimer();
+                    } else {
+                    	getSIPStack().getTimer().schedule(this,  (long) SIPTransactionStack.BASE_TIMER_INTERVAL);
                     }
+                } else {
+                	getSIPStack().getTimer().schedule(this,  (long) SIPTransactionStack.BASE_TIMER_INTERVAL);
                 }
 
             }
@@ -404,7 +409,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // Add to the fire list -- needs to be moved
                 // outside the synchronized block to prevent
                 // deadlock.
-                fireTimer();                
+                fireTimer();                 
+                sipStack.getTimer().schedule(this, BASE_TIMER_INTERVAL);
             }
             if(originalRequest != null) {
             	originalRequest.cleanUp();
@@ -1470,8 +1476,9 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
                 this.retransmissionAlertTimerTask = new RetransmissionAlertTimerTask(dialogId);
                 sipStack.retransmissionAlertTransactions.put(dialogId, this);
-                sipStack.getTimer().schedule(this.retransmissionAlertTimerTask, 0,
-                        SIPTransactionStack.BASE_TIMER_INTERVAL);
+                sipStack.getTimer().schedule(this.retransmissionAlertTimerTask, 0);
+//                sipStack.getTimer().schedule(this.retransmissionAlertTimerTask, 0,
+//                        SIPTransactionStack.BASE_TIMER_INTERVAL);
 
             }
 
@@ -1548,7 +1555,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // The timer is set to null when the Stack is
                 // shutting down.
                 SIPStackTimerTask myTimer = new TransactionTimer();
-                sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
+                sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL);
+//                sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
                 myTimer = null;
             }
         }        
@@ -1679,8 +1687,9 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             //moved the task scheduling before the sending of the message to overcome 
             // Issue 265 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=265
             this.provisionalResponseTask = new ProvisionalResponseTask();
-            this.sipStack.getTimer().schedule(provisionalResponseTask, 0,
-                    SIPTransactionStack.BASE_TIMER_INTERVAL);
+            this.sipStack.getTimer().schedule(provisionalResponseTask, 0);
+//            this.sipStack.getTimer().schedule(provisionalResponseTask, 0,
+//                    SIPTransactionStack.BASE_TIMER_INTERVAL);
             this.sendMessage((SIPMessage) relResponse);
         } catch (Exception ex) {
             InternalErrorHandler.handleException(ex);

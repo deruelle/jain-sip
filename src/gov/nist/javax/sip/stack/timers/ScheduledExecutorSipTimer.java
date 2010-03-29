@@ -32,8 +32,6 @@ import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.ScheduledThreadPoolExecutor;
 import java.util.concurrent.TimeUnit;
 
-import org.jboss.netty.util.Timeout;
-
 /**
  * Implementation of the SIP Timer based on java.util.concurrent.ScheduledThreadPoolExecutor
  * Seems to perform 
@@ -81,17 +79,17 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	@Override
 	public boolean cancel(SIPStackTimerTask task) {
 		boolean cancelled = false;
-		Timeout sipTimerTask = (Timeout) task.getSipTimerTask();
+		ScheduledFuture<?> sipTimerTask = (ScheduledFuture<?>) task.getSipTimerTask();
 		if(sipTimerTask != null) {
 			task.cleanUpBeforeCancel();			
 			task.setSipTimerTask(null);
-			cancelled = ((ScheduledFuture<?>) sipTimerTask).cancel(false);
+			cancelled = sipTimerTask.cancel(false);
 		} 
 		// Purge is expensive when called frequently, only call it every now and then.
         // We do not sync the numCancelled variable. We dont care about correctness of
         // the number, and we will still call purge rought once on every 100 cancels.
         numCancelled++;
-        if(numCancelled % 100 == 0) {
+        if(numCancelled % 25 == 0) {
             threadPoolExecutor.purge();
         }
 		return cancelled;

@@ -981,7 +981,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // has sent trying or not and hence this
                 // check is necessary.
                 if (!isInviteTransaction()) {
-                    if (!isReliable()) {
+                    if (!isReliable() && getInternalState() != TransactionState._COMPLETED) {
                         // Linger in the completed state to catch
                         // retransmissions if the transport is not
                         // reliable.
@@ -1001,7 +1001,13 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                          * state. The server transaction remains in this state until Timer J
                          * fires, at which point it MUST transition to the "Terminated" state.
                          */
-                        enableTimeoutTimer(TIMER_J);
+//                        enableTimeoutTimer(TIMER_J);                        
+                        sipStack.getTimer().schedule(new SIPStackTimerTask () {                        	
+                            
+                            public void runTask() {
+                                fireTimeoutTimer();
+                            }
+                        }, TIMER_J * T1 * BASE_TIMER_INTERVAL);
                         cleanUpOnTimer();
                     } else {
                     	cleanUpOnTimer();
@@ -1555,16 +1561,18 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
      * Start the timer task.
      */
     protected void startTransactionTimer() {
-        if (this.transactionTimerStarted.compareAndSet(false, true)) {
-        	if (sipStack.getTimer() != null) {
-                // The timer is set to null when the Stack is
-                // shutting down.
-                SIPStackTimerTask myTimer = new TransactionTimer();
-//                sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL);
-                sipStack.getTimer().scheduleWithFixedDelay(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
-                myTimer = null;
-            }
-        }        
+    	if(getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL) || getMethod().equalsIgnoreCase(Request.ACK)) {
+	        if (this.transactionTimerStarted.compareAndSet(false, true)) {
+	        	if (sipStack.getTimer() != null) {
+	                // The timer is set to null when the Stack is
+	                // shutting down.
+	                SIPStackTimerTask myTimer = new TransactionTimer();
+	//                sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL);
+	                sipStack.getTimer().scheduleWithFixedDelay(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
+	                myTimer = null;
+	            }
+	        }        
+    	}
     }
 
     public boolean equals(Object other) {

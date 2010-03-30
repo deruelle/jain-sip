@@ -106,16 +106,20 @@ public class HashWheelSipTimer implements SipTimer {
 		}		
 
 		public void cancel() {
-			cancelled= true;
+			task = null;
+			cancelled = true;			
+			period = -1;
 		}
 
 		@Override
 		public void run(Timeout timeout) throws Exception {
 			try {				
 				 // task can be null if it has been cancelled
-				 if(task != null && !cancelled) {
+				 if(task != null) {
 					 task.runTask();
-					 scheduleAtFixedRate(task, period, period);
+					 if(period > 0 && !cancelled) {
+						 scheduleAtFixedRate(task, period, period);
+					 }
 				 }
 	        } catch (Throwable e) {
 	            System.out.println("SIP stack timer task failed due to exception:");

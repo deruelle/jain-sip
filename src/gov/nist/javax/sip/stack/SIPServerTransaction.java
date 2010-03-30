@@ -219,6 +219,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 	
 	private HostPort originalRequestSentBy;
 	private String originalRequestFromTag;
+	private byte[] originalRequestStringified;
 
     /**
      * This timer task is used for alerting the application to send retransmission alerts.
@@ -323,7 +324,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
         public void runTask() {
             try {
-                if (serverTransaction.getState() == null) {
+                if (serverTransaction.getInternalState() < 0) {
                     serverTransaction.terminate();
                     SIPTransactionStack sipStack = serverTransaction.getSIPStack();
                     sipStack.removePendingTransaction(serverTransaction);
@@ -677,8 +678,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                                     messageToTest.getCallId().getCallId())
                             && getOriginalRequest().getCSeq().getSeqNumber() == messageToTest
                                     .getCSeq().getSeqNumber()
-                            && ((!messageToTest.getCSeq().getMethod().equals(Request.CANCEL)) || getOriginalRequest()
-                                    .getMethod().equals(messageToTest.getCSeq().getMethod()))
+                            && ((!messageToTest.getCSeq().getMethod().equals(Request.CANCEL)) || 
+                                    getMethod().equals(messageToTest.getCSeq().getMethod()))
                             && topViaHeader.equals(getOriginalRequest().getTopmostVia())) {
 
                         transactionMatches = true;
@@ -809,7 +810,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
                 // If we receive a retransmission of the original
                 // request,
-            } else if (transactionRequest.getMethod().equals(getOriginalRequest().getMethod())) {
+            } else if (transactionRequest.getMethod().equals(getMethod())) {
 
                 if (TransactionState._PROCEEDING == getRealState()
                         || TransactionState._COMPLETED == getRealState()) {
@@ -841,7 +842,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             // Pass message to the TU
             if (TransactionState._COMPLETED != getRealState()
                     && TransactionState._TERMINATED != getRealState() && requestOf != null) {
-                if (getOriginalRequest().getMethod().equals(transactionRequest.getMethod())) {
+                if (getMethod().equals(transactionRequest.getMethod())) {
                     // Only send original request to TU once!
                     if (toTu) {
                         requestOf.processRequest(transactionRequest, this);
@@ -855,8 +856,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 }
             } else {
                 // This seems like a common bug so I am allowing it through!
-                if (((SIPTransactionStack) getSIPStack()).isDialogCreated(getOriginalRequest()
-                        .getMethod())
+                if (((SIPTransactionStack) getSIPStack()).isDialogCreated(getMethod())
                         && getRealState() == TransactionState._TERMINATED
                         && transactionRequest.getMethod().equals(Request.ACK)
                         && requestOf != null) {
@@ -1259,12 +1259,16 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
         if (TransactionState._COMPLETED == this.getRealState() && isInviteTransaction()) {
             raiseErrorEvent(SIPTransactionErrorEvent.TIMEOUT_ERROR);
-            this.setState(TransactionState._TERMINATED);
+            this.setState(TransactionState._TERMINATED);            
             sipStack.removeTransaction(this);
 
         } else if (TransactionState._COMPLETED == this.getRealState() && !isInviteTransaction()) {
             this.setState(TransactionState._TERMINATED);
-            sipStack.removeTransaction(this);
+            if(!getMethod().equals(Request.CANCEL)) {
+            	cleanUp();
+            } else {
+            	sipStack.removeTransaction(this);
+            }
 
         } else if (TransactionState._CONFIRMED == this.getRealState() && isInviteTransaction()) {
             // TIMER_I should not generate a timeout
@@ -1376,7 +1380,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         	final ContentTypeHeader contentTypeHeader = ((SIPResponse)response).getContentTypeHeader();
             if (this.pendingReliableResponse != null
                     && this.getDialog() != null 
-                    && this.getState() != TransactionState.TERMINATED
+                    && this.getInternalState() != TransactionState._TERMINATED
                     && statusCode / 100 == 2
                     && contentTypeHeader != null                     
                     && contentTypeHeader.getContentType()
@@ -1522,7 +1526,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
      */
     public TransactionState getState() {
         // Trying is a pseudo state for INVITE transactions.
-        if (this.isInviteTransaction() && TransactionState.TRYING == super.getState())
+        if (this.isInviteTransaction() && TransactionState._TRYING == super.getInternalState())
             return TransactionState.PROCEEDING;
         else
             return super.getState();
@@ -1842,13 +1846,25 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         // Remove it from the set
         if (sipStack.isLoggingEnabled())
             sipStack.getStackLogger().logDebug("removing" + this);
+        if(originalRequest == null && originalRequestStringified != null) {
+        	try {
+				originalRequest = (SIPRequest) sipStack.getMessageParserFactory().createMessageParser(sipStack).parseSIPMessage(originalRequestStringified, true, false, null);
+				originalRequestStringified = null;
+			} catch (ParseException e) {
+				sipStack.getStackLogger().logError("message " + originalRequestStringified + "could not be reparsed !");
+			}
+		}   
         sipStack.removeTransaction(this);
         cleanUpOnTimer();
+        originalRequestStringified = null;
+        originalRequestBranch = null;
+        originalRequestFromTag = null;
+        originalRequestSentBy = null;
         // it should be available in the processTxTerminatedEvent, so we can nullify it only here
     	if(originalRequest != null) {
 //    		originalRequestSentBy = originalRequest.getTopmostVia().getSentBy();
 //    		originalRequestFromTag = originalRequest.getFromTag();    		
-    		originalRequest = null;    		
+    		originalRequest = null;     		
     	}   
     	if(inviteTransaction != null) {    		
     		inviteTransaction = null;
@@ -1890,14 +1906,18 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	if(originalRequest != null) {
     		originalRequest.setTransaction(null);
     		originalRequest.setInviteTransaction(null);
-    		if(!originalRequest.getMethod().equalsIgnoreCase(Request.INVITE)) {
+    		if(!getMethod().equalsIgnoreCase(Request.INVITE)) {
     			if(originalRequestSentBy == null) {
     				originalRequestSentBy = originalRequest.getTopmostVia().getSentBy();
     			}
     			if(originalRequestFromTag == null) {
     				originalRequestFromTag = originalRequest.getFromTag();
     			}    			
-    		}    
+    		}
+    		if(!getMethod().equalsIgnoreCase(Request.INVITE) && !getMethod().equalsIgnoreCase(Request.CANCEL)) {
+    			originalRequestStringified = originalRequest.encodeAsBytes(this.getTransport());
+    			originalRequest = null;
+    		}    		
     	}
     	if(lastResponse != null) {
     		lastResponseAsBytes = lastResponse.encodeAsBytes(this.getTransport());
@@ -1909,5 +1929,5 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     	retransmissionAlertTimerTask = null;
     	requestOf = null;
         messageProcessor = null;
-    }
+    }	
 }

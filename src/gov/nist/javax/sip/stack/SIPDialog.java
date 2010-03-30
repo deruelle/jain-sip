@@ -3156,7 +3156,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                      * sent.
                      */
                     
-                    if (transaction.getState() != TransactionState.TERMINATED
+                    if (transaction.getInternalState() != TransactionState._TERMINATED
                             && sipResponse.getStatusCode() == Response.OK
                             && lastResponseMethod.equals(Request.INVITE)
                             && this.isBackToBackUserAgent) {
@@ -3500,7 +3500,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      *         dialog state being changed.
      */
     public boolean handleAck(SIPServerTransaction ackTransaction) {
-        SIPRequest sipRequest = ackTransaction.getOriginalRequest();
+//        SIPRequest sipRequest = ackTransaction.getOriginalRequest();
 
         if (isAckSeen() && getRemoteSeqNumber() == ackTransaction.getCSeq()) {
 

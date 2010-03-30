@@ -638,7 +638,7 @@ public abstract class SIPTransaction extends MessageChannel implements
      * @return Trus if this transaction is terminated, false if not.
      */
     public final boolean isTerminated() {
-        return getState() == TERMINATED_STATE;
+        return currentState == TransactionState._TERMINATED;
     }
 
     public String getHost() {
@@ -931,7 +931,7 @@ public abstract class SIPTransaction extends MessageChannel implements
         transactionMatches = false;
 
         if (this.getOriginalRequest() == null
-                || this.getOriginalRequest().getMethod().equals(Request.CANCEL))
+                || this.getMethod().equals(Request.CANCEL))
             return false;
         // Get the topmost Via header and its branch parameter
         topViaHeader = requestToTest.getTopmostVia();
@@ -1341,7 +1341,6 @@ public abstract class SIPTransaction extends MessageChannel implements
         } else
             throw new UnsupportedOperationException("Not a TLS channel");
     }
-
 
     /**
      * Start the timer that runs the transaction state machine.

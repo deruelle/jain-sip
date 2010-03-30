@@ -410,14 +410,14 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
 	                final SIPRequest lastRequest = (SIPRequest) lastTransaction.getRequest();
 	                final String lastRequestMethod = lastRequest.getMethod();
 	                if (lastTransaction instanceof SIPServerTransaction) {
-	                    if (lastTransaction.getState() == TransactionState.PROCEEDING
+	                    if (lastTransaction.getInternalState() == TransactionState._PROCEEDING
 	                            && lastRequestMethod.equals(Request.INVITE)) {
 	                        this.sendRequestPendingResponse(sipRequest, transaction);
 	                        return;
 	                    }
 	                } else if (lastTransaction != null && lastTransaction instanceof SIPClientTransaction) {                    
-	                    if (lastRequestMethod.equals(Request.INVITE) && lastTransaction.getState() != TransactionState.TERMINATED &&
-	                    		lastTransaction.getState() != TransactionState.COMPLETED ) {
+	                    if (lastRequestMethod.equals(Request.INVITE) && lastTransaction.getInternalState() != TransactionState._TERMINATED &&
+	                    		lastTransaction.getInternalState() != TransactionState._COMPLETED ) {
 	                        this.sendRequestPendingResponse(sipRequest, transaction);
 	                        return;
 	                    }
@@ -636,7 +636,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
 	                                    + sipRequest.getCSeq().getSeqNumber());
 	
 	                if (dialog.getRemoteSeqNumber() >= sipRequest.getCSeq().getSeqNumber()
-	                        && transaction.getState() == TransactionState.TRYING) {
+	                        && transaction.getInternalState() == TransactionState._TRYING) {
 	
 	                    this.sendServerInternalErrorResponse(sipRequest, transaction);
 	
@@ -718,7 +718,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
 	                // If the CANCEL comes in too late, there's not
 	                // much that the Listener can do so just do the
 	                // default action and avoid bothering the listener.
-	                if (st != null && st.getState() == SIPTransaction.TERMINATED_STATE) {
+	                if (st != null && st.getInternalState() == TransactionState._TERMINATED) {
 	                    // If transaction already exists but it is
 	                    // too late to cancel the transaction then
 	                    // just respond OK to the CANCEL and bail.
@@ -807,9 +807,9 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
 	                    && sipProvider.isDialogErrorsAutomaticallyHandled()
 	                    && dialog.isSequnceNumberValidation()
 	                    && lastTransaction.isInviteTransaction()
-	                    && lastTransaction.getState() != TransactionState.COMPLETED
-	                    && lastTransaction.getState() != TransactionState.TERMINATED
-	                    && lastTransaction.getState() != TransactionState.CONFIRMED) {
+	                    && lastTransaction.getInternalState() != TransactionState._COMPLETED
+	                    && lastTransaction.getInternalState() != TransactionState._TERMINATED
+	                    && lastTransaction.getInternalState() != TransactionState._CONFIRMED) {
 	
 	                if (sipStack.isLoggingEnabled()) {
 	                    sipStack.getStackLogger().logDebug(
@@ -849,7 +849,7 @@ class DialogFilter implements ServerRequestInterface, ServerResponseInterface {
 	                    && lastTransaction.isInviteTransaction()
 	                    && lastTransaction instanceof ServerTransaction 
 	                    /* && !dialog.isAckSeen() */
-	                    && lastTransaction.getState().equals(TransactionState.PROCEEDING) 
+	                    && lastTransaction.getInternalState() == TransactionState._PROCEEDING 
 	                    ) {
 	            	// Note that the completed state will be reached when we have sent an error 
 	            	// response and the terminated state will be reached when we have sent an OK 

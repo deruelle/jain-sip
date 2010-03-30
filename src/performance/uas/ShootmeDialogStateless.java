@@ -1,5 +1,8 @@
 package performance.uas;
 
+import java.text.SimpleDateFormat;
+import java.util.Calendar;
+import java.util.Date;
 import java.util.Properties;
 
 import javax.sip.DialogTerminatedEvent;
@@ -119,7 +122,6 @@ public class ShootmeDialogStateless implements SipListener {
             response.addHeader(contactHeader);
             toHeader = (ToHeader) response.getHeader(ToHeader.NAME);
             toHeader.setTag(toTag); // Application is supposed to set.
-//            response.addHeader(contactHeader);
             st.sendResponse(response);
         } catch (Exception ex) {
             ex.printStackTrace();

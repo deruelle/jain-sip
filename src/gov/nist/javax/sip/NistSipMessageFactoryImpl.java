@@ -113,13 +113,13 @@ class NistSipMessageFactoryImpl implements StackMessageFactory {
             // If the state has not yet been assigned then this is a
             // spurious response. This was moved up from the transaction
             // layer for efficiency.
-            if (tr.getState() == null) {
+            if (tr.getInternalState() < 0) {
                 if (sipStack.isLoggingEnabled())
                     sipStack.getStackLogger().logDebug(
                             "Dropping response - null transaction state");
                 return null;
                 // Ignore 1xx
-            } else if (TransactionState.COMPLETED == tr.getState()
+            } else if (TransactionState._COMPLETED == tr.getInternalState()
                     && sipResponse.getStatusCode() / 100 == 1) {
                 if (sipStack.isLoggingEnabled())
                     sipStack.getStackLogger().logDebug(

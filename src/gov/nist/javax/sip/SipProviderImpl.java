@@ -745,7 +745,7 @@ public class SipProviderImpl implements javax.sip.SipProvider, gov.nist.javax.si
         if (via == null)
             throw new SipException("No via header in response!");
         SIPServerTransaction st = (SIPServerTransaction) sipStack.findTransaction((SIPMessage)response, true);
-        if ( st != null   && st.getState() != TransactionState.TERMINATED && this.isAutomaticDialogSupportEnabled()) {
+        if ( st != null   && st.getInternalState() != TransactionState._TERMINATED && this.isAutomaticDialogSupportEnabled()) {
             throw new SipException("Transaction exists -- cannot send response statelessly");
         }
         String transport = via.getTransport();

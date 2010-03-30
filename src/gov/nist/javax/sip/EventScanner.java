@@ -259,7 +259,7 @@ class EventScanner implements Runnable {
                 if (eventWrapper.transaction != null)
                     sipStack
                             .removePendingTransaction((SIPServerTransaction) eventWrapper.transaction);
-                if (eventWrapper.transaction.getOriginalRequest().getMethod()
+                if (eventWrapper.transaction.getMethod()
                         .equals(Request.ACK)) {
                     // Set the tx state to terminated so it is removed from the
                     // stack
@@ -348,9 +348,9 @@ class EventScanner implements Runnable {
                 // that state may be released.
                 SIPClientTransaction ct = (SIPClientTransaction) eventWrapper.transaction;
                 if (ct != null
-                        && TransactionState.COMPLETED == ct.getState()
-                        && ct.getOriginalRequest() != null
-                        && !ct.getOriginalRequest().getMethod().equals(
+                        && TransactionState._COMPLETED == ct.getInternalState()
+//                        && ct.getOriginalRequest() != null
+                        && !ct.getMethod().equals(
                                 Request.INVITE)) {
                     // reduce the state to minimum
                     // This assumes that the application will not need

@@ -51,7 +51,7 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 			 try {
 				 // task can be null if it has been cancelled
 				 if(task != null) {
-					 task.runTask();
+					 task.runTask();					 
 				 }
 	        } catch (Throwable e) {
 	            System.out.println("SIP stack timer task failed due to exception:");
@@ -76,6 +76,13 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	}
 	
 	@Override
+	public boolean scheduleAtFixedRate(SIPStackTimerTask task, long delay,
+			long period) {
+		super.schedule(new DefaultTimerTask(task), delay, period);
+		return true;
+	}
+	
+	@Override
 	public boolean cancel(SIPStackTimerTask task) {
 		return ((TimerTask)task.getSipTimerTask()).cancel();
 	}
@@ -89,7 +96,6 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	public void stop() {
 		cancel();		
 	}
-
 
 
 }

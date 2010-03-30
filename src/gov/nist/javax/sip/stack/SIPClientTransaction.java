@@ -38,7 +38,6 @@ import gov.nist.javax.sip.header.RouteList;
 import gov.nist.javax.sip.header.TimeStamp;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.header.ViaList;
 import gov.nist.javax.sip.message.SIPMessage;
 import gov.nist.javax.sip.message.SIPRequest;
 import gov.nist.javax.sip.message.SIPResponse;
@@ -47,7 +46,6 @@ import java.io.IOException;
 import java.text.ParseException;
 import java.util.ListIterator;
 import java.util.Set;
-import java.util.TimerTask;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 import javax.sip.Dialog;
@@ -270,7 +268,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 // Fire the transaction timer.
                 clientTransaction.fireTimer();
                                 
-                sipStack.getTimer().schedule(this, BASE_TIMER_INTERVAL);
+//                sipStack.getTimer().schedule(this, BASE_TIMER_INTERVAL);
             }
 
         }
@@ -1316,8 +1314,8 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         if (this.transactionTimerStarted.compareAndSet(false, true)) {
         	SIPStackTimerTask myTimer = new TransactionTimer();
 	        if ( sipStack.getTimer() != null ) {
-//	            sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
-	        	sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL);
+	            sipStack.getTimer().scheduleAtFixedRate(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
+//	        	sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL);
 	        }
         }
     }

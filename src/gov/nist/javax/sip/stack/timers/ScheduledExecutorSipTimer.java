@@ -66,6 +66,18 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 		task.setSipTimerTask(future);
 		return true;
 	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleAtFixedRate(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
+	 */
+	@Override
+	public boolean scheduleAtFixedRate(SIPStackTimerTask task, long delay,
+			long period) {
+		ScheduledFuture<?> future = threadPoolExecutor.scheduleAtFixedRate(new ScheduledSipTimerTask(task), delay, period, TimeUnit.MILLISECONDS);
+		task.setSipTimerTask(future);
+		return true;
+	}
 
 	/* (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#setConfigurationProperties(java.util.Properties)

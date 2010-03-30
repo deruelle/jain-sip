@@ -24,7 +24,6 @@ package gov.nist.javax.sip.stack.timers;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
 import java.util.Properties;
-import java.util.concurrent.ScheduledFuture;
 import java.util.concurrent.TimeUnit;
 
 import org.jboss.netty.util.HashedWheelTimer;
@@ -57,7 +56,19 @@ public class HashWheelSipTimer implements SipTimer {
 	 */
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {
-		Timeout timeout = hashWheelTimer.newTimeout(new HashWheelTimerTask(task), delay, TimeUnit.MILLISECONDS);
+		Timeout timeout = hashWheelTimer.newTimeout(new HashWheelTimerTask(task, -1), delay, TimeUnit.MILLISECONDS);
+		task.setSipTimerTask(timeout);
+		return true;
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleAtFixedRate(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
+	 */
+	@Override
+	public boolean scheduleAtFixedRate(SIPStackTimerTask task, long delay,
+			long period) {
+		Timeout timeout = hashWheelTimer.newTimeout(new HashWheelTimerTask(task, period), delay, TimeUnit.MILLISECONDS);
 		task.setSipTimerTask(timeout);
 		return true;
 	}
@@ -76,7 +87,8 @@ public class HashWheelSipTimer implements SipTimer {
 		boolean cancelled = true;
 		Timeout sipTimerTask = (Timeout) task.getSipTimerTask();
 		if(sipTimerTask != null) {
-			task.cleanUpBeforeCancel();			
+			task.cleanUpBeforeCancel();
+			((HashWheelTimerTask)sipTimerTask.getTask()).cancel();
 			task.setSipTimerTask(null);
 			sipTimerTask.cancel();
 		} 
@@ -85,17 +97,25 @@ public class HashWheelSipTimer implements SipTimer {
 
 	private class HashWheelTimerTask implements TimerTask {
 		private SIPStackTimerTask task;
-
-		public HashWheelTimerTask(SIPStackTimerTask task) {
-			this.task= task;			
+		private long period;
+		private boolean cancelled = false;
+		
+		public HashWheelTimerTask(SIPStackTimerTask task, long period) {
+			this.task= task;
+			this.period = period;
 		}		
+
+		public void cancel() {
+			cancelled= true;
+		}
 
 		@Override
 		public void run(Timeout timeout) throws Exception {
 			try {				
 				 // task can be null if it has been cancelled
-				 if(task != null) {
+				 if(task != null && !cancelled) {
 					 task.runTask();
+					 scheduleAtFixedRate(task, period, period);
 				 }
 	        } catch (Throwable e) {
 	            System.out.println("SIP stack timer task failed due to exception:");

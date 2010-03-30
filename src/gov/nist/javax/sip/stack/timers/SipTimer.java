@@ -47,6 +47,15 @@ public interface SipTimer {
 	boolean schedule(SIPStackTimerTask task, long delay);
 	
 	/**
+	 * Schedule a new SIPStackTimerTask after the specified delay
+	 * @param task the task to schedule
+	 * @param delay the delay in milliseconds to schedule the task
+	 * @param period the period to run the task after it has been first scheduled 
+	 * @return true if the task was correctly scheduled, false otherwise
+	 */
+	boolean scheduleAtFixedRate(SIPStackTimerTask task, long delay, long period);
+	
+	/**
 	 * Stop the Timer (called when the stack is stop or reinitialized)
 	 */
 	void stop();

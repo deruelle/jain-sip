@@ -69,29 +69,49 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 		}
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
+	 */
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {		
 		super.schedule(new DefaultTimerTask(task), delay);
 		return true;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
+	 */
 	@Override
-	public boolean scheduleAtFixedRate(SIPStackTimerTask task, long delay,
+	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
 		super.schedule(new DefaultTimerTask(task), delay, period);
 		return true;
 	}
 	
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
+	 */
 	@Override
 	public boolean cancel(SIPStackTimerTask task) {
 		return ((TimerTask)task.getSipTimerTask()).cancel();
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(java.util.Properties)
+	 */
 	@Override
 	public void start(Properties configurationProperties) {
 		// don't need the properties so nothing to see here
 	}
 
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#stop()
+	 */
 	@Override
 	public void stop() {
 		cancel();		

@@ -66,7 +66,7 @@ public class HashWheelSipTimer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleAtFixedRate(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
 	@Override
-	public boolean scheduleAtFixedRate(SIPStackTimerTask task, long delay,
+	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
 		Timeout timeout = hashWheelTimer.newTimeout(new HashWheelTimerTask(task, period), delay, TimeUnit.MILLISECONDS);
 		task.setSipTimerTask(timeout);
@@ -118,7 +118,7 @@ public class HashWheelSipTimer implements SipTimer {
 				 if(task != null) {
 					 task.runTask();
 					 if(period > 0 && !cancelled) {
-						 scheduleAtFixedRate(task, period, period);
+						 scheduleWithFixedDelay(task, period, period);
 					 }
 				 }
 	        } catch (Throwable e) {

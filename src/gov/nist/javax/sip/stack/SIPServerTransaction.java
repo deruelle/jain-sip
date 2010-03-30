@@ -1478,7 +1478,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 this.retransmissionAlertTimerTask = new RetransmissionAlertTimerTask(dialogId);
                 sipStack.retransmissionAlertTransactions.put(dialogId, this);
 //                sipStack.getTimer().schedule(this.retransmissionAlertTimerTask, 0);
-                sipStack.getTimer().scheduleAtFixedRate(this.retransmissionAlertTimerTask, 0,
+                sipStack.getTimer().scheduleWithFixedDelay(this.retransmissionAlertTimerTask, 0,
                         SIPTransactionStack.BASE_TIMER_INTERVAL);
 
             }
@@ -1557,7 +1557,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // shutting down.
                 SIPStackTimerTask myTimer = new TransactionTimer();
 //                sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL);
-                sipStack.getTimer().scheduleAtFixedRate(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
+                sipStack.getTimer().scheduleWithFixedDelay(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
                 myTimer = null;
             }
         }        
@@ -1689,7 +1689,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             // Issue 265 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=265
             this.provisionalResponseTask = new ProvisionalResponseTask();
 //            this.sipStack.getTimer().schedule(provisionalResponseTask, 0);
-            this.sipStack.getTimer().scheduleAtFixedRate(provisionalResponseTask, 0,
+            this.sipStack.getTimer().scheduleWithFixedDelay(provisionalResponseTask, 0,
                     SIPTransactionStack.BASE_TIMER_INTERVAL);
             this.sendMessage((SIPMessage) relResponse);
         } catch (Exception ex) {

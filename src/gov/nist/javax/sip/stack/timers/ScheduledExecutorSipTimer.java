@@ -69,12 +69,12 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	
 	/*
 	 * (non-Javadoc)
-	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleAtFixedRate(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
 	@Override
-	public boolean scheduleAtFixedRate(SIPStackTimerTask task, long delay,
+	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
-		ScheduledFuture<?> future = threadPoolExecutor.scheduleAtFixedRate(new ScheduledSipTimerTask(task), delay, period, TimeUnit.MILLISECONDS);
+		ScheduledFuture<?> future = threadPoolExecutor.scheduleWithFixedDelay(new ScheduledSipTimerTask(task), delay, period, TimeUnit.MILLISECONDS);
 		task.setSipTimerTask(future);
 		return true;
 	}
@@ -95,13 +95,14 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 		if(sipTimerTask != null) {
 			task.cleanUpBeforeCancel();			
 			task.setSipTimerTask(null);
+			threadPoolExecutor.remove((Runnable)sipTimerTask);
 			cancelled = sipTimerTask.cancel(false);
 		} 
 		// Purge is expensive when called frequently, only call it every now and then.
         // We do not sync the numCancelled variable. We dont care about correctness of
         // the number, and we will still call purge rought once on every 100 cancels.
         numCancelled++;
-        if(numCancelled % 25 == 0) {
+        if(numCancelled % 50 == 0) {
             threadPoolExecutor.purge();
         }
 		return cancelled;

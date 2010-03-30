@@ -2597,7 +2597,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 	        } else {
 	            this.timerTask = new DialogTimerTask(transaction);
 //	            sipStack.getTimer().schedule(this.timerTask, SIPTransactionStack.BASE_TIMER_INTERVAL);
-	            sipStack.getTimer().scheduleAtFixedRate(timerTask, SIPTransactionStack.BASE_TIMER_INTERVAL,
+	            sipStack.getTimer().scheduleWithFixedDelay(timerTask, SIPTransactionStack.BASE_TIMER_INTERVAL,
 	                    SIPTransactionStack.BASE_TIMER_INTERVAL);
 	        }
 		} finally {

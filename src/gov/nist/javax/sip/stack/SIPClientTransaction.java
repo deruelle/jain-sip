@@ -1314,7 +1314,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         if (this.transactionTimerStarted.compareAndSet(false, true)) {
         	SIPStackTimerTask myTimer = new TransactionTimer();
 	        if ( sipStack.getTimer() != null ) {
-	            sipStack.getTimer().scheduleAtFixedRate(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
+	            sipStack.getTimer().scheduleWithFixedDelay(myTimer, BASE_TIMER_INTERVAL, BASE_TIMER_INTERVAL);
 //	        	sipStack.getTimer().schedule(myTimer, BASE_TIMER_INTERVAL);
 	        }
         }

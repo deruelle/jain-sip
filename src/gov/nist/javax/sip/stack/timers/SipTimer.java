@@ -53,7 +53,7 @@ public interface SipTimer {
 	 * @param period the period to run the task after it has been first scheduled 
 	 * @return true if the task was correctly scheduled, false otherwise
 	 */
-	boolean scheduleAtFixedRate(SIPStackTimerTask task, long delay, long period);
+	boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay, long period);
 	
 	/**
 	 * Stop the Timer (called when the stack is stop or reinitialized)

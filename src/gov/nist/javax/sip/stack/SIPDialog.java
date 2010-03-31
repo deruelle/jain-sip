@@ -732,8 +732,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         this.setLastResponse(null, sipResponse);
         this.localSequenceNumber = sipResponse.getCSeq().getSeqNumber();
         this.originalLocalSequenceNumber = localSequenceNumber;
-        this.myTag = sipResponse.getFrom().getTag();
-        this.hisTag = sipResponse.getTo().getTag();
+        this.setLocalTag(sipResponse.getFrom().getTag());
+        this.setRemoteTag(sipResponse.getTo().getTag());
         this.localParty = sipResponse.getFrom().getAddress();
         this.remoteParty = sipResponse.getTo().getAddress();
         this.method = sipResponse.getCSeq().getMethod();
@@ -1660,7 +1660,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
             } else {
                 setLocalSequenceNumber(sipRequest.getCSeq().getSeqNumber());
                 this.originalLocalSequenceNumber = localSequenceNumber;
-                this.myTag = sipRequest.getFrom().getTag();
+                this.setLocalTag(sipRequest.getFrom().getTag());
                 if (myTag == null)
                 	if (sipStack.isLoggingEnabled())
                 		sipStack.getStackLogger().logError(
@@ -1920,7 +1920,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      */
     private void setLocalTag(String mytag) {
         if (sipStack.isLoggingEnabled()) {
-            sipStack.getStackLogger().logDebug("set Local tag " + mytag + " " + this.dialogId);
+            sipStack.getStackLogger().logDebug("set Local tag " + mytag + " dialog = " + this);
             sipStack.getStackLogger().logStackTrace();
         }
 
@@ -3173,7 +3173,8 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
                                     sipStack.getStackLogger().logDebug(
                                             "Delete dialog -- cannot acquire ackSem");
                                 }
-                                this.delete();
+                                this.raiseErrorEvent(SIPDialogErrorEvent.DIALOG_ERROR_INTERNAL_COULD_NOT_TAKE_ACK_SEM);       
+                            	this.sipStack.getStackLogger().logError("IntenalError : Ack Sem already acquired ");
                                 return;
                             }
                         

@@ -1427,6 +1427,10 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                         // the user.
                         sipResponse.getTo().setTag(Utils.getInstance().generateTag());
                     } else if (dialog.getLocalTag() != null && sipResponse.getToTag() == null) {
+                    	if ( sipStack.getStackLogger().isLoggingEnabled()) {
+                    		sipStack.getStackLogger().logDebug("assigning toTag : serverTransaction = " + this + " dialog " 
+                    				+ dialog + " tag = " + dialog.getLocalTag());
+                    	}
                         sipResponse.setToTag(dialog.getLocalTag());
                     } else if (dialog.getLocalTag() != null && sipResponse.getToTag() != null
                             && !dialog.getLocalTag().equals(sipResponse.getToTag())) {

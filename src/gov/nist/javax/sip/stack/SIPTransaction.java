@@ -187,6 +187,7 @@ public abstract class SIPTransaction extends MessageChannel implements
 
     // Original request that is being handled by this transaction
     protected SIPRequest originalRequest;
+    protected byte[] originalRequestBytes;
     protected long originalRequestCSeqNumber;
     protected String originalRequestBranch;	
     protected boolean originalRequestHasPort;

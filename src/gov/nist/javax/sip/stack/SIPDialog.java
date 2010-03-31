@@ -1589,9 +1589,14 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     private static void storeFirstTransactionInfo(SIPDialog dialog, SIPTransaction transaction) {
     	dialog.firstTransaction = transaction;
     	dialog.firstTransactionSeen = true;
-    	dialog.firstTransactionIsServerTransaction = transaction.isServerTransaction(); 
-    	dialog.firstTransactionSecure = transaction.getRequest().getRequestURI().getScheme()
-        	.equalsIgnoreCase("sips");
+    	dialog.firstTransactionIsServerTransaction = transaction.isServerTransaction();
+    	if(dialog.firstTransactionIsServerTransaction) {
+    		dialog.firstTransactionSecure = transaction.getRequest().getRequestURI().getScheme()
+        		.equalsIgnoreCase("sips");
+    	} else {
+    		dialog.firstTransactionSecure = ((SIPClientTransaction)transaction).getOriginalRequestScheme()
+    			.equalsIgnoreCase("sips");
+    	}
     	dialog.firstTransactionPort = transaction.getPort();
     	dialog.firstTransactionId = transaction.getBranchId();
     	dialog.firstTransactionMethod = transaction.getMethod();    	
@@ -1606,8 +1611,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         } else {
             SIPClientTransaction ct = (SIPClientTransaction) transaction;
             if (ct != null){
-            	SIPRequest sipRequest = ct.getOriginalRequest();
-            	dialog.contactHeader = sipRequest.getContactHeader();
+            	dialog.contactHeader = ct.getOriginalRequestContact();
             }
         }
     }

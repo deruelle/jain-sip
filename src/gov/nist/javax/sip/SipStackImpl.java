@@ -486,7 +486,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 
 	// Flag to indicate that the listener is re-entrant and hence
 	// Use this flag with caution.
-	boolean reEntrantListener;
+	private boolean reEntrantListener;
 
 	SipListener sipListener;
 	TlsSecurityPolicy tlsSecurityPolicy;
@@ -1601,6 +1601,13 @@ public class SipStackImpl extends SIPTransactionStack implements
 	 */
 	public Properties getConfigurationProperties() {
 		return configurationProperties;
+	}
+	
+	/**
+	 * @return the reEntrantListener
+	 */
+	public boolean isReEntrantListener() {
+		return reEntrantListener;
 	}
 
 

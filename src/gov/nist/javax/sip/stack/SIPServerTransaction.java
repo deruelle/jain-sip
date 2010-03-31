@@ -219,7 +219,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 	
 	private HostPort originalRequestSentBy;
 	private String originalRequestFromTag;
-	private byte[] originalRequestStringified;
 
     /**
      * This timer task is used for alerting the application to send retransmission alerts.
@@ -1854,17 +1853,17 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         // Remove it from the set
         if (sipStack.isLoggingEnabled())
             sipStack.getStackLogger().logDebug("removing" + this);
-        if(originalRequest == null && originalRequestStringified != null) {
+        if(originalRequest == null && originalRequestBytes != null) {
         	try {
-				originalRequest = (SIPRequest) sipStack.getMessageParserFactory().createMessageParser(sipStack).parseSIPMessage(originalRequestStringified, true, false, null);
-				originalRequestStringified = null;
+				originalRequest = (SIPRequest) sipStack.getMessageParserFactory().createMessageParser(sipStack).parseSIPMessage(originalRequestBytes, true, false, null);
+				originalRequestBytes = null;
 			} catch (ParseException e) {
-				sipStack.getStackLogger().logError("message " + originalRequestStringified + "could not be reparsed !");
+				sipStack.getStackLogger().logError("message " + originalRequestBytes + "could not be reparsed !");
 			}
 		}   
         sipStack.removeTransaction(this);
         cleanUpOnTimer();
-        originalRequestStringified = null;
+        originalRequestBytes = null;
         originalRequestBranch = null;
         originalRequestFromTag = null;
         originalRequestSentBy = null;
@@ -1893,6 +1892,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 sipStack.getStackLogger().logDebug("Use Count = " + useCount);
             }
         }
+        transactionTimerStarted = null;
     }
     
     protected void cleanUpOnTimer() {
@@ -1923,7 +1923,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     			}    			
     		}
     		if(!getMethod().equalsIgnoreCase(Request.INVITE) && !getMethod().equalsIgnoreCase(Request.CANCEL)) {
-    			originalRequestStringified = originalRequest.encodeAsBytes(this.getTransport());
+    			originalRequestBytes = originalRequest.encodeAsBytes(this.getTransport());
     			originalRequest = null;
     		}    		
     	}

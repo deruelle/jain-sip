@@ -905,8 +905,8 @@ public abstract class SIPTransactionStack implements
                     continue;
 
                 // if ( sipProvider.getListeningPoint(transport) == null)
-                String fromTag = ct.getOriginalRequest().getFromTag();
-                Event hisEvent = (Event) ct.getOriginalRequest().getHeader("Event");
+                String fromTag = ct.getOriginalRequestFromTag();
+                Event hisEvent = (Event) ct.getOriginalRequestEvent();
                 // Event header is mandatory but some slopply clients
                 // dont include it.
                 if (hisEvent == null)
@@ -922,7 +922,7 @@ public abstract class SIPTransactionStack implements
                       && hisEvent != null
                       && eventHdr.match(hisEvent)
                       && notifyMessage.getCallId().getCallId().equalsIgnoreCase(
-                                ct.getOriginalRequest().getCallId().getCallId())) {
+                                ct.getOriginalRequestCallId())) {
                     if (!this.isDeliverUnsolicitedNotify() ) {
                         ct.acquireSem();
                     }      

@@ -184,7 +184,7 @@ public class SipProviderImpl implements javax.sip.SipProvider, gov.nist.javax.si
 
         EventWrapper eventWrapper = new EventWrapper(sipEvent, transaction);
 
-        if (!sipStack.reEntrantListener) {
+        if (!sipStack.isReEntrantListener()) {
             // Run the event in the context of a single thread.
             this.eventScanner.addEvent(eventWrapper);
         } else {

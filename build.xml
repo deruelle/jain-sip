@@ -92,8 +92,7 @@ c:/jakarta-ant/bin/ant all
     <property name="junit_jar" value="${junit}" />
     <property name="log4j_jar" value="${log4j}" />
     <property name="jdom_jar" value="${jdom}"/>
-    <property name="ant_jar" value="${ant}"/>
-	<property name="netty_jar" value="${netty}" />
+    <property name="ant_jar" value="${ant}"/>	
 
 
     <property environment="sys" />
@@ -265,7 +264,6 @@ c:/jakarta-ant/bin/ant all
                                 excludes="gov/nist/javax/sip/stack/sctp/**/*.java">
                         <classpath>
                             <pathelement location="${log4j_jar}" />
-                        	<pathelement location="${netty_jar}" />
                         </classpath>
                     </jain-javac>
                     <copy file="TIMESTAMP" toDir="classes/" />
@@ -327,7 +325,6 @@ c:/jakarta-ant/bin/ant all
                         <classpath>
                             <pathelement location="${log4j_jar}" />
                             <pathelement location="${junit_jar}" />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='lib/sipxcommons.jar' />
                         </classpath>
                     </jain-javac>
@@ -352,7 +349,6 @@ c:/jakarta-ant/bin/ant all
                         <classpath>
                             <pathelement location="${log4j_jar}" />
                             <pathelement location="${junit_jar}" />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location="${jakarta_regexp_jar}" />
                         </classpath>
                     </jain-javac>
@@ -366,7 +362,6 @@ c:/jakarta-ant/bin/ant all
                         <include name="test/rihelper/**/*.java" />
                         <classpath>
                             <pathelement location='${junit_jar}' />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='${log4j_jar}' />
                         </classpath>
                     </jain-javac>
@@ -396,7 +391,6 @@ c:/jakarta-ant/bin/ant all
                             <pathelement location="${log4j_jar}" />
                             <pathelement location="${jain-sip-tck-jar}" />
                             <pathelement location='${junit_jar}' />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='${log4j_jar}' />
                             
                             <pathelement location='${jain-sip-sctp-jar}'/> <!-- only for Java 7 -->
@@ -437,7 +431,6 @@ c:/jakarta-ant/bin/ant all
                             <pathelement location="${log4j_jar}" />
                             <pathelement location="${jain-sip-tck-jar}" />
                             <pathelement location='${junit_jar}' />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='${log4j_jar}' />
 
                             <!-- add source path since this will pick up test.tck.gui.images -->
@@ -480,7 +473,6 @@ c:/jakarta-ant/bin/ant all
                             <pathelement location="${classes}" />
                             <pathelement location="${log4j_jar}" />
                             <pathelement location='${junit_jar}' />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='${log4j_jar}' />
 
                             <!-- add source path since this will pick up test.tck.gui.images -->
@@ -517,7 +509,6 @@ c:/jakarta-ant/bin/ant all
                             <pathelement location="${log4j_jar}" />
                             <pathelement location="${jain-sip-tck-jar}" />
                             <pathelement location='${junit_jar}' />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='${log4j_jar}' />
                             <pathelement location='${unit_test_jar}' />
 
@@ -554,7 +545,6 @@ c:/jakarta-ant/bin/ant all
                             <pathelement location="${log4j_jar}" />
                             <pathelement location="${jain-sip-tck-jar}" />
                             <pathelement location='${junit_jar}' />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='${log4j_jar}' />
                             <pathelement location='${unit_test_jar}' />
 
@@ -595,7 +585,6 @@ c:/jakarta-ant/bin/ant all
                             <pathelement location="${jain-sip-ri-jar}" />
                             <pathelement location="${log4j_jar}" />
                             <pathelement location='${junit_jar}' />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='${log4j_jar}' />
                             <pathelement location='${unit_test_jar}' />
 
@@ -624,7 +613,6 @@ c:/jakarta-ant/bin/ant all
                             <pathelement location="${jain-sip-ri-jar}" />
                             <pathelement location="${log4j_jar}" />
                             <pathelement location='${junit_jar}' />
-                        	<pathelement location="${netty_jar}" />
                             <pathelement location='${log4j_jar}' />
                             <pathelement location='${unit_test_jar}' />
 

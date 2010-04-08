@@ -7,6 +7,5 @@
 	<classpathentry kind="lib" path="ant-tasks/lib/jdom.jar"/>
 	<classpathentry kind="lib" path="ant-tasks/lib/ant.jar"/>
 	<classpathentry kind="lib" path="lib/log4j-1.2.15.jar"/>
-	<classpathentry kind="lib" path="lib/netty-3.2.0.BETA1.jar"/>
 	<classpathentry kind="output" path="classes"/>
 </classpath>

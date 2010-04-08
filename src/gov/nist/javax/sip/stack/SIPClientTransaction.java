@@ -49,6 +49,7 @@ import java.text.ParseException;
 import java.util.ListIterator;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import javax.sip.Dialog;
 import javax.sip.DialogState;
@@ -220,6 +221,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
 	private String originalRequestScheme;
 	
 	private Object transactionTimerLock = new Object();
+	private AtomicBoolean timerKStarted = new AtomicBoolean(false);
 	private boolean transactionTimerCancelled = false;
 
     public class TransactionTimer extends SIPStackTimerTask {
@@ -653,7 +655,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     }    
 
 	private void scheduleTimerK() {
-		if(transactionTimer != null) {
+		if(transactionTimer != null &&  timerKStarted.compareAndSet(false, true)) {
 			synchronized (transactionTimerLock) {
 				if(!transactionTimerCancelled) {
 					sipStack.getTimer().cancel(transactionTimer);
@@ -1081,7 +1083,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 }
             }
         }
-        if (TransactionState._COMPLETED != this.getInternalState()) {
+        if (TransactionState._COMPLETED != this.getInternalState() && TransactionState._TERMINATED != this.getInternalState()) {
             raiseErrorEvent(SIPTransactionErrorEvent.TIMEOUT_ERROR);
             // Got a timeout error on a cancel.
             if (this.getMethod().equalsIgnoreCase(Request.CANCEL)) {
@@ -1501,7 +1503,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
      */
     public SIPDialog getDialog(String dialogId) {
     	SIPDialog retval = null;
-    	if(sipDialogs.contains(dialogId)) {
+    	if(sipDialogs != null && sipDialogs.contains(dialogId)) {
     		retval = this.sipStack.getDialog(dialogId);
     		if(retval == null) {
     			retval = this.sipStack.getEarlyDialog(dialogId);
@@ -1533,7 +1535,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 this.getSIPStack().addForkedClientTransaction(this);
             }
         }
-        if (dialogId != null && sipDialog.getDialogId() != null) {
+        if (dialogId != null && sipDialog.getDialogId() != null && sipDialogs != null) {
             this.sipDialogs.add(dialogId);
         }
 
@@ -1648,12 +1650,15 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
 //    	applicationData = null;    	
     	if(sipDialogs != null) {
 	    	sipDialogs.clear();	    	
+//	    	sipDialogs = null;
     	}
     	respondTo = null;
     	transactionTimer = null;
     	lastResponse = null;
     	transactionTimerLock = null;
     	transactionTimerStarted = null;
+    	timerKStarted = null;    	
+    	
     }
     
     protected void cleanUpOnTerminated() {

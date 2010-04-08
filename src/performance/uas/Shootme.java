@@ -183,6 +183,13 @@ public class Shootme implements SipListener {
     }
 
     public void processTimeout(javax.sip.TimeoutEvent timeoutEvent) {
+    	Request request = null;
+    	if(timeoutEvent.getClientTransaction() == null) {
+    		request = timeoutEvent.getServerTransaction().getRequest();
+    	} else {
+    		request = timeoutEvent.getClientTransaction().getRequest();
+    	}
+    	System.out.println(request);
     }
 
     public void init() {        
@@ -252,13 +259,19 @@ public class Shootme implements SipListener {
 
     public void processTransactionTerminated(
             TransactionTerminatedEvent transactionTerminatedEvent) {
-    	Request request = transactionTerminatedEvent.getServerTransaction().getRequest();
-//    	System.out.println(request);
+    	Request request = null;
+    	if(transactionTerminatedEvent.getClientTransaction() == null) {
+    		request = transactionTerminatedEvent.getServerTransaction().getRequest();
+    	} else {
+    		request = transactionTerminatedEvent.getClientTransaction().getRequest();
+    	}
+    	System.out.println(request);
     }
 
     public void processDialogTerminated(
             DialogTerminatedEvent dialogTerminatedEvent) {
-
+    	Dialog dialog = dialogTerminatedEvent.getDialog();
+    	System.out.println(dialog);
     }
 
 }

@@ -1122,8 +1122,13 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 if (!isReliable()) {
 
                     disableRetransmissionTimer();
-                    enableTimeoutTimer(TIMER_J);
-
+//                    enableTimeoutTimer(TIMER_J);
+                    sipStack.getTimer().schedule(new SIPStackTimerTask () {                        	
+                        
+                        public void runTask() {
+                            fireTimeoutTimer();
+                        }
+                    }, TIMER_J * T1 * BASE_TIMER_INTERVAL);
                 } else {
 
                     this.setState(TransactionState._TERMINATED);

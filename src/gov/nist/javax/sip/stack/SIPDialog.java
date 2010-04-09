@@ -573,6 +573,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     }
     
     protected void cleanUpOnAck() {
+    	if (sipStack.isLoggingEnabled()) {
+            sipStack.getStackLogger().logDebug("cleanupOnAck : "
+                    + getDialogId());
+        }
     	if(originalRequest != null) {
 //    		originalRequestRecordRouteHeaders = originalRequest.getRecordRouteHeaders();
     		if(originalRequestRecordRouteHeaders != null) {
@@ -617,6 +621,10 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     }
     
     protected void cleanUp() {
+    	if (sipStack.isLoggingEnabled()) {
+            sipStack.getStackLogger().logDebug("cleanup : "
+                    + getDialogId());
+        }
     	if(eventListeners != null) {
         	eventListeners.clear();
         }

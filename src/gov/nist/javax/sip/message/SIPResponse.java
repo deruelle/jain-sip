@@ -29,39 +29,22 @@
 package gov.nist.javax.sip.message;
 
 import gov.nist.core.InternalErrorHandler;
-import gov.nist.javax.sip.Utils;
-import gov.nist.javax.sip.address.SipUri;
 import gov.nist.javax.sip.header.CSeq;
 import gov.nist.javax.sip.header.CallID;
-import gov.nist.javax.sip.header.ContactList;
-import gov.nist.javax.sip.header.ContentLength;
-import gov.nist.javax.sip.header.ContentType;
 import gov.nist.javax.sip.header.From;
-import gov.nist.javax.sip.header.MaxForwards;
-import gov.nist.javax.sip.header.ReasonList;
-import gov.nist.javax.sip.header.RecordRouteList;
-import gov.nist.javax.sip.header.RequireList;
-import gov.nist.javax.sip.header.SIPHeader;
 import gov.nist.javax.sip.header.StatusLine;
 import gov.nist.javax.sip.header.To;
 import gov.nist.javax.sip.header.Via;
-import gov.nist.javax.sip.header.ViaList;
-import gov.nist.javax.sip.header.extensions.SessionExpires;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
-import java.util.Iterator;
 import java.util.LinkedList;
-
-import javax.sip.header.ReasonHeader;
-import javax.sip.header.ServerHeader;
-import javax.sip.message.Request;
 
 
 /**
  * SIP Response structure.
  *
- * @version 1.2 $Revision: 1.31 $ $Date: 2010/03/15 17:01:22 $
+ * @version 1.2 $Revision: 1.32 $ $Date: 2010/04/17 10:56:21 $
  * @since 1.1
  *
  * @author M. Ranganathan   <br/>
@@ -547,75 +530,6 @@ public class SIPResponse
         System.arraycopy(superbytes, 0, retval, slbytes.length,
                 superbytes.length);
         return retval;
-    }
-
-
-
-    /** Get a dialog identifier.
-     * Generates a string that can be used as a dialog identifier.
-     *
-     * @param isServer is set to true if this is the UAS
-     * and set to false if this is the UAC
-     */
-    public String getDialogId(boolean isServer) {
-        CallID cid = (CallID) this.getCallId();
-        From from = (From) this.getFrom();
-        To to = (To) this.getTo();
-        StringBuilder retval = new StringBuilder(cid.getCallId());
-        if (!isServer) {
-            //retval.append(COLON).append(from.getUserAtHostPort());
-            if (from.getTag() != null) {
-                retval.append(COLON);
-                retval.append(from.getTag());
-            }
-            //retval.append(COLON).append(to.getUserAtHostPort());
-            if (to.getTag() != null) {
-                retval.append(COLON);
-                retval.append(to.getTag());
-            }
-        } else {
-            //retval.append(COLON).append(to.getUserAtHostPort());
-            if (to.getTag() != null) {
-                retval.append(COLON);
-                retval.append(to.getTag());
-            }
-            //retval.append(COLON).append(from.getUserAtHostPort());
-            if (from.getTag() != null) {
-                retval.append(COLON);
-                retval.append(from.getTag());
-            }
-        }
-        return retval.toString().toLowerCase();
-    }
-
-    public String getDialogId(boolean isServer, String toTag) {
-        CallID cid = (CallID) this.getCallId();
-        From from = (From) this.getFrom();
-        StringBuilder retval = new StringBuilder(cid.getCallId());
-        if (!isServer) {
-            //retval.append(COLON).append(from.getUserAtHostPort());
-            if (from.getTag() != null) {
-                retval.append(COLON);
-                retval.append(from.getTag());
-            }
-            //retval.append(COLON).append(to.getUserAtHostPort());
-            if (toTag != null) {
-                retval.append(COLON);
-                retval.append(toTag);
-            }
-        } else {
-            //retval.append(COLON).append(to.getUserAtHostPort());
-            if (toTag != null) {
-                retval.append(COLON);
-                retval.append(toTag);
-            }
-            //retval.append(COLON).append(from.getUserAtHostPort());
-            if (from.getTag() != null) {
-                retval.append(COLON);
-                retval.append(from.getTag());
-            }
-        }
-        return retval.toString().toLowerCase();
     }
 
     /**

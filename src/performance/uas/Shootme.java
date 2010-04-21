@@ -189,7 +189,7 @@ public class Shootme implements SipListener {
     	} else {
     		request = timeoutEvent.getClientTransaction().getRequest();
     	}
-    	System.out.println(request);
+    	//System.out.println(request);
     }
 
     public void init() {        
@@ -265,13 +265,13 @@ public class Shootme implements SipListener {
     	} else {
     		request = transactionTerminatedEvent.getClientTransaction().getRequest();
     	}
-    	System.out.println(request);
+    	//System.out.println(request);
     }
 
     public void processDialogTerminated(
             DialogTerminatedEvent dialogTerminatedEvent) {
     	Dialog dialog = dialogTerminatedEvent.getDialog();
-    	System.out.println(dialog);
+    	//System.out.println(dialog);
     }
 
 }

@@ -1000,13 +1000,13 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                          * state. The server transaction remains in this state until Timer J
                          * fires, at which point it MUST transition to the "Terminated" state.
                          */
-//                        enableTimeoutTimer(TIMER_J);                        
-                        sipStack.getTimer().schedule(new SIPStackTimerTask () {                        	
-                            
-                            public void runTask() {
-                                fireTimeoutTimer();
-                            }
-                        }, TIMER_J * T1 * BASE_TIMER_INTERVAL);
+                        enableTimeoutTimer(TIMER_J);                        
+//                        sipStack.getTimer().schedule(new SIPStackTimerTask () {                        	
+//                            
+//                            public void runTask() {
+//                                fireTimeoutTimer();
+//                            }
+//                        }, TIMER_J * T1 * BASE_TIMER_INTERVAL);
                         cleanUpOnTimer();
                     } else {
                     	cleanUpOnTimer();
@@ -1569,7 +1569,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
      * Start the timer task.
      */
     protected void startTransactionTimer() {
-    	if(getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL) || getMethod().equalsIgnoreCase(Request.ACK)) {
+//    	if(getMethod().equalsIgnoreCase(Request.INVITE) || getMethod().equalsIgnoreCase(Request.CANCEL) || getMethod().equalsIgnoreCase(Request.ACK)) {
 	        if (this.transactionTimerStarted.compareAndSet(false, true)) {
 	        	if (sipStack.getTimer() != null) {
 	                // The timer is set to null when the Stack is
@@ -1580,7 +1580,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 	                myTimer = null;
 	            }
 	        }        
-    	}
+//    	}
     }
 
     public boolean equals(Object other) {

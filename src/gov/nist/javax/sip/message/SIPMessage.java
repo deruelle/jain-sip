@@ -1947,7 +1947,6 @@ public abstract class SIPMessage extends MessageObject implements javax.sip.mess
     public abstract String toString();
     
     public void cleanUp() {
-//    	applicationData = null;
 //    	callIdHeader = null;
 //    	contentEncodingCharset = null;
 //    	contentLengthHeader = null;

@@ -23,6 +23,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class ThreadAuditor {
     /// Threads being monitored
+    //jeand : moved to concurrent to avoid blocking witnessed by profiler
     private Map<Thread,ThreadHandle> threadHandles = new ConcurrentHashMap<Thread,ThreadHandle>();
 
     /// How often are threads supposed to ping

@@ -33,6 +33,7 @@ import java.util.Map;
 import java.util.Set;
 
 public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable {
+	// jeand : lazy init of the map to reduce mem consumption
     private HashMap<String, ArrayList<V>> map = null;
 
     private static final long serialVersionUID = 4275505380960964605L;
@@ -47,7 +48,7 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
         	keyList = map.get(key);
         }
         if (keyList == null) {
-            keyList = new ArrayList<V>(10);
+            keyList = new ArrayList<V>();
             getMap().put(key, keyList);
         }
 
@@ -88,7 +89,7 @@ public class MultiValueMapImpl<V> implements MultiValueMap<String, V>, Cloneable
 
     public Collection values() {
     	if(map == null) {
-    		return new ArrayList(0);
+    		return new ArrayList();
     	}
         ArrayList returnList = new ArrayList(map.size());
 

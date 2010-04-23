@@ -186,6 +186,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     private transient ServerRequestInterface requestOf;
 
     private SIPDialog dialog;
+    // jeand needed because we nullify the dialog ref early and keep only the dialogId to save on mem and help GC
     private String dialogId;
 
     // the unacknowledged SIPResponse
@@ -210,6 +211,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     
     private Semaphore provisionalResponseSem = new Semaphore(1);
 
+    // jeand we nullify the last response fast to save on mem and help GC, but we keep only the information needed
 	private byte[] lastResponseAsBytes;
 	private String lastResponseHost;
 	private int lastResponsePort;
@@ -246,7 +248,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 serverTransaction.fireRetransmissionTimer();
                 this.ticksLeft = 2 * ticks;
             } 
-//            sipStack.getTimer().schedule(this, (long) SIPTransactionStack.BASE_TIMER_INTERVAL);
 
         }
 
@@ -295,11 +296,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                         setState(TransactionState._TERMINATED);
                         fireTimeoutTimer();
                     } 
-//                    else {
-//                    	getSIPStack().getTimer().schedule(this,  (long) SIPTransactionStack.BASE_TIMER_INTERVAL);
-//                    }
-//                } else {
-//                	getSIPStack().getTimer().schedule(this,  (long) SIPTransactionStack.BASE_TIMER_INTERVAL);
                 }
 
             }
@@ -411,7 +407,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                 // outside the synchronized block to prevent
                 // deadlock.
                 fireTimer();                 
-//                sipStack.getTimer().schedule(this, BASE_TIMER_INTERVAL);
             }
             if(originalRequest != null) {
             	originalRequest.cleanUp();
@@ -815,11 +810,11 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
                         || TransactionState._COMPLETED == getRealState()) {
                     this.semRelease();
                     // Resend the last response to
-                    // the client                    
+                    // the client             
+                    // Send the message to the client       
                     if(lastResponse != null) {
                     	super.sendMessage(lastResponse);
                     } else if (lastResponseAsBytes != null) {
-                         // Send the message to the client
                          super.getMessageChannel().sendMessage(lastResponseAsBytes, this.getPeerInetAddress(), this.getPeerPort(), false);
                     }
                 } else if (transactionRequest.getMethod().equals(Request.ACK)) {
@@ -1194,6 +1189,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
     }
 
+    // jeand we nullify the last response very fast to save on mem and help GC but we keep it as byte array
+    // so this method is used to resend the last response either as a response or byte array depending on if it has been nullified
     public void resendLastResponseAsBytes() throws IOException {
 	
     	if(lastResponse != null) {
@@ -1495,7 +1492,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
 
                 this.retransmissionAlertTimerTask = new RetransmissionAlertTimerTask(dialogId);
                 sipStack.retransmissionAlertTransactions.put(dialogId, this);
-//                sipStack.getTimer().schedule(this.retransmissionAlertTimerTask, 0);
                 sipStack.getTimer().scheduleWithFixedDelay(this.retransmissionAlertTimerTask, 0,
                         SIPTransactionStack.BASE_TIMER_INTERVAL);
 
@@ -1601,20 +1597,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     		return sipStack.getDialog(dialogId);
     	}
     	return dialog;
-//    	SIPDialog sipDialog = null;
-//    	if(dialog != null) {
-//    		return dialog;
-//    	}
-//    	if(dialogId != null) {
-//    		sipDialog = this.sipStack.getDialog(dialogId);
-//    		if(sipDialog == null) {
-//    			sipDialog = this.sipStack.getEarlyDialog(dialogId);
-//    		}
-//    		if(sipDialog == null) {
-//    			sipDialog = this.sipStack.getNullStateDialog(dialogId);
-//    		}
-//    	}
-//    	return sipDialog;
     }
 
     /*
@@ -1626,13 +1608,8 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
     public void setDialog(SIPDialog sipDialog, String dialogId) {
         if (sipStack.isLoggingEnabled())
             sipStack.getStackLogger().logDebug("setDialog " + this + " dialog = " + sipDialog);
-        dialog = sipDialog;
-//        if(dialogId == null) {
-//        	this.dialogId = sipDialog.getEarlyDialogId();
-//        } else {
-        	this.dialogId = dialogId;
-//        }
-        
+        this.dialog = sipDialog;
+       	this.dialogId = dialogId;
         if (dialogId != null)
             sipDialog.setAssigned();
         if (this.retransmissionAlertEnabled && this.retransmissionAlertTimerTask != null) {
@@ -1708,7 +1685,6 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
             //moved the task scheduling before the sending of the message to overcome 
             // Issue 265 : https://jain-sip.dev.java.net/issues/show_bug.cgi?id=265
             this.provisionalResponseTask = new ProvisionalResponseTask();
-//            this.sipStack.getTimer().schedule(provisionalResponseTask, 0);
             this.sipStack.getTimer().scheduleWithFixedDelay(provisionalResponseTask, 0,
                     SIPTransactionStack.BASE_TIMER_INTERVAL);
             this.sendMessage((SIPMessage) relResponse);
@@ -1853,6 +1829,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         this.startTransactionTimer();
     }
 
+    // jeand cleanup the state of the stx to help GC
     public void cleanUp() {
     	// release the connection associated with this transaction.
         if (sipStack.isLoggingEnabled()) {
@@ -1904,6 +1881,7 @@ public class SIPServerTransaction extends SIPTransaction implements ServerReques
         transactionTimerStarted = null;
     }
     
+    // clean up the state of the stx when it goes to completed or terminated to help GC
     protected void cleanUpOnTimer() {
     	if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger().logDebug("cleanup on timer : "

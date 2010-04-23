@@ -48,6 +48,10 @@ import gov.nist.javax.sip.message.SIPResponse;
 
 import java.io.UnsupportedEncodingException;
 import java.text.ParseException;
+/*
+ * Acknowledgement: 1/12/2007: Yanick Belanger rewrote the parsing loops to make them
+ * simpler and quicker.
+ */
 
 /**
  * Parse SIP message and parts of SIP messages such as URI's etc from memory and
@@ -72,11 +76,6 @@ import java.text.ParseException;
  */
 public class StringMsgParser implements MessageParser {
 
-//    protected boolean readBody;
-//    protected ParseExceptionListener parseExceptionListener;
-//    protected String rawStringMessage;
-//    protected boolean strict;
-
     protected static boolean computeContentLengthFromMessage = false;
 
     /**
@@ -84,31 +83,7 @@ public class StringMsgParser implements MessageParser {
      */
     public StringMsgParser() {
         super();
-//        readBody = true;
     }
-
-//    /**
-//     * Constructor (given a parse exception handler).
-//     *
-//     * @since 1.0
-//     * @param exhandler
-//     *            is the parse exception listener for the message parser.
-//     */
-//    public StringMsgParser(ParseExceptionListener exhandler) {
-//        this();
-//        parseExceptionListener = exhandler;
-//    }
-//
-//    /**
-//     * Add a handler for header parsing errors.
-//     *
-//     * @param pexhandler
-//     *            is a class that implements the ParseExceptionListener
-//     *            interface.
-//     */
-//    public void setParseExceptionListener(ParseExceptionListener pexhandler) {
-//        parseExceptionListener = pexhandler;
-//    }
 
     /**
      * Parse a buffer containing a single SIP Message where the body is an array
@@ -229,120 +204,6 @@ public class StringMsgParser implements MessageParser {
 
         return message;
     }
-
-    /**
-     * Parse a buffer containing one or more SIP Messages and return an array of
-     * SIPMessage parsed structures.
-     *
-     * @param msgString
-     *            a String containing the messages to be parsed. This can
-     *            consist of multiple SIP Messages concatenated together.
-     * @return a SIPMessage structure (request or response) containing the
-     *         parsed SIP message.
-     * @exception ParseException
-     *                is thrown when an illegal message has been encountered
-     *                (and the rest of the buffer is discarded).
-     * @see ParseExceptionListener
-     */
-//    public SIPMessage parseSIPMessage(String msgString) throws ParseException {
-//        if (msgString == null || msgString.length() == 0)
-//            return null;
-//
-//        rawStringMessage = msgString;
-//
-//        int i = 0;
-//
-//        // Squeeze out any leading control character.
-//        try {
-//            while (msgString.charAt(i) < 0x20)
-//                i++;
-//        }
-//        catch (ArrayIndexOutOfBoundsException e) {
-//            // Array contains only control char, return null.
-//            return null;
-//        } catch (StringIndexOutOfBoundsException ex) {
-//            return null;
-//        }
-//
-//        // Iterate thru the request/status line and headers.
-//        String currentLine = null;
-//        String currentHeader = null;
-//        boolean isFirstLine = true;
-//        SIPMessage message = null;
-//        do
-//        {
-//            int lineStart = i;
-//
-//            // Find the length of the line.
-//            try {
-//                char c = msgString.charAt(i);
-//                while (c != '\r' && c != '\n')
-//                    c = msgString.charAt(++i);
-//            }
-//            catch (ArrayIndexOutOfBoundsException e) {
-//                // End of the message.
-//                break;
-//            } catch ( StringIndexOutOfBoundsException ex) {
-//                break;
-//            }
-//
-//            // Make it a String.
-//            currentLine = msgString.substring(lineStart, i);
-//            currentLine = trimEndOfLine(currentLine);
-//
-//            if (currentLine.length() == 0) {
-//                // Last header line, process the previous buffered header.
-//                if (currentHeader != null) {
-//                    processHeader(currentHeader, message);
-//                }
-//            }
-//            else {
-//                if (isFirstLine) {
-//                    message = processFirstLine(currentLine);
-//                } else {
-//                    char firstChar = currentLine.charAt(0);
-//                    if (firstChar == '\t' || firstChar == ' ') {
-//                        if (currentHeader == null)
-//                            throw new ParseException("Bad header continuation.", 0);
-//
-//                        // This is a continuation, append it to the previous line.
-//                        currentHeader += currentLine.substring(1);
-//                    }
-//                    else {
-//                        if (currentHeader != null) {
-//                            processHeader(currentHeader, message);
-//                        }
-//                        currentHeader = currentLine;
-//                    }
-//                }
-//            }
-//
-//            if (msgString.charAt(i) == '\r' && msgString.length() > i+1 && msgString.charAt(i+1) == '\n')
-//                i++;
-//
-//            i++;
-//
-//            isFirstLine = false;
-//        }
-//        while (currentLine.length() > 0);
-//
-//        message.setSize(i);
-//
-//        // Check for content legth header
-//        if (readBody && message.getContentLength() != null ) {
-//            if ( message.getContentLength().getContentLength() != 0) {
-//                String body = msgString.substring(i);
-//                message.setMessageContent(body,this.strict,computeContentLengthFromMessage,message.getContentLength().getContentLength());
-//             } else if (!computeContentLengthFromMessage && message.getContentLength().getContentLength() == 0 && !msgString.endsWith("\r\n\r\n") ){
-//                 if ( strict ) {
-//                     throw new ParseException("Extraneous characters at the end of the message ",i);
-//                 }
-//             } 
-//
-//        }
-//
-//        return message;
-//    }
 
     protected static String trimEndOfLine(String line) {
         if (line == null)
@@ -719,14 +580,5 @@ public class StringMsgParser implements MessageParser {
         }
 
     }
-
-//    public void setStrict(boolean strict) {
-//       this.strict = strict;
-//        
-//    }
-//
-//	public void setReadBody(boolean readBody) {
-//		this.readBody = readBody;
-//	}
 
 }

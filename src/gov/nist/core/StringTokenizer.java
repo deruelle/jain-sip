@@ -40,6 +40,7 @@ import java.text.ParseException;
 
 public class StringTokenizer {
 
+	// jeand : moving to char array instead of string, more efficient CPU and mem wise
     protected char[] buffer;
     protected int bufferLen;
     protected int ptr;

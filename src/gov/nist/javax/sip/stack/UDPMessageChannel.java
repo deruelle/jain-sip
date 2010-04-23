@@ -171,7 +171,7 @@ public class UDPMessageChannel extends MessageChannel implements
         super.messageProcessor = messageProcessor;
         this.sipStack = stack;
 
-        // Create a new string message parser to parse the list of messages.
+        // jeand : Create a new string message parser to parse the list of messages.
         myParser = sipStack.getMessageParserFactory().createMessageParser(sipStack);                
 
         Thread mythread = new Thread(this);
@@ -203,7 +203,7 @@ public class UDPMessageChannel extends MessageChannel implements
         super.messageProcessor = messageProcessor;
         this.sipStack = stack;
 
-        // Create a new string message parser to parse the list of messages.
+        // jeand : Create a new string message parser to parse the list of messages.
         myParser = sipStack.getMessageParserFactory().createMessageParser(sipStack);                
         
         this.myAddress = messageProcessor.getIpAddress().getHostAddress();
@@ -234,7 +234,7 @@ public class UDPMessageChannel extends MessageChannel implements
         this.myAddress = messageProcessor.getIpAddress().getHostAddress();
         this.myPort = messageProcessor.getPort();
         this.sipStack = sipStack;
-        // Create a new string message parser to parse the list of messages.
+        // jeand : Create a new string message parser to parse the list of messages.
         myParser = sipStack.getMessageParserFactory().createMessageParser(sipStack);                
 
         if (sipStack.isLoggingEnabled()) {
@@ -262,15 +262,15 @@ public class UDPMessageChannel extends MessageChannel implements
 //                        if (!udpMessageProcessor.isRunning)
 //                            return;
 ////                        try {
-//                            // We're part of a thread pool. Ask the auditor to
-//                            // monitor this thread.
-//                            if (threadHandle == null) {
-//                                threadHandle = sipStack.getThreadAuditor()
-//                                        .addCurrentThread();
-//                            }
-//
-//                            // Send a heartbeat to the thread auditor
-//                            threadHandle.ping();
+                            // We're part of a thread pool. Ask the auditor to
+                            // monitor this thread.
+                            if (threadHandle == null) {
+                                threadHandle = sipStack.getThreadAuditor()
+                                        .addCurrentThread();
+                            }
+
+                            // Send a heartbeat to the thread auditor
+                            threadHandle.ping();
 ////                            long pingInterval = threadHandle.getPingIntervalInMillisecs();
 //                            // Wait for packets
 //                            // Note: getPingInterval returns 0 (infinite) if the

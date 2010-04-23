@@ -186,6 +186,8 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     // a SIP Client transaction may belong simultaneously to multiple
     // dialogs in the early state. These dialogs all have
     // the same call ID and same From tag but different to tags.
+    
+    //jeand : we don't keep the ref to the dialogs but only to their id to save on memory
     private Set<String> sipDialogs;
 
     private SIPRequest lastRequest;
@@ -197,6 +199,8 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     // Real ResponseInterface to pass messages to
     private transient ServerResponseInterface respondTo;
 
+    // jeand: ref to the default dialog id to allow nullying the ref to the dialog quickly
+    // and thus saving on mem
     private String defaultDialogId;
     private SIPDialog defaultDialog;
 
@@ -209,15 +213,12 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     private int callingStateTimeoutCount;
     
     private SIPStackTimerTask transactionTimer;
-
+    
+    // jeand/ avoid keeping the full Original Request in memory
 	private String originalRequestFromTag;
-
 	private String originalRequestCallId;
-
 	private Event originalRequestEventHeader;
-
 	private Contact originalRequestContact;
-
 	private String originalRequestScheme;
 	
 	private Object transactionTimerLock = new Object();
@@ -639,7 +640,6 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
                 if (!isReliable()) {
                     this.setState(TransactionState._COMPLETED);
                     scheduleTimerK();
-                    cleanUpOnTimer();
                 } else {
                     this.setState(TransactionState._TERMINATED);
                 }
@@ -654,6 +654,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         }
     }    
 
+    // avoid re-scheduling the transaction timer every 500ms while we know we have to wait for TIMER_K * 500 ms
 	private void scheduleTimerK() {
 		if(transactionTimer != null &&  timerKStarted.compareAndSet(false, true)) {
 			synchronized (transactionTimerLock) {
@@ -1543,7 +1544,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
 
     public SIPDialog getDefaultDialog() {
     	SIPDialog dialog = defaultDialog;
-    	
+    	// jeand if the dialog has been nullified then get the dialog from the saved dialog id
     	if(dialog == null && defaultDialogId != null) {
     		dialog = this.sipStack.getDialog(defaultDialogId);    		
     	}
@@ -1591,6 +1592,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
         this.callingStateTimeoutCount = count;
     }
 
+    // jeand method use to cleanup eagerly all structures that won't be needed anymore once the tx passed in the COMPLETED state
     protected void cleanUpOnTimer() {
     	if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger().logDebug("cleanupOnTimer: "
@@ -1626,7 +1628,8 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     	lastRequest = null;
 	}
     
-    @Override
+    //jeand : cleanup method to clear the state of the tx once it has been removed from the stack
+    @Override    
     public void cleanUp() {
     	// release the connection associated with this transaction.
         if (sipStack.isLoggingEnabled()) {
@@ -1661,6 +1664,7 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     	
     }
     
+    // jeand cleanup called after the ctx timer or the timer k has fired
     protected void cleanUpOnTerminated() {
 		
 		if (sipStack.isLoggingEnabled()) {

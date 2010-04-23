@@ -83,7 +83,7 @@ public class LexerCore extends StringTokenizer {
     public static final int AND = (int) '&';
     public static final int UNDERSCORE = (int) '_';
 
-    // jeand : using concurrent data structure to avoid excessive blocking
+    // jeand : using concurrent data structure to avoid excessive blocking witnessed during profiling
     protected static final ConcurrentHashMap<Integer, String> globalSymbolTable;
     protected static final ConcurrentHashMap<String, ConcurrentHashMap<String, Integer>> lexerTables;
     protected Map<String, Integer> currentLexer;
@@ -372,12 +372,12 @@ public class LexerCore extends StringTokenizer {
     }
 
     public String ttoken() {
-        int startIdx = ptr;        
+        int startIdx = ptr;
         try {
             while (hasMoreChars()) {
                 char nextChar = lookAhead(0);
                 if ( isTokenChar(nextChar) ) {
-                    consume(1);                    
+                    consume(1);
                 } else {
                     break;
                 }
@@ -525,9 +525,9 @@ public class LexerCore extends StringTokenizer {
     * closing quote.
     */
     public String quotedString() throws ParseException {
-        int startIdx = ptr + 1;        
+        int startIdx = ptr + 1;
         if (lookAhead(0) != '\"')
-            return null;        
+            return null;
         consume(1);
         while (true) {
             char next = getNextChar();

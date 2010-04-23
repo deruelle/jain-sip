@@ -33,7 +33,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.LinkedList;
 import java.util.NoSuchElementException;
-import java.util.Timer;
 
 /**
  * Input class for the pipelined parser. Buffer all bytes read from the socket

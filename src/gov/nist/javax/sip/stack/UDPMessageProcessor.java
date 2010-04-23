@@ -123,9 +123,9 @@ public class UDPMessageProcessor extends MessageProcessor {
              * If the thread auditor is enabled, define a socket timeout value in order to
              * prevent sock.receive() from blocking forever
              */
-//            if (sipStack.getThreadAuditor().isEnabled()) {
-//                sock.setSoTimeout((int) sipStack.getThreadAuditor().getPingIntervalInMillisecs());
-//            }
+            if (sipStack.getThreadAuditor().isEnabled()) {
+                sock.setSoTimeout((int) sipStack.getThreadAuditor().getPingIntervalInMillisecs());
+            }
             if ( ipAddress.getHostAddress().equals(IN_ADDR_ANY)  ||
                  ipAddress.getHostAddress().equals(IN6_ADDR_ANY)){
                 // Store the address to which we are actually bound
@@ -242,9 +242,10 @@ public class UDPMessageProcessor extends MessageProcessor {
                     // condition you will have to call notifyAll instead of
                     // notify below.
 
-                    // was addLast
-                    this.messageQueue.offer(packet);
+                    this.messageQueue.offer(packet);                 
 //                    synchronized (messageQueue) {
+                          // was addLast   
+//                    	  this.messageQueue.add(packet);
 //                        this.messageQueue.notify();
 //                    }
                 } else {

@@ -1,4 +1,7 @@
 /.cvsignore/1.1/Sat Oct 17 13:30:15 2009//
 /README/1.1/Mon Nov  5 22:25:46 2007//
-/pom.xml/1.19/Thu Oct 22 15:00:32 2009//
-D
+D/jain-sip-api////
+D/jain-sip-ri////
+D/jain-sip-sctp////
+D/nist-sdp////
+/pom.xml/1.20/Fri Apr 23 07:49:47 2010//

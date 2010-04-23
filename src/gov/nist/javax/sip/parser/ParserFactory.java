@@ -140,7 +140,7 @@ import javax.sip.header.WarningHeader;
  *
  */
 public class ParserFactory {
-
+	//jeand : moving to concurrent structures to avoid blocking witnessed during profiling
     private static Map<String,Class<? extends HeaderParser>> parserTable;
     private static Class[] constructorArgs;
     private static ConcurrentHashMap<Class, Constructor> parserConstructorCache;

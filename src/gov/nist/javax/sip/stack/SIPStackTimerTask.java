@@ -20,7 +20,7 @@ package gov.nist.javax.sip.stack;
 public abstract class SIPStackTimerTask {
 	// the underlying timer task that was scheduled in the Stack SIP timer
 	Object timerTask = null; 
-    // / Implements code to be run when the SIPStackTimerTask is executed.
+    // Implements code to be run when the SIPStackTimerTask is executed.
     public abstract void runTask();
     
     public void cleanUpBeforeCancel() {
@@ -34,14 +34,4 @@ public abstract class SIPStackTimerTask {
 	public Object getSipTimerTask() {
 		return timerTask;
 	}
-    // / The run() method is final to ensure that all subclasses inherit the
-    // exception handling.
-//    public final void run() {
-//        try {
-//            runTask();
-//        } catch (Throwable e) {
-//            System.out.println("SIP stack timer task failed due to exception:");
-//            e.printStackTrace();
-//        }
-//    }
 }

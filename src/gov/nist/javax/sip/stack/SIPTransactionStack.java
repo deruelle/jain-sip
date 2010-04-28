@@ -1848,7 +1848,7 @@ public abstract class SIPTransactionStack implements
             this.timer.stop();
 
         // JvB: set it to null, SIPDialog tries to schedule things after stop
-        timer = null;
+//        timer = null;
         this.pendingTransactions.clear();
         this.toExit = true;
         synchronized (this) {

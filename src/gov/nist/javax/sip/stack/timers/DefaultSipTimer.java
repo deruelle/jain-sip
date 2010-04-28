@@ -30,6 +30,7 @@ import gov.nist.javax.sip.stack.SIPStackTimerTask;
 import java.util.Properties;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * Default SIP Timer implementation based on java.util.Timer 
@@ -39,6 +40,8 @@ import java.util.TimerTask;
  */
 public class DefaultSipTimer extends Timer implements SipTimer {
 
+	protected AtomicBoolean started = new AtomicBoolean(false);
+	
 	private class DefaultTimerTask extends TimerTask {
 		private SIPStackTimerTask task;
 
@@ -74,7 +77,10 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
 	@Override
-	public boolean schedule(SIPStackTimerTask task, long delay) {		
+	public boolean schedule(SIPStackTimerTask task, long delay) {
+		if(!started.get()) {
+			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
+		}
 		super.schedule(new DefaultTimerTask(task), delay);
 		return true;
 	}
@@ -86,6 +92,9 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	@Override
 	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
+		if(!started.get()) {
+			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
+		}
 		super.schedule(new DefaultTimerTask(task), delay, period);
 		return true;
 	}
@@ -106,6 +115,7 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	@Override
 	public void start(Properties configurationProperties) {
 		// don't need the properties so nothing to see here
+		started.set(true);
 	}
 
 	/*
@@ -114,6 +124,7 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	 */
 	@Override
 	public void stop() {
+		started.set(false);
 		cancel();		
 	}
 

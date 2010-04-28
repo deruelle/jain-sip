@@ -62,6 +62,9 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 */
 	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {
+		if(threadPoolExecutor.isShutdown()) {
+			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
+		}
 		ScheduledFuture<?> future = threadPoolExecutor.schedule(new ScheduledSipTimerTask(task), delay, TimeUnit.MILLISECONDS);
 		task.setSipTimerTask(future);
 		return true;
@@ -74,6 +77,9 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	@Override
 	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
+		if(threadPoolExecutor.isShutdown()) {
+			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
+		}
 		ScheduledFuture<?> future = threadPoolExecutor.scheduleWithFixedDelay(new ScheduledSipTimerTask(task), delay, period, TimeUnit.MILLISECONDS);
 		task.setSipTimerTask(future);
 		return true;

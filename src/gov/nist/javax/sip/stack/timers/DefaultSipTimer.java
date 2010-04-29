@@ -25,7 +25,10 @@
 */
 package gov.nist.javax.sip.stack.timers;
 
+import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
+import gov.nist.javax.sip.stack.SIPTransactionStack;
 
 import java.util.Properties;
 import java.util.Timer;
@@ -41,6 +44,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 public class DefaultSipTimer extends Timer implements SipTimer {
 
 	protected AtomicBoolean started = new AtomicBoolean(false);
+	protected SipStackImpl sipStackImpl;
 	
 	private class DefaultTimerTask extends TimerTask {
 		private SIPStackTimerTask task;
@@ -110,12 +114,16 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 
 	/*
 	 * (non-Javadoc)
-	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(java.util.Properties)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl, java.util.Properties)
 	 */
 	@Override
-	public void start(Properties configurationProperties) {
+	public void start(SipStackImpl sipStack, Properties configurationProperties) {
+		sipStackImpl= sipStack;
 		// don't need the properties so nothing to see here
 		started.set(true);
+		if(sipStackImpl.getStackLogger().isLoggingEnabled(StackLogger.TRACE_INFO)) {
+			sipStackImpl.getStackLogger().logInfo("the sip stack timer " + this.getClass().getName() + " has been started");
+		}
 	}
 
 	/*
@@ -126,6 +134,10 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	public void stop() {
 		started.set(false);
 		cancel();		
+		sipStackImpl.getStackLogger().logStackTrace(StackLogger.TRACE_DEBUG);
+		if(sipStackImpl.getStackLogger().isLoggingEnabled(StackLogger.TRACE_INFO)) {
+			sipStackImpl.getStackLogger().logInfo("the sip stack timer " + this.getClass().getName() + " has been stopped");
+		}
 	}
 
 

@@ -1136,7 +1136,7 @@ public class SipStackImpl extends SIPTransactionStack implements
 		String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",DefaultSipTimer.class.getName());
 		try {
 			setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
-			getTimer().start(configurationProperties);
+			getTimer().start(this, configurationProperties);
 			if (getThreadAuditor().isEnabled()) {
 	            // Start monitoring the timer thread
 	            getTimer().schedule(new PingTimer(null), 0);

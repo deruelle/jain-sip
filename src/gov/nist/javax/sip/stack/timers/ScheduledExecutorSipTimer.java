@@ -25,6 +25,8 @@
 */
 package gov.nist.javax.sip.stack.timers;
 
+import gov.nist.core.StackLogger;
+import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
 
 import java.util.Properties;
@@ -41,6 +43,7 @@ import java.util.concurrent.TimeUnit;
  */
 public class ScheduledExecutorSipTimer implements SipTimer {
 
+	protected SipStackImpl sipStackImpl;
 	ScheduledThreadPoolExecutor threadPoolExecutor;
 	// Counts the number of cancelled tasks
     private volatile int numCancelled = 0;
@@ -55,6 +58,10 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	@Override
 	public void stop() {
 		threadPoolExecutor.shutdown();
+		sipStackImpl.getStackLogger().logStackTrace(StackLogger.TRACE_DEBUG);
+		if(sipStackImpl.getStackLogger().isLoggingEnabled(StackLogger.TRACE_INFO)) {
+			sipStackImpl.getStackLogger().logInfo("the sip stack timer " + this.getClass().getName() + " has been stopped");
+		}
 	}
 
 	/* (non-Javadoc)
@@ -85,13 +92,18 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 		return true;
 	}
 
-	/* (non-Javadoc)
-	 * @see gov.nist.javax.sip.stack.timers.SipTimer#setConfigurationProperties(java.util.Properties)
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl, java.util.Properties)
 	 */
 	@Override
-	public void start(Properties configurationProperties) {
+	public void start(SipStackImpl sipStack, Properties configurationProperties) {
+		sipStackImpl= sipStack;
 		// TODO have a param in the stack properties to set the number of thread for the timer executor
 		threadPoolExecutor.prestartAllCoreThreads();
+		if(sipStackImpl.getStackLogger().isLoggingEnabled(StackLogger.TRACE_INFO)) {
+			sipStackImpl.getStackLogger().logInfo("the sip stack timer " + this.getClass().getName() + " has been started");
+		}
 	}
 
 	@Override

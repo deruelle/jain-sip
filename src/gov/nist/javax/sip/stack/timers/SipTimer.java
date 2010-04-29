@@ -25,9 +25,10 @@
 */
 package gov.nist.javax.sip.stack.timers;
 
-import java.util.Properties;
-
+import gov.nist.javax.sip.SipStackImpl;
 import gov.nist.javax.sip.stack.SIPStackTimerTask;
+
+import java.util.Properties;
 
 /**
  * Interface to implement to plug a new Timer implementation. currently the  ones provided with the stack are based on java.util.Timer
@@ -70,7 +71,8 @@ public interface SipTimer {
 	/**
 	 * Start the SIP Timer, called when the stack is created. The stack configuration is passed
 	 * so that different implementations can use specific config properties to configure themselves
+	 * @param sipStack TODO
 	 * @param configurationProperties the stack properties
 	 */
-	void start(Properties configurationProperties);
+	void start(SipStackImpl sipStack, Properties configurationProperties);
 }

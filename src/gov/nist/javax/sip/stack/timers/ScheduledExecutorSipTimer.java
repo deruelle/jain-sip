@@ -55,7 +55,6 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	/* (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#stop()
 	 */
-	@Override
 	public void stop() {
 		threadPoolExecutor.shutdown();
 		sipStackImpl.getStackLogger().logStackTrace(StackLogger.TRACE_DEBUG);
@@ -67,7 +66,6 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	/* (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
-	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {
 		if(threadPoolExecutor.isShutdown()) {
 			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
@@ -81,7 +79,6 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
-	@Override
 	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
 		if(threadPoolExecutor.isShutdown()) {
@@ -96,7 +93,6 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl, java.util.Properties)
 	 */
-	@Override
 	public void start(SipStackImpl sipStack, Properties configurationProperties) {
 		sipStackImpl= sipStack;
 		// TODO have a param in the stack properties to set the number of thread for the timer executor
@@ -105,8 +101,10 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 			sipStackImpl.getStackLogger().logInfo("the sip stack timer " + this.getClass().getName() + " has been started");
 		}
 	}
-
-	@Override
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
+	 */
 	public boolean cancel(SIPStackTimerTask task) {
 		boolean cancelled = false;
 		ScheduledFuture<?> sipTimerTask = (ScheduledFuture<?>) task.getSipTimerTask();
@@ -144,6 +142,14 @@ public class ScheduledExecutorSipTimer implements SipTimer {
 	            e.printStackTrace();
 	        }
 		}				
+	}
+
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#isStarted()
+	 */
+	public boolean isStarted() {
+		return threadPoolExecutor.isTerminated();
 	}
 	
 }

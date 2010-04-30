@@ -540,7 +540,9 @@ public class SipStackImpl extends SIPTransactionStack implements
 		this.listeningPoints = new Hashtable<String, ListeningPointImpl>();
 		this.sipProviders = new LinkedList<SipProviderImpl>();
 		this.sipListener = null;
-
+		if(!getTimer().isStarted()) {
+			getTimer().start(this, configurationProperties);
+		}
 	}
 
 	/**

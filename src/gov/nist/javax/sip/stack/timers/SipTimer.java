@@ -75,4 +75,10 @@ public interface SipTimer {
 	 * @param configurationProperties the stack properties
 	 */
 	void start(SipStackImpl sipStack, Properties configurationProperties);
+	
+	/**
+	 * Check if the timer is started or stopped
+	 * @return true is the timer is started false otherwise
+	 */
+	boolean isStarted();
 }

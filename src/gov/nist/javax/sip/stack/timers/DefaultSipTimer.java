@@ -66,7 +66,6 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	        }
 		}
 		
-		@Override
 		public boolean cancel() {
 			if(task != null) {
 				task.cleanUpBeforeCancel();
@@ -80,7 +79,6 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#schedule(gov.nist.javax.sip.stack.SIPStackTimerTask, long)
 	 */
-	@Override
 	public boolean schedule(SIPStackTimerTask task, long delay) {
 		if(!started.get()) {
 			throw new IllegalStateException("The SIP Stack Timer has been stopped, no new tasks can be scheduled !");
@@ -93,7 +91,6 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#scheduleWithFixedDelay(gov.nist.javax.sip.stack.SIPStackTimerTask, long, long)
 	 */
-	@Override
 	public boolean scheduleWithFixedDelay(SIPStackTimerTask task, long delay,
 			long period) {
 		if(!started.get()) {
@@ -107,7 +104,6 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#cancel(gov.nist.javax.sip.stack.SIPStackTimerTask)
 	 */
-	@Override
 	public boolean cancel(SIPStackTimerTask task) {
 		return ((TimerTask)task.getSipTimerTask()).cancel();
 	}
@@ -116,7 +112,6 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#start(gov.nist.javax.sip.SipStackImpl, java.util.Properties)
 	 */
-	@Override
 	public void start(SipStackImpl sipStack, Properties configurationProperties) {
 		sipStackImpl= sipStack;
 		// don't need the properties so nothing to see here
@@ -130,7 +125,6 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 	 * (non-Javadoc)
 	 * @see gov.nist.javax.sip.stack.timers.SipTimer#stop()
 	 */
-	@Override
 	public void stop() {
 		started.set(false);
 		cancel();		
@@ -138,6 +132,14 @@ public class DefaultSipTimer extends Timer implements SipTimer {
 		if(sipStackImpl.getStackLogger().isLoggingEnabled(StackLogger.TRACE_INFO)) {
 			sipStackImpl.getStackLogger().logInfo("the sip stack timer " + this.getClass().getName() + " has been stopped");
 		}
+	}
+	
+	/*
+	 * (non-Javadoc)
+	 * @see gov.nist.javax.sip.stack.timers.SipTimer#isStarted()
+	 */
+	public boolean isStarted() {
+		return started.get();
 	}
 
 

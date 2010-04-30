@@ -1476,10 +1476,13 @@ public class SIPClientTransaction extends SIPTransaction implements ServerRespon
     public  Dialog getDialog() {
         // This is for backwards compatibility.
         Dialog retval = null;
-        if (this.lastResponse != null && this.lastResponse.getFromTag() != null
-                && this.lastResponse.getToTag() != null
-                && this.lastResponse.getStatusCode() != 100) {
-            String dialogId = this.lastResponse.getDialogId(false);
+        // get it in a local variable because the last response can be nullified and the if condition
+        // can throw NPE
+        SIPResponse localLastResponse = this.lastResponse;
+        if(localLastResponse != null && localLastResponse.getFromTag() != null
+                && localLastResponse.getToTag() != null
+                && localLastResponse.getStatusCode() != 100) {
+            String dialogId = localLastResponse.getDialogId(false);
             retval = (Dialog) getDialog(dialogId);
         }
 

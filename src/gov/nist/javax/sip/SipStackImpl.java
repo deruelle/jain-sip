@@ -540,8 +540,20 @@ public class SipStackImpl extends SIPTransactionStack implements
 		this.listeningPoints = new Hashtable<String, ListeningPointImpl>();
 		this.sipProviders = new LinkedList<SipProviderImpl>();
 		this.sipListener = null;
-		if(!getTimer().isStarted()) {
-			getTimer().start(this, configurationProperties);
+		if(!getTimer().isStarted()) {			
+			String defaultTimerName = configurationProperties.getProperty("gov.nist.javax.sip.TIMER_CLASS_NAME",DefaultSipTimer.class.getName());
+			try {				
+				setTimer((SipTimer)Class.forName(defaultTimerName).newInstance());
+				getTimer().start(this, configurationProperties);
+				if (getThreadAuditor().isEnabled()) {
+		            // Start monitoring the timer thread
+		            getTimer().schedule(new PingTimer(null), 0);
+		        }
+			} catch (Exception e) {
+				getStackLogger()
+					.logError(
+							"Bad configuration value for gov.nist.javax.sip.TIMER_CLASS_NAME", e);			
+			}
 		}
 	}
 

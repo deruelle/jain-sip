@@ -160,7 +160,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 //    protected Collection<String> lastResponseHeaders;
     // jeand replaced the last response with only the data from it needed to save on mem
     protected String lastResponseDialogId;
-    protected Via lastResponseTopMostVia;
+    private Via lastResponseTopMostVia;
     protected Integer lastResponseStatusCode;
     protected long lastResponseCSeqNumber;
     protected String lastResponseMethod;           
@@ -3707,4 +3707,11 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
     	}
     	return originalRequestRecordRouteHeaders;
     }
+
+	/**
+	 * @return the lastResponseTopMostVia
+	 */
+	public Via getLastResponseTopMostVia() {
+		return lastResponseTopMostVia;
+	}
 }

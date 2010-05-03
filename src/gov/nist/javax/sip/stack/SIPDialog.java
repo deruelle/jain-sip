@@ -729,7 +729,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * 
      * @param sipMessage -- SIP Message to extract the relevant information from.
      */
-    private void setRemoteParty(SIPMessage sipMessage) {
+    protected void setRemoteParty(SIPMessage sipMessage) {
 
         if (!isServer()) {
 
@@ -825,7 +825,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * 
      */
 
-    void setRemoteTarget(ContactHeader contact) {
+    protected void setRemoteTarget(ContactHeader contact) {
         this.remoteTarget = contact.getAddress();
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger().logDebug("Dialog.setRemoteTarget: " + this.remoteTarget);
@@ -1626,7 +1626,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      * 
      * @param hisTag is the remote tag to set.
      */
-    private void setRemoteTag(String hisTag) {
+    protected void setRemoteTag(String hisTag) {
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger().logDebug(
                     "setRemoteTag(): " + this + " remoteTag = " + this.hisTag + " new tag = "
@@ -1801,7 +1801,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
      *        dialog and for generating To tags for Server transaction requests that belong to
      *        this dialog.
      */
-    private void setLocalTag(String mytag) {
+    protected void setLocalTag(String mytag) {
         if (sipStack.isLoggingEnabled()) {
             sipStack.getStackLogger().logDebug("set Local tag " + mytag + " dialog = " + this);
             sipStack.getStackLogger().logStackTrace();
@@ -1868,7 +1868,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
         return this.localParty;
     }
 
-    private void setLocalParty(SIPMessage sipMessage) {
+    protected void setLocalParty(SIPMessage sipMessage) {
         if (!isServer()) {
             this.localParty = sipMessage.getFrom().getAddress();
         } else {
@@ -3540,7 +3540,7 @@ public class SIPDialog implements javax.sip.Dialog, DialogExt {
 	/**
 	 * @param reInviteFlag the reinviteFlag to set
 	 */
-	void setReInviteFlag(boolean reInviteFlag) {
+	protected void setReInviteFlag(boolean reInviteFlag) {
 		this.reInviteFlag = reInviteFlag;
 	}
 
